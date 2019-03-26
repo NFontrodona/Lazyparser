@@ -48,7 +48,7 @@ def parse_func(function):
             if len(type_info) == 0:
                 type_info = [None]
             res_dic[flt[0]] = [type_info[0], " ".join(flt_desc)]
-    signature = inspect.signature(function).parameters
+    signature = dict(inspect.signature(function).parameters)
     parsed_doc = add_dic(signature, res_dic)
     return description, parsed_doc
 
@@ -77,6 +77,23 @@ def init_parser(description, data_parse):
     return parser
 
 
+def message(sentence, type_m=None):
+    """
+    Return a message in the correct format.
+
+    :param sentence: (string) the message we want to return.
+    :param type_m: (string or None) the type of the message to display
+    :return: (string) the message in a correct format.
+    """
+    sentence = re.sub('\s+', ' ', sentence)
+    if not type_m:
+        return sentence
+    if type_m == "w":
+        return "\033[33m" + sentence + "\033[0m"
+    else:
+        return "\033[31m" + sentence + "\033[0m"
+
+
 def add_dic(dic1, dic2):
     """
     Add two dictionary together.
@@ -90,14 +107,15 @@ def add_dic(dic1, dic2):
     if len(dic2.keys()) == 0:
         return dic1
     if sorted(list_k) != sorted(list(dic2.keys())):
-        print("Warning : the signature of the function it's docstring \
-               have not the same param names !")
+        print(message("WARNING : the signature of the function and \
+                      it's docstring have not the same param names !",
+                      type_m="w"))
     new_dic = {}
     for k in list_k:
         if k in dic2.keys():
             new_dic[k] = [dic1[k].default] + dic2[k]
         else:
-            new_dic[k] = [dic1[k].default] + ["(str)", "void"]
+            new_dic[k] = [dic1[k].default] + ["(str)", "(str) param %s" % k]
     return new_dic
 
 
@@ -125,7 +143,8 @@ def wrap(function):
                 statement = "args.{0} = data_parse[my_arg][1](args.{0})"
                 exec(statement.format(my_arg))
             except ValueError:
-                msg = "Error : argument --{0} must be a {1}"
+                msg = message("Error : argument --{0} must be a {1}",
+                              type_m="e")
                 type_arg = data_parse[my_arg][1].__name__
                 parser.error(msg.format(my_arg, type_arg))
             str_args += "%s=args.%s, " % (my_arg, my_arg)
