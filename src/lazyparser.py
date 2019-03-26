@@ -52,6 +52,42 @@ type_list = {"(int)": int, "(float)": float, "(string)": str, "(str)": str,
              "(NoneType)": none_func}
 
 
+def get_name(name, list_of_name, size=1):
+    """
+
+    :param name: (string) the param name
+    :param list_of_name: (string) the list of param name
+    :param size: (int) the size of the name used
+    :return: (string) the param name selected
+    """
+    print("name : %s" % name)
+    print("list_of_name : %s" % list_of_name)
+    if name[0:size] not in list_of_name:
+        return name[0:size]
+    elif name[0:size].upper() not in list_of_name:
+        return name[0:size].upper()
+    else:
+        return get_name(name, list_of_name, size=size + 1)
+
+
+def get_short_param_name(param_names):
+    """
+    Get the short param name of the parameters ``param_names`` of a function.
+
+    :param param_names: (list of string) list of param name
+    :return: (dictionary of string) dictionary that links each param to \
+    its short name
+    """
+    param_names = sorted(param_names)
+    short_dic = {}
+    selected_param = []
+    for param in param_names:
+        sn = get_name(param, selected_param)
+        short_dic[param] = sn
+        selected_param.append(sn)
+    return short_dic
+
+
 def parse_func(function, dic_test):
     """
     Parse the docstring of ``function``.
@@ -89,7 +125,10 @@ def parse_func(function, dic_test):
     else:
         description = ""
     signature = dict(inspect.signature(function).parameters)
+    short_name = get_short_param_name(list(signature.keys()))
+    print(short_name)
     parsed_doc = add_dic(signature, res_dic, dic_test)
+    parsed_doc = {k: parsed_doc[k] + [short_name[k]] for k in parsed_doc}
     return description, parsed_doc
 
 
@@ -107,12 +146,12 @@ def init_parser(description, data_parse):
     rargs = parser.add_argument_group("required argument")
     for arg in arguments:
         if data_parse[arg][0] == inspect._empty:
-            rargs.add_argument("--%s" % arg, dest=arg,
-                               help=data_parse[arg][2],
+            rargs.add_argument("-%s" % data_parse[arg][4], "--%s" % arg,
+                               dest=arg, help=data_parse[arg][2],
                                required=True)
         else:
-            parser.add_argument("--%s" % arg, dest=arg,
-                                help=data_parse[arg][2],
+            parser.add_argument("-%s" % data_parse[arg][4], "--%s" % arg,
+                                dest=arg, help=data_parse[arg][2],
                                 default=data_parse[arg][0])
     return parser
 
@@ -211,7 +250,6 @@ def wrapper(func=None, **kwargs):
         :param function: (function) the function to wrap
         :return: (function) the method calling `` function``.
         """
-
         @functools.wraps(function)
         def call_func():
             """
