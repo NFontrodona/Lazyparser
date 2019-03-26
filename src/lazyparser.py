@@ -176,9 +176,15 @@ def tests_function(arg_value, arg_name, test_cond, parser):
         msg = "The argument --%s %s must take it's value in %s"
         parser.error(message(msg % (arg_name, val, str(test_cond)), "e"))
     elif isinstance(test_cond, str) and test_cond in ["file", "dir"]:
-        if not eval("os.path.is%s(arg_value)" % test_cond):
+        eval_str = "os.path.is%s(arg_value)" % test_cond
+        relevant = isinstance(arg_value, str)
+        if relevant and isinstance(test_cond, str) and not eval(eval_str):
             msg = "The argument --%s %s must be an existing %s"
             parser.error(message(msg % (arg_name, val, test_cond), "e"))
+        if not relevant:
+            msg = "WARNING : The argument --%s %s is not a string and " \
+                  "therefore can't be a file."
+            print(message(msg % (arg_name, val), "w"))
     elif isinstance(test_cond, str) and test_cond != "void":
         cond = test_cond.replace(arg_name, str(arg_value))
         try:
