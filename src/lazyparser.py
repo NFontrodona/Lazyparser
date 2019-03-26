@@ -11,17 +11,39 @@ import argparse
 import re
 import inspect
 import functools
+import os
+
+
+def none_func(value, argname):
+    """
+    Say if a value can be a NoneType value.
+
+    :param value: (value) a variable
+    :param argname: (string) the name of the argument
+    :return: (value) the value or NoneType if value = "None"
+    """
+    if value == "None":
+        return None
+    else:
+        msg = "WARNING the argument --%s is not None" \
+              " it's type will be set to str" % argname
+        print(message(msg, "w"))
+        return value
+
 
 type_list = {"(int)": int, "(float)": float, "(string)": str, "(str)": str,
              "(file)": str, "(bool)": bool,
-             "(boolean)": bool, None: None}
+             "(boolean)": bool, None: None,
+             "(None)": none_func,
+             "(NoneType)": none_func}
 
 
-def parse_func(function):
+def parse_func(function, dic_test):
     """
     Parse the docstring of ``function``.
 
     :param function: (function) function whose docstring is going to be parsed.
+    :param dic_test: (dictionary of values) the test to perform for each param.
     :return: (dictionary of list of values) link each arguments \
     to their type and their description.
     """
@@ -31,7 +53,7 @@ def parse_func(function):
     if doc:
         doc = filter(None, re.split("[\n\r]", doc))
         for line in doc:
-            line = re.sub('\s+', ' ', line).strip()
+            line = re.sub(r"\s+", ' ', line).strip()
             if ":return:" not in line and "param" not in line:
                 description += line
             if ":param " in line:
@@ -44,15 +66,16 @@ def parse_func(function):
                 type_info = [type_list[w] for w in flt_desc if
                              w.replace(" ", "") in type_list.keys()]
                 if len(type_info) > 1:
-                    print("Warning multiple type detected for %s"
-                          "only the first one will be present" % flt[0])
+                    msg = "Warning multiple type detected for {} " \
+                          "only the first one will be present"
+                    print(message(msg.format(flt[0]), "w"))
                 if len(type_info) == 0:
                     type_info = [None]
                 res_dic[flt[0]] = [type_info[0], " ".join(flt_desc)]
     else:
         description = ""
     signature = dict(inspect.signature(function).parameters)
-    parsed_doc = add_dic(signature, res_dic)
+    parsed_doc = add_dic(signature, res_dic, dic_test)
     return description, parsed_doc
 
 
@@ -88,7 +111,7 @@ def message(sentence, type_m=None):
     :param type_m: (string or None) the type of the message to display
     :return: (string) the message in a correct format.
     """
-    sentence = re.sub('\s+', ' ', sentence)
+    sentence = re.sub(r"\s+", ' ', sentence)
     if not type_m:
         return sentence
     if type_m == "w":
@@ -97,12 +120,13 @@ def message(sentence, type_m=None):
         return "\033[31m" + sentence + "\033[0m"
 
 
-def add_dic(dic1, dic2):
+def add_dic(dic1, dic2, dic_test):
     """
     Add two dictionary together.
 
     :param dic1: (dict of list) dictionary containing list of values.
     :param dic2: (dict of list) dictionary containing list of values.
+    :param dic_test: (dict of keys) dictionary containing test values.
     :return: (dictionary of list) dictionary that concatenates \
     the list in every key of dic1 and dic2.
     """
@@ -116,39 +140,99 @@ def add_dic(dic1, dic2):
         if k in dic2.keys():
             new_dic[k] = [dic1[k].default] + dic2[k]
         else:
-            new_dic[k] = [dic1[k].default] + ["(str)", "(str) param %s" % k]
+            new_dic[k] = [dic1[k].default] + [str, "(str) param %s" % k]
+        if k in dic_test.keys():
+            new_dic[k] += [dic_test[k]]
+        else:
+            new_dic[k] += ["void"]
     return new_dic
 
 
-def wrap(function):
+def tests_function(arg_value, arg_name, test_cond, parser):
     """
-    Wrapper of the function ``function``.
+    Performs the test conditions wanted.
 
-    :param function: (function) the function to wrap
-    :return: (LazyParser call_func method) the method calling `` function``.
+    :param arg_value: (value)
+    :param arg_name: (string) the name of the argument
+    :param test_cond: (value) test
+    :param parser: (class ArgumentParser) the argparse parser.
+
+    :return:
     """
-
-    @functools.wraps(function)
-    def call_func():
-        """
-        Call the function ``self.func`` and return it's result.
-
-        :return: the result of the function ``self.func``
-        """
-        description, data_parse = parse_func(function)
-        parser = init_parser(description, data_parse)
-        args = parser.parse_args()
-        str_args = ""
-        for my_arg in data_parse.keys():
+    if isinstance(test_cond, list):
+        if arg_value not in test_cond:
+            msg = "The argument --%s must take it's value in %s"
+            parser.error(message(msg % (arg_name, str(test_cond)), "e"))
+    elif isinstance(test_cond, str):
+        if test_cond in ["file", "dir"]:
+            if not eval("os.path.is%s(arg_value)" % test_cond):
+                msg = "The argument --%s must be an existing %s"
+                parser.error(message(msg % (arg_name, test_cond), "e"))
+        if test_cond != "void":
+            cond = test_cond.replace(arg_name, str(arg_value))
             try:
-                statement = "args.{0} = data_parse[my_arg][1](args.{0})"
-                exec(statement.format(my_arg))
-            except ValueError:
-                msg = message("argument --{0} must be a {1}",
-                              type_m="e")
-                type_arg = data_parse[my_arg][1].__name__
-                parser.error(msg.format(my_arg, type_arg))
-            str_args += "%s=args.%s, " % (my_arg, my_arg)
-        str_args = str_args[:-2]
-        return eval("function(%s)" % str_args)
-    return call_func
+                if not eval(cond):
+                    msg = "The argument --%s must respect this assertion : %s"
+                    parser.error(message(msg % (arg_name, test_cond), "e"))
+            except (SyntaxError, TypeError, NameError):
+                msg = "WARNING : Wrong assertion for --%s argument. " \
+                      "It will be ignored"
+                print(message(msg % arg_name, "w"))
+
+
+def wrapper(func=None, **kwargs):
+    """
+
+    :param func: (function) the function of interest
+    :param kwargs: (dictionary) the named arguments
+    :return: (function) wrap
+    """
+    def wrap(function):
+        """
+        Wrapper of the function ``function``.
+
+        :param function: (function) the function to wrap
+        :return: (function) the method calling `` function``.
+        """
+
+        @functools.wraps(function)
+        def call_func():
+            """
+            Call the function ``self.func`` and return it's result.
+
+            :return: the result of the function ``self.func``
+            """
+            description, data_parse = parse_func(function, kwargs)
+            parser = init_parser(description, data_parse)
+            args = parser.parse_args()
+            str_args = ""
+            for my_arg in data_parse.keys():
+                try:
+                    statement = "args.{0} = data_parse[my_arg][1]"
+                    if data_parse[my_arg][1].__name__ == "none_func":
+                        statement += "(args.{0}, '{0}')"
+                    else:
+                        statement += "(args.{0})"
+                    exec(statement.format(my_arg))
+                    tests_function(eval("args.%s" % my_arg), my_arg,
+                                   data_parse[my_arg][3], parser)
+                except ValueError:
+                    msg = message("argument --{0} must be a {1}",
+                                  type_m="e")
+                    type_arg = data_parse[my_arg][1].__name__
+                    parser.error(msg.format(my_arg, type_arg))
+                str_args += "%s=args.%s, " % (my_arg, my_arg)
+            str_args = str_args[:-2]
+            return eval("function(%s)" % str_args)
+        return call_func
+    if func is None:
+        def decore_call(function):
+            """
+            Decorate wrap function.
+
+            :param function: (function) the function to wrap
+            :return: (function) call_func
+            """
+            return wrap(function)
+        return decore_call
+    return wrap(func)
