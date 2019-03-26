@@ -14,6 +14,20 @@ import functools
 import os
 
 
+def give_arg_vals(arg_value):
+    """
+    Give a string message giving the value of  ``arg_value``.
+
+    :param arg_value: (value) the value of an argument
+    :return: (string) string indicating the value of ``arg_value``
+    """
+    if isinstance(arg_value, str):
+        val = "(of value '%s')" % arg_value
+    else:
+        val = "(of value %s)" % arg_value
+    return val
+
+
 def none_func(value, argname):
     """
     Say if a value can be a NoneType value.
@@ -24,11 +38,11 @@ def none_func(value, argname):
     """
     if value == "None":
         return None
-    else:
-        msg = "WARNING the argument --%s is not None" \
-              " it's type will be set to str" % argname
-        print(message(msg, "w"))
-        return value
+    val = give_arg_vals(value)
+    msg = "WARNING the argument --%s %s is not None" \
+          " it's type will be set to str" % (argname, val)
+    print(message(msg, "w"))
+    return value
 
 
 type_list = {"(int)": int, "(float)": float, "(string)": str, "(str)": str,
@@ -156,28 +170,25 @@ def tests_function(arg_value, arg_name, test_cond, parser):
     :param arg_name: (string) the name of the argument
     :param test_cond: (value) test
     :param parser: (class ArgumentParser) the argparse parser.
-
-    :return:
     """
-    if isinstance(test_cond, list):
-        if arg_value not in test_cond:
-            msg = "The argument --%s must take it's value in %s"
-            parser.error(message(msg % (arg_name, str(test_cond)), "e"))
-    elif isinstance(test_cond, str):
-        if test_cond in ["file", "dir"]:
-            if not eval("os.path.is%s(arg_value)" % test_cond):
-                msg = "The argument --%s must be an existing %s"
-                parser.error(message(msg % (arg_name, test_cond), "e"))
-        if test_cond != "void":
-            cond = test_cond.replace(arg_name, str(arg_value))
-            try:
-                if not eval(cond):
-                    msg = "The argument --%s must respect this assertion : %s"
-                    parser.error(message(msg % (arg_name, test_cond), "e"))
-            except (SyntaxError, TypeError, NameError):
-                msg = "WARNING : Wrong assertion for --%s argument. " \
-                      "It will be ignored"
-                print(message(msg % arg_name, "w"))
+    val = give_arg_vals(arg_value)
+    if isinstance(test_cond, list) and arg_value not in test_cond:
+        msg = "The argument --%s %s must take it's value in %s"
+        parser.error(message(msg % (arg_name, val, str(test_cond)), "e"))
+    elif isinstance(test_cond, str) and test_cond in ["file", "dir"]:
+        if not eval("os.path.is%s(arg_value)" % test_cond):
+            msg = "The argument --%s %s must be an existing %s"
+            parser.error(message(msg % (arg_name, val, test_cond), "e"))
+    elif isinstance(test_cond, str) and test_cond != "void":
+        cond = test_cond.replace(arg_name, str(arg_value))
+        try:
+            if not eval(cond):
+                msg = "The argument --%s %s must respect this assertion : %s"
+                parser.error(message(msg % (arg_name, val, test_cond), "e"))
+        except (SyntaxError, TypeError, NameError):
+            msg = "WARNING : Wrong assertion for --%s argument. " \
+                  "It will be ignored"
+            print(message(msg % arg_name, "w"))
 
 
 def wrapper(func=None, **kwargs):
@@ -217,10 +228,11 @@ def wrapper(func=None, **kwargs):
                     tests_function(eval("args.%s" % my_arg), my_arg,
                                    data_parse[my_arg][3], parser)
                 except ValueError:
-                    msg = message("argument --{0} must be a {1}",
+                    val = give_arg_vals(eval("args.{0}".format(my_arg)))
+                    msg = message("argument --{0} {1} must be a {2}",
                                   type_m="e")
                     type_arg = data_parse[my_arg][1].__name__
-                    parser.error(msg.format(my_arg, type_arg))
+                    parser.error(msg.format(my_arg, val, type_arg))
                 str_args += "%s=args.%s, " % (my_arg, my_arg)
             str_args = str_args[:-2]
             return eval("function(%s)" % str_args)
