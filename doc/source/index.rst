@@ -10,7 +10,8 @@ Welcome to Lazyparser's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   lazyparser
+   license
 
 Indices and tables
 ==================
