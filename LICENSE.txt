@@ -1,0 +1,6 @@
+Lazyparser is (c) 2019 Nicolas Fontrodona <nfontrodona@orange.fr>
+
+The Lazyparser module is licensed under the Apache License 2.0. Same license applies to all 
+files in the Lazyparser project.
+
+For more detail about the Apache License 2.0, you can read the doc/source/License.txt file.
