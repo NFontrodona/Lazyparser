@@ -65,8 +65,6 @@ def get_name(name, list_of_name, size=1):
     :param size: (int) the size of the name used
     :return: (string) the param name selected
     """
-    print("name : %s" % name)
-    print("list_of_name : %s" % list_of_name)
     if name[0:size] not in list_of_name:
         return name[0:size]
     elif name[0:size].upper() not in list_of_name:
@@ -131,7 +129,6 @@ def parse_func(function, dic_test):
         description = ""
     signature = dict(inspect.signature(function).parameters)
     short_name = get_short_param_name(list(signature.keys()))
-    print(short_name)
     parsed_doc = add_dic(signature, res_dic, dic_test)
     parsed_doc = {k: parsed_doc[k] + [short_name[k]] for k in parsed_doc}
     return description, parsed_doc
