@@ -1,0 +1,4 @@
+.idea/
+src/*.pyc
+src/__pycache__/
+doc/build/
