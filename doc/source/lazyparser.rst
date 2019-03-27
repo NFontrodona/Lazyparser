@@ -96,6 +96,7 @@ Constraints
 You can constrain the values that an argument with:
 
 .. code:: python
+
 	@lazyparser.wrapper(a=[1, 2]) # the parameter a must be equal to 1 or 2
 	@lazyparser.wrapper(a=["a", "b"]) # the parameter a must be equal to "a" or "b"
 	@lazyparser.wrapper(a="file") # the parameter a must be an existing file
