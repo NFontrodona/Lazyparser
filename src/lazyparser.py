@@ -3,6 +3,8 @@
 # -*- coding utf-8 -*-
 
 """
+Author : Fontrodona Nicolas (2019)
+
 Description:
     This script define the lazyparser.
 """
@@ -12,6 +14,9 @@ import re
 import inspect
 import functools
 import os
+
+
+__version__ = 0.1
 
 
 def give_arg_vals(arg_value):
