@@ -193,26 +193,39 @@ def add_dic(dic1, dic2, dic_test):
     return new_dic
 
 
-def tests_function(arg_value, arg_name, test_cond, parser):
+def tests_function(arg_value, arg_name, short_name, test_cond, parser):
     """
     Performs the test conditions wanted.
 
     :param arg_value: (value)
     :param arg_name: (string) the name of the argument
+    :param short_name: (string) the sort name of the argument
     :param test_cond: (value) test
     :param parser: (class ArgumentParser) the argparse parser.
     """
-    val = give_arg_vals(arg_value)
+    if short_name:
+        margs = "-%s/--%s" % (short_name, arg_name)
+    else:
+        margs = "--%s" % arg_name
     if isinstance(test_cond, str):
-        cond = test_cond.replace(arg_name, str(arg_value))
-        try:
-            if not eval(cond):
-                msg = "The argument --%s %s must respect this assertion : %s"
-                parser.error(message(msg % (arg_name, val, test_cond), "e"))
-        except (SyntaxError, TypeError, NameError):
-            msg = "WARNING : Wrong assertion for --%s argument. " \
-                  "It will be ignored"
-            print(message(msg % arg_name, "w"))
+        if " %s " % arg_name in test_cond or " %s " % short_name in test_cond:
+            if " %s " % arg_name in test_cond:
+                cond = test_cond.replace(" %s " % arg_name, str(arg_value))
+            else:
+                cond = test_cond.replace(" %s " % short_name, str(arg_value))
+            try:
+                if not eval(cond):
+                    msg = "argument %s: invalid choice: %s " \
+                          "(it must respect this assertion : %s)"
+                    parser.error(message(msg % (margs, arg_value, test_cond)))
+            except (SyntaxError, TypeError, NameError):
+                msg = "WARNING : argument %s: wrong assertion: %s. " \
+                      "It will be ignored"
+                print(message(msg % (margs, test_cond), "w"))
+        else:
+            msg = "WARNING : argument %s: not found in assertion: %s. " \
+                      "It will be ignored"
+            print(message(msg % (margs, test_cond), "w"))
 
 
 def wrapper(func=None, **kwargs):
@@ -242,6 +255,7 @@ def wrapper(func=None, **kwargs):
             str_args = ""
             for my_arg in data_parse.keys():
                 tests_function(eval("args.%s" % my_arg), my_arg,
+                               data_parse[my_arg][4],
                                data_parse[my_arg][3], parser)
                 str_args += "%s=args.%s, " % (my_arg, my_arg)
             str_args = str_args[:-2]
