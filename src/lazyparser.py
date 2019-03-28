@@ -33,28 +33,9 @@ def give_arg_vals(arg_value):
     return val
 
 
-def none_func(value, argname):
-    """
-    Say if a value can be a NoneType value.
-
-    :param value: (value) a variable
-    :param argname: (string) the name of the argument
-    :return: (value) the value or NoneType if value = "None"
-    """
-    if value == "None":
-        return None
-    val = give_arg_vals(value)
-    msg = "WARNING the argument --%s %s is not None" \
-          " it's type will be set to str" % (argname, val)
-    print(message(msg, "w"))
-    return value
-
-
 type_list = {"(int)": int, "(float)": float, "(string)": str, "(str)": str,
              "(file)": str, "(bool)": bool,
-             "(boolean)": bool, None: None,
-             "(None)": none_func,
-             "(NoneType)": none_func}
+             "(boolean)": bool, None: None}
 
 
 def get_name(name, list_of_name, size=1):
@@ -143,17 +124,20 @@ def init_parser(description, data_parse):
     default values, it type and description.
     :return: (class ArgumentParser) the argparse parser.
     """
+    print(data_parse)
     parser = argparse.ArgumentParser(description=description)
     arguments = [key for key in data_parse.keys() if key != "doc"]
-    rargs = parser.add_argument_group("required argument")
+    rargs = parser.add_argument_group("required arguments")
     for arg in arguments:
         if data_parse[arg][0] == inspect._empty:
             rargs.add_argument("-%s" % data_parse[arg][4], "--%s" % arg,
                                dest=arg, help=data_parse[arg][2],
+                               type=data_parse[arg][1],
                                required=True)
         else:
             parser.add_argument("-%s" % data_parse[arg][4], "--%s" % arg,
                                 dest=arg, help=data_parse[arg][2],
+                                type=data_parse[arg][1],
                                 default=data_parse[arg][0])
     return parser
 
@@ -264,21 +248,8 @@ def wrapper(func=None, **kwargs):
             args = parser.parse_args()
             str_args = ""
             for my_arg in data_parse.keys():
-                try:
-                    statement = "args.{0} = data_parse[my_arg][1]"
-                    if data_parse[my_arg][1].__name__ == "none_func":
-                        statement += "(args.{0}, '{0}')"
-                    else:
-                        statement += "(args.{0})"
-                    exec(statement.format(my_arg))
-                    tests_function(eval("args.%s" % my_arg), my_arg,
-                                   data_parse[my_arg][3], parser)
-                except ValueError:
-                    val = give_arg_vals(eval("args.{0}".format(my_arg)))
-                    msg = message("argument --{0} {1} must be a {2}",
-                                  type_m="e")
-                    type_arg = data_parse[my_arg][1].__name__
-                    parser.error(msg.format(my_arg, val, type_arg))
+                tests_function(eval("args.%s" % my_arg), my_arg,
+                               data_parse[my_arg][3], parser)
                 str_args += "%s=args.%s, " % (my_arg, my_arg)
             str_args = str_args[:-2]
             return eval("function(%s)" % str_args)
