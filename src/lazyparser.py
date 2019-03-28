@@ -129,15 +129,21 @@ def init_parser(description, data_parse):
     arguments = [key for key in data_parse.keys() if key != "doc"]
     rargs = parser.add_argument_group("required arguments")
     for arg in arguments:
+        if isinstance(data_parse[arg][3], str):
+            mchoice = None
+        else:
+            mchoice = data_parse[arg][3]
         if data_parse[arg][0] == inspect._empty:
             rargs.add_argument("-%s" % data_parse[arg][4], "--%s" % arg,
                                dest=arg, help=data_parse[arg][2],
                                type=data_parse[arg][1],
+                               choices=mchoice,
                                required=True)
         else:
             parser.add_argument("-%s" % data_parse[arg][4], "--%s" % arg,
                                 dest=arg, help=data_parse[arg][2],
                                 type=data_parse[arg][1],
+                                choices=mchoice,
                                 default=data_parse[arg][0])
     return parser
 
@@ -183,7 +189,7 @@ def add_dic(dic1, dic2, dic_test):
         if k in dic_test.keys():
             new_dic[k] += [dic_test[k]]
         else:
-            new_dic[k] += ["void"]
+            new_dic[k] += [None]
     return new_dic
 
 
@@ -197,20 +203,7 @@ def tests_function(arg_value, arg_name, test_cond, parser):
     :param parser: (class ArgumentParser) the argparse parser.
     """
     val = give_arg_vals(arg_value)
-    if isinstance(test_cond, list) and arg_value not in test_cond:
-        msg = "The argument --%s %s must take it's value in %s"
-        parser.error(message(msg % (arg_name, val, str(test_cond)), "e"))
-    elif isinstance(test_cond, str) and test_cond in ["file", "dir"]:
-        eval_str = "os.path.is%s(arg_value)" % test_cond
-        relevant = isinstance(arg_value, str)
-        if relevant and isinstance(test_cond, str) and not eval(eval_str):
-            msg = "The argument --%s %s must be an existing %s"
-            parser.error(message(msg % (arg_name, val, test_cond), "e"))
-        if not relevant:
-            msg = "WARNING : The argument --%s %s is not a string and " \
-                  "therefore can't be a file."
-            print(message(msg % (arg_name, val), "w"))
-    elif isinstance(test_cond, str) and test_cond != "void":
+    if isinstance(test_cond, str):
         cond = test_cond.replace(arg_name, str(arg_value))
         try:
             if not eval(cond):
