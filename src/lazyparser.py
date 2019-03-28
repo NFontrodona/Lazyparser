@@ -18,24 +18,37 @@ import os
 
 __version__ = 0.1
 
-
-def give_arg_vals(arg_value):
-    """
-    Give a string message giving the value of  ``arg_value``.
-
-    :param arg_value: (value) the value of an argument
-    :return: (string) string indicating the value of ``arg_value``
-    """
-    if isinstance(arg_value, str):
-        val = "(of value '%s')" % arg_value
-    else:
-        val = "(of value %s)" % arg_value
-    return val
-
-
 type_list = {"(int)": int, "(float)": float, "(string)": str, "(str)": str,
              "(file)": str, "(bool)": bool,
+             # "(function)": object, "(object)": object,
              "(boolean)": bool, None: None}
+
+
+def get_type(type_arg):
+    """
+    Get the type of an argument.
+
+    :param type_arg: (string) an argument type
+    :return: (Type) the type of ``type_arg``
+    """
+    if type_arg in type_list.keys():
+        return type_list[type_arg]
+    elif "FileType" in type_arg:
+        my_line = re.split(r"[()]", type_arg)
+        print(my_line)
+        if len(my_line) != 5:
+            msg = "WARNING : FileType must be specified with the " \
+                  "opening mode : ex FileType(w) FileType(r) - " \
+                  "setting type to str"
+            print(message(msg, "w"))
+            return str
+        else:
+            my_line[2] = re.sub(r"[\"\']", "", my_line[2])
+            return argparse.FileType(my_line[2])
+    else:
+        msg = "WARNING : unknown type %s, type set to str" % type_arg
+        print(message(msg, "w"))
+        return str
 
 
 def get_name(name, list_of_name, size=1):
@@ -97,8 +110,10 @@ def parse_func(function, dic_test):
                     flt_desc = ":".join(flt[1]).split(" ")
                 else:
                     flt_desc = flt[1].split(" ")
-                type_info = [type_list[w] for w in flt_desc if
-                             w.replace(" ", "") in type_list.keys()]
+                print(flt_desc)
+                type_info = [get_type(w.replace(" ", "")) for w in flt_desc if
+                             re.search(r"\(.*\)", w) and
+                             re.search(r"\(.*\)", w).span() == (0, len(w))]
                 if len(type_info) > 1:
                     msg = "Warning multiple type detected for {} " \
                           "only the first one will be present"
@@ -207,7 +222,7 @@ def tests_function(arg_value, arg_name, short_name, test_cond, parser):
         margs = "-%s/--%s" % (short_name, arg_name)
     else:
         margs = "--%s" % arg_name
-    if isinstance(test_cond, str):
+    if isinstance(test_cond, str) and test_cond != "dir":
         if " %s " % arg_name in test_cond or " %s " % short_name in test_cond:
             if " %s " % arg_name in test_cond:
                 cond = test_cond.replace(" %s " % arg_name, str(arg_value))
@@ -226,6 +241,16 @@ def tests_function(arg_value, arg_name, short_name, test_cond, parser):
             msg = "WARNING : argument %s: not found in assertion: %s. " \
                       "It will be ignored"
             print(message(msg % (margs, test_cond), "w"))
+    if isinstance(test_cond, str) and test_cond == "dir":
+        eval_str = "os.path.is%s(arg_value)" % test_cond
+        relevant = isinstance(arg_value, str)
+        if relevant and isinstance(test_cond, str) and not eval(eval_str):
+            msg = "argument %s: invalid choice: %s: it must be an existing dir"
+            parser.error(message(msg % (margs, arg_value)))
+        if not relevant:
+            msg = "WARNING : argument %s: not a string and " \
+            "therefore can't be a file."
+            print(message(msg % margs, "w"))
 
 
 def wrapper(func=None, **kwargs):
