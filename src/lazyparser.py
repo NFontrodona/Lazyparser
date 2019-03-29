@@ -10,11 +10,11 @@ Description:
 """
 
 import argparse
+from argparse import FileType
 import re
 import inspect
 import functools
 import os
-
 
 __version__ = 0.1
 
@@ -24,31 +24,170 @@ type_list = {"(int)": int, "(float)": float, "(string)": str, "(str)": str,
              "(boolean)": bool, None: None}
 
 
-def get_type(type_arg):
+class Argument(object):
     """
-    Get the type of an argument.
+    Represent a Lazyparser Argument.
+    """
+    def __init__(self, name_arg, default, arg_type):
+        """
+        Initiate the creation of an argument.
 
-    :param type_arg: (string) an argument type
-    :return: (Type) the type of ``type_arg``
-    """
-    if type_arg in type_list.keys():
-        return type_list[type_arg]
-    elif "FileType" in type_arg:
-        my_line = re.split(r"[()]", type_arg)
-        print(my_line)
-        if len(my_line) != 5:
-            msg = "WARNING : FileType must be specified with the " \
-                  "opening mode : ex FileType(w) FileType(r) - " \
-                  "setting type to str"
-            print(message(msg, "w"))
+        :param name_arg: (string) the name of the argument
+        :param default: the default value of the argument
+        :param arg_type: (type) the type of the argument
+        """
+        self.name = name_arg
+        self.type = None if arg_type == inspect._empty else \
+            (arg_type if isinstance(arg_type, type) else None)
+        self.default = str(default) if default in [True, False] else \
+            (default if default != inspect._empty else None)
+        self.help = "param %s" % self.name
+        self.short_name = None
+        self.choice = None
+        self.value = None
+
+    def update_default(self, default):
+        """
+        Update the default value of self if it set to None.
+
+        :param default: (value)
+        """
+        self.default = self.default if self.default else default
+
+    def update_type(self, arg_type):
+        """
+        Update the type value of self if it set to None.
+
+        :param arg_type: (value)
+        """
+        self.type = self.type if self.type else arg_type
+
+    def gfn(self):
+        """
+        Get the full name of the argument.
+
+        :return: (string) the full name of the argument
+        """
+        if self.short_name:
+            name_arg = "-%s/--%s" % (self.short_name, self.name)
+        else:
+            name_arg = "--%s" % self.name
+        return name_arg
+
+    def argparse_type(self):
+        """
+        :return: (type)
+        """
+        if self.type == bool:
             return str
         else:
-            my_line[2] = re.sub(r"[\"\']", "", my_line[2])
-            return argparse.FileType(my_line[2])
-    else:
-        msg = "WARNING : unknown type %s, type set to str" % type_arg
-        print(message(msg, "w"))
-        return str
+            return self.type
+
+    def argparse_choice(self):
+        """
+        :return: (value)
+        """
+        if isinstance(self.choice, str):
+            return None
+        else:
+            return self.choice
+
+
+class Lazyparser(object):
+    """
+    Lazyparser class.
+    """
+    def __init__(self, function, choice):
+        """
+        Initialization with a function.
+
+        :param function: (object) a function
+        :param choice: (dictionary) the contains
+        """
+        self.func = function
+        sign = dict(inspect.signature(function).parameters)
+        self.args = {k: Argument(k, sign[k].default, sign[k].annotation) for
+                     k in sign.keys()}
+        self.help = self.description()
+        self.update_param()
+        self.get_short_name()
+        self.set_constrain(choice)
+
+    def description(self):
+        """
+        Get the description of self.function.
+
+        :return: (string) description of self.func
+        """
+        if not self.func.__doc__:
+            return ""
+        else:
+            description = ""
+            doc = filter(None, re.split("[\n\r]", self.func.__doc__))
+            for line in doc:
+                line = re.sub(r"\s+", ' ', line).strip()
+                if ":return:" not in line and "param" not in line:
+                    description += line
+            return description
+
+    def update_type(self, arg_name, help_info):
+        """
+        Update the type of an empty parameter.
+
+        :param arg_name: (string) the name of the argument
+        :param help_info: (list of string) the list string representing the \
+        help for the parameter ``arg_name``
+        """
+        type_info = [get_type(w.replace(" ", ""), self.args[arg_name])
+                     for w in help_info if re.search(r"\(.*\)", w) and
+                     re.search(r"\(.*\)", w).span() == (0, len(w))]
+        if len(type_info) > 1:
+            msg = "multiple type detected for %s only the first was selected"
+            print(message(msg % arg_name, self.args[arg_name], "w"))
+        self.args[arg_name].type = type_info[0]
+
+    def update_param(self):
+        """
+        Update if needed the type and the help of every args.
+        """
+        if self.func.__doc__:
+            doc = filter(lambda x: ":param" in x,
+                         re.split("[\n\r]", self.func.__doc__))
+            for line in doc:
+                flt = list(filter(None, line.split(":param")[1].split(":")))
+                flt = [word.strip() for word in flt]
+                if flt[0] in self.args.keys():
+                    if isinstance(flt[1], list):
+                        flt_desc = ":".join(flt[1]).split(" ")
+                    else:
+                        flt_desc = flt[1].split(" ")
+                    self.args[flt[0]].help = " ".join(flt_desc)
+                    if not self.args[flt[0]].type:
+                        self.update_type(flt[0], flt_desc)
+
+    def get_short_name(self):
+        """
+        Get the short param name of self.args
+        """
+        param_names = sorted(list(self.args.keys()))
+        selected_param = []
+        for param in param_names:
+            sn = get_name(param, selected_param)
+            self.args[param].short_name = sn
+            selected_param.append(sn)
+
+    def set_constrain(self, choices):
+        """
+        Set the contains for every param in self.args.
+
+        :param choices: (dictionary of values) the contrains
+        """
+        for marg in choices.keys():
+            if marg in self.args.keys():
+                if isinstance(choices[marg], str) and choices[marg] != "dir":
+                    self.args[marg].choice = " %s " % choices[marg]
+                else:
+                    self.args[marg].choice = choices[marg]
 
 
 def get_name(name, list_of_name, size=1):
@@ -67,190 +206,127 @@ def get_name(name, list_of_name, size=1):
         return get_name(name, list_of_name, size=size + 1)
 
 
-def get_short_param_name(param_names):
+def get_type(type_arg, argument):
     """
-    Get the short param name of the parameters ``param_names`` of a function.
+    Get the type of an argument.
 
-    :param param_names: (list of string) list of param name
-    :return: (dictionary of string) dictionary that links each param to \
-    its short name
+    :param type_arg: (string) an argument type
+    :param argument: (lazyparse argument) an argument type
+    :return: (Type) the type of ``type_arg``
     """
-    param_names = sorted(param_names)
-    short_dic = {}
-    selected_param = []
-    for param in param_names:
-        sn = get_name(param, selected_param)
-        short_dic[param] = sn
-        selected_param.append(sn)
-    return short_dic
-
-
-def parse_func(function, dic_test):
-    """
-    Parse the docstring of ``function``.
-
-    :param function: (function) function whose docstring is going to be parsed.
-    :param dic_test: (dictionary of values) the test to perform for each param.
-    :return: (dictionary of list of values) link each arguments \
-    to their type and their description.
-    """
-    description = ""
-    res_dic = {}
-    doc = function.__doc__
-    if doc:
-        doc = filter(None, re.split("[\n\r]", doc))
-        for line in doc:
-            line = re.sub(r"\s+", ' ', line).strip()
-            if ":return:" not in line and "param" not in line:
-                description += line
-            if ":param " in line:
-                flt = list(filter(None, line.split("param")[1].split(":")))
-                flt = [word.strip() for word in flt]
-                if isinstance(flt[1], list):
-                    flt_desc = ":".join(flt[1]).split(" ")
-                else:
-                    flt_desc = flt[1].split(" ")
-                print(flt_desc)
-                type_info = [get_type(w.replace(" ", "")) for w in flt_desc if
-                             re.search(r"\(.*\)", w) and
-                             re.search(r"\(.*\)", w).span() == (0, len(w))]
-                if len(type_info) > 1:
-                    msg = "Warning multiple type detected for {} " \
-                          "only the first one will be present"
-                    print(message(msg.format(flt[0]), "w"))
-                if len(type_info) == 0:
-                    type_info = [None]
-                res_dic[flt[0]] = [type_info[0], " ".join(flt_desc)]
+    if type_arg in type_list.keys():
+        return type_list[type_arg]
+    elif "FileType" in type_arg:
+        my_line = re.split(r"[()]", type_arg)
+        if len(my_line) != 5:
+            msg = "wrong definition of FileType "
+            msg += "(choose from FileType, FileType('w') w:open mode "
+            msg += ": set to str"
+            print(message(msg, argument, "w"))
+            return str
+        else:
+            my_line[2] = re.sub(r"[\"\']", "", my_line[2])
+            return FileType(my_line[2])
     else:
-        description = ""
-    signature = dict(inspect.signature(function).parameters)
-    short_name = get_short_param_name(list(signature.keys()))
-    parsed_doc = add_dic(signature, res_dic, dic_test)
-    parsed_doc = {k: parsed_doc[k] + [short_name[k]] for k in parsed_doc}
-    return description, parsed_doc
+        msg = "unknown type: type set to string"
+        print(message(msg, argument, "w"))
+        return str
 
 
-def init_parser(description, data_parse):
+def init_parser(lp):
     """
     Create the parser using argparse.
 
-    :param description: (string) the description of a function
-    :param data_parse: (dictionary of list) links each arguments to it's\
-    default values, it type and description.
-    :return: (class ArgumentParser) the argparse parser.
+    :param lp: (Lazyparser object) the parser
+    :return: (ArgumentParser object) the argparse parser.
     """
-    print(data_parse)
-    parser = argparse.ArgumentParser(description=description)
-    arguments = [key for key in data_parse.keys() if key != "doc"]
+    parser = argparse.ArgumentParser(description=lp.help)
     rargs = parser.add_argument_group("required arguments")
-    for arg in arguments:
-        if isinstance(data_parse[arg][3], str):
-            mchoice = None
+    for arg in lp.args.keys():
+        mchoice = lp.args[arg].argparse_choice()
+        mtype = lp.args[arg].argparse_type()
+        if not lp.args[arg].default:
+            rargs.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
+                               dest=arg, help=lp.args[arg].help, type=mtype,
+                               choices=mchoice, required=True)
         else:
-            mchoice = data_parse[arg][3]
-        if data_parse[arg][0] == inspect._empty:
-            rargs.add_argument("-%s" % data_parse[arg][4], "--%s" % arg,
-                               dest=arg, help=data_parse[arg][2],
-                               type=data_parse[arg][1],
-                               choices=mchoice,
-                               required=True)
-        else:
-            parser.add_argument("-%s" % data_parse[arg][4], "--%s" % arg,
-                                dest=arg, help=data_parse[arg][2],
-                                type=data_parse[arg][1],
-                                choices=mchoice,
-                                default=data_parse[arg][0])
+            parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
+                                dest=arg, help=lp.args[arg].help, type=mtype,
+                                choices=mchoice, default=lp.args[arg].default)
     return parser
 
 
-def message(sentence, type_m=None):
+def message(sentence, argument, type_m=None):
     """
     Return a message in the correct format.
 
     :param sentence: (string) the message we want to return.
+    :param argument: (Argument object) a Lazyparser argument.
     :param type_m: (string or None) the type of the message to display
     :return: (string) the message in a correct format.
     """
     sentence = re.sub(r"\s+", ' ', sentence)
+    sentence = "argument %s: " % argument.gfn() + sentence
     if not type_m:
         return sentence
     if type_m == "w":
-        return "\033[33m" + sentence + "\033[0m"
-    else:
-        return "\033[31m" + sentence + "\033[0m"
+        return "warning: " + sentence
 
 
-def add_dic(dic1, dic2, dic_test):
-    """
-    Add two dictionary together.
-
-    :param dic1: (dict of list) dictionary containing list of values.
-    :param dic2: (dict of list) dictionary containing list of values.
-    :param dic_test: (dict of keys) dictionary containing test values.
-    :return: (dictionary of list) dictionary that concatenates \
-    the list in every key of dic1 and dic2.
-    """
-    list_k = list(dic1.keys())
-    if sorted(list_k) != sorted(list(dic2.keys())):
-        print(message("WARNING : the signature of the function and \
-                      it's docstring have not the same param names !",
-                      type_m="w"))
-    new_dic = {}
-    for k in list_k:
-        if k in dic2.keys():
-            new_dic[k] = [dic1[k].default] + dic2[k]
-        else:
-            new_dic[k] = [dic1[k].default] + [str, "(str) param %s" % k]
-        if k in dic_test.keys():
-            new_dic[k] += [dic_test[k]]
-        else:
-            new_dic[k] += [None]
-    return new_dic
-
-
-def tests_function(arg_value, arg_name, short_name, test_cond, parser):
+def tests_function(marg, parser):
     """
     Performs the test conditions wanted.
 
-    :param arg_value: (value)
-    :param arg_name: (string) the name of the argument
-    :param short_name: (string) the sort name of the argument
-    :param test_cond: (value) test
+    :param marg: (Argument object) a lazyparser argument
     :param parser: (class ArgumentParser) the argparse parser.
     """
-    if short_name:
-        margs = "-%s/--%s" % (short_name, arg_name)
-    else:
-        margs = "--%s" % arg_name
-    if isinstance(test_cond, str) and test_cond != "dir":
-        if " %s " % arg_name in test_cond or " %s " % short_name in test_cond:
-            if " %s " % arg_name in test_cond:
-                cond = test_cond.replace(" %s " % arg_name, str(arg_value))
+    spaced_n = " %s " % marg.name
+    spaced_sn = " %s " % marg.short_name
+    if isinstance(marg.choice, str) and marg.choice != "dir":
+        if spaced_n in marg.choice or spaced_sn in marg.choice:
+            if spaced_n in marg.choice:
+                cond = marg.choice.replace(spaced_n, str(marg.value))
             else:
-                cond = test_cond.replace(" %s " % short_name, str(arg_value))
+                cond = marg.choice.replace(spaced_sn, str(marg.value))
             try:
                 if not eval(cond):
-                    msg = "argument %s: invalid choice: %s " \
-                          "(it must respect this assertion : %s)"
-                    parser.error(message(msg % (margs, arg_value, test_cond)))
+                    msg = "invalid choice %s: it must respect : %s"
+                    parser.error(message(msg % (marg.value, marg.choice),
+                                         marg))
             except (SyntaxError, TypeError, NameError):
-                msg = "WARNING : argument %s: wrong assertion: %s. " \
-                      "It will be ignored"
-                print(message(msg % (margs, test_cond), "w"))
+                msg = "wrong assertion: %s. It will be ignored"
+                print(message(msg % marg.choice, marg, "w"))
         else:
-            msg = "WARNING : argument %s: not found in assertion: %s. " \
-                      "It will be ignored"
-            print(message(msg % (margs, test_cond), "w"))
-    if isinstance(test_cond, str) and test_cond == "dir":
-        eval_str = "os.path.is%s(arg_value)" % test_cond
-        relevant = isinstance(arg_value, str)
-        if relevant and isinstance(test_cond, str) and not eval(eval_str):
-            msg = "argument %s: invalid choice: %s: it must be an existing dir"
-            parser.error(message(msg % (margs, arg_value)))
+            msg = "not found in assertion: %s. It will be ignored"
+            print(message(msg % marg.choice, marg, "w"))
+    if isinstance(marg.choice, str) and marg.choice == "dir":
+        eval_str = os.path.isdir(marg.value)
+        relevant = isinstance(marg.value, str)
+        if relevant and isinstance(marg.choice, str) and not eval_str:
+            msg = "invalid choice %s: it must be an existing dir"
+            parser.error(message(msg % marg.value, marg))
         if not relevant:
-            msg = "WARNING : argument %s: not a string and " \
-            "therefore can't be a file."
-            print(message(msg % margs, "w"))
+            msg = "not a string and therefore can't be a file."
+            print(message(msg, marg, "w"))
+
+
+def test_type(marg, parser):
+    """
+    Performs the type test conditions wanted.
+
+    :param marg: (Argument object) a lazyparser argument
+    :param parser: (class ArgumentParser) the argparse parser.
+    """
+    if marg.type == bool:
+        print("'%s'" % marg.value)
+        if marg.value == "True":
+            marg.value = True
+        elif marg.value == "False":
+            marg.value = False
+        else:
+            msg = "invalid bool type %s (choose from True, False)"
+            parser.error(message(msg % marg.value, marg))
+    return marg.value
 
 
 def wrapper(func=None, **kwargs):
@@ -274,14 +350,16 @@ def wrapper(func=None, **kwargs):
 
             :return: the result of the function ``self.func``
             """
-            description, data_parse = parse_func(function, kwargs)
-            parser = init_parser(description, data_parse)
+            lazyparser = Lazyparser(function, kwargs)
+            parser = init_parser(lazyparser)
             args = parser.parse_args()
             str_args = ""
-            for my_arg in data_parse.keys():
-                tests_function(eval("args.%s" % my_arg), my_arg,
-                               data_parse[my_arg][4],
-                               data_parse[my_arg][3], parser)
+            for my_arg in lazyparser.args.keys():
+                lazyparser.args[my_arg].value = eval("args.%s" % my_arg)
+                if lazyparser.args[my_arg].choice:
+                    tests_function(lazyparser.args[my_arg], parser)
+                exec("args.%s = test_type(lazyparser.args[my_arg], parser)"
+                     % my_arg)
                 str_args += "%s=args.%s, " % (my_arg, my_arg)
             str_args = str_args[:-2]
             return eval("function(%s)" % str_args)
