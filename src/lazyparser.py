@@ -20,7 +20,7 @@ __version__ = 0.1
 
 type_list = {"(int)": int, "(float)": float, "(string)": str, "(str)": str,
              "(file)": str, "(bool)": bool,
-             # "(function)": object, "(object)": object,
+             "(function)": object,
              "(boolean)": bool, None: None}
 
 
@@ -78,7 +78,7 @@ class Argument(object):
         """
         :return: (type)
         """
-        if self.type == bool:
+        if self.type in [bool, object]:
             return str
         else:
             return self.type
@@ -317,7 +317,13 @@ def test_type(marg, parser):
     :param marg: (Argument object) a lazyparser argument
     :param parser: (class ArgumentParser) the argparse parser.
     """
-    if marg.type == bool:
+    if marg.type == object:
+        try:
+            marg.value = eval(marg.value)
+        except (SyntaxError, TypeError, NameError):
+            msg = "Not a function %s" % marg.value
+            parser.error(message(msg, marg))
+    elif marg.type == bool:
         print("'%s'" % marg.value)
         if marg.value == "True":
             marg.value = True
