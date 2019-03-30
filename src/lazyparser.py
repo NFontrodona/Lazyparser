@@ -18,9 +18,19 @@ import os
 
 __version__ = 0.1
 
+
+class Function(object):
+    """
+    Class representing lazyparser function.
+
+    Made to handle both building and user defined function
+    """
+    pass
+
+
 type_list = {"(int)": int, "(float)": float, "(string)": str, "(str)": str,
              "(file)": str, "(bool)": bool,
-             "(function)": object,
+             "(function)": Function, "(Function)": Function,
              "(boolean)": bool, None: None}
 
 
@@ -79,7 +89,7 @@ class Argument(object):
         """
         :return: (type)
         """
-        if self.type in [bool, object]:
+        if self.type in [bool, Function]:
             return str
         else:
             return self.type
@@ -102,7 +112,7 @@ class Lazyparser(object):
         """
         Initialization with a function.
 
-        :param function: (object) a function
+        :param function: (function) a function
         :param const: (dictionary) param that don't need to be filled.
         :param choice: (dictionary) the contains
         """
@@ -247,7 +257,7 @@ def get_type(type_arg, argument):
         my_line = re.split(r"[()]", type_arg)
         if len(my_line) != 5:
             msg = "wrong definition of FileType "
-            msg += "(choose from FileType, FileType('w') w:open mode "
+            msg += "(you must write FileType('o') o:open mode (in r, w ...)"
             msg += ": set to str"
             print(message(msg, argument, "w"))
             return str
@@ -355,11 +365,11 @@ def test_type(marg, parser):
     :param marg: (Argument object) a lazyparser argument
     :param parser: (class ArgumentParser) the argparse parser.
     """
-    if marg.type == object:
+    if marg.type == Function:
         try:
             marg.value = eval(marg.value)
         except (SyntaxError, TypeError, NameError):
-            msg = "Not a function %s" % marg.value
+            msg = "not a function %s" % marg.value
             parser.error(message(msg, marg))
     elif marg.type == bool:
         print("'%s'" % marg.value)
