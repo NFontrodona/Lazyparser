@@ -45,6 +45,7 @@ class Argument(object):
         self.short_name = None
         self.choice = None
         self.value = None
+        self.const = "$$void$$"
 
     def update_default(self, default):
         """
@@ -97,11 +98,12 @@ class Lazyparser(object):
     """
     Lazyparser class.
     """
-    def __init__(self, function, choice):
+    def __init__(self, function, const, choice):
         """
         Initialization with a function.
 
         :param function: (object) a function
+        :param const: (dictionary) param that don't need to be filled.
         :param choice: (dictionary) the contains
         """
         self.func = function
@@ -111,6 +113,7 @@ class Lazyparser(object):
         self.help = self.description()
         self.update_param()
         self.get_short_name()
+        self.set_filled(const)
         self.set_constrain(choice)
 
     def description(self):
@@ -176,11 +179,35 @@ class Lazyparser(object):
             self.args[param].short_name = sn
             selected_param.append(sn)
 
+    def set_filled(self, const):
+        """
+        Set if a parameter can just be called without a value and \
+        it values if it is called.
+
+        :param const: (dictionary) value to set to a param called.
+        """
+        if const and not isinstance(const, dict):
+            print("warning: const must be a dictionary")
+        elif const and isinstance(const, dict):
+            for marg in const.keys():
+                if marg in self.args.keys():
+                    mtype = self.args[marg].type
+                    if not isinstance(const[marg], mtype):
+                        print(message("invalid const type %s" % mtype.__name__,
+                                      self.args[marg], "e"))
+                        exit(1)
+                    if not isinstance(self.args[marg].default, mtype):
+                        print(message("invalid default type %s" % mtype.__name__,
+                                      self.args[marg], "e"))
+                        exit(1)
+
+                    self.args[marg].const = const[marg]
+
     def set_constrain(self, choices):
         """
         Set the contains for every param in self.args.
 
-        :param choices: (dictionary of values) the contrains
+        :param choices: (dictionary of values) the constrains
         """
         for marg in choices.keys():
             if marg in self.args.keys():
@@ -245,14 +272,23 @@ def init_parser(lp):
     for arg in lp.args.keys():
         mchoice = lp.args[arg].argparse_choice()
         mtype = lp.args[arg].argparse_type()
-        if not lp.args[arg].default:
+        if lp.args[arg].const == "$$void$$" and not lp.args[arg].default:
             rargs.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                dest=arg, help=lp.args[arg].help, type=mtype,
                                choices=mchoice, required=True)
-        else:
+        elif lp.args[arg].const == "$$void$$" and lp.args[arg].default:
             parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                 dest=arg, help=lp.args[arg].help, type=mtype,
                                 choices=mchoice, default=lp.args[arg].default)
+        elif lp.args[arg].const != "$$void$$" and not lp.args[arg].default:
+            print(message("const must be specified with default", lp.args[arg],
+                          "e"))
+            exit(1)
+        else:
+            parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
+                                dest=arg, help=lp.args[arg].help,
+                                action="store_const", const=lp.args[arg].const,
+                                default=lp.args[arg].default)
     return parser
 
 
@@ -271,6 +307,8 @@ def message(sentence, argument, type_m=None):
         return sentence
     if type_m == "w":
         return "warning: " + sentence
+    if type_m == "e":
+        return "error: " + sentence
 
 
 def tests_function(marg, parser):
@@ -335,10 +373,11 @@ def test_type(marg, parser):
     return marg.value
 
 
-def wrapper(func=None, **kwargs):
+def wrapper(func=None, const=None, **kwargs):
     """
 
     :param func: (function) the function of interest
+    :param const: (dictionary) the params that don't need a value to fill.
     :param kwargs: (dictionary) the named arguments
     :return: (function) wrap
     """
@@ -356,7 +395,7 @@ def wrapper(func=None, **kwargs):
 
             :return: the result of the function ``self.func``
             """
-            lazyparser = Lazyparser(function, kwargs)
+            lazyparser = Lazyparser(function, const, kwargs)
             parser = init_parser(lazyparser)
             args = parser.parse_args()
             str_args = ""
