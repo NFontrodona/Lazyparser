@@ -389,13 +389,13 @@ def wrapper(func=None, const=None, **kwargs):
         :return: (function) the method calling `` function``.
         """
         @functools.wraps(function)
-        def call_func():
+        def call_func(mfilled=const):
             """
             Call the function ``self.func`` and return it's result.
 
             :return: the result of the function ``self.func``
             """
-            lazyparser = Lazyparser(function, const, kwargs)
+            lazyparser = Lazyparser(function, mfilled, kwargs)
             parser = init_parser(lazyparser)
             args = parser.parse_args()
             str_args = ""
@@ -408,6 +408,42 @@ def wrapper(func=None, const=None, **kwargs):
                 str_args += "%s=args.%s, " % (my_arg, my_arg)
             str_args = str_args[:-2]
             return eval("function(%s)" % str_args)
+        return call_func
+    if func is None:
+        def decore_call(function):
+            """
+            Decorate wrap function.
+
+            :param function: (function) the function to wrap
+            :return: (function) call_func
+            """
+            return wrap(function)
+        return decore_call
+    return wrap(func)
+
+
+def flag(func=None, **kwargs):
+    """
+    Function used to set a value to some parameters when they are called.
+
+    :param kwargs: (dictionary) the named arguments
+    :return: (function) wrap
+    """
+    def wrap(function):
+        """
+        Wrapper of the function ``function``.
+
+        :param function: (function) the function to wrap
+        :return: (function) the method calling `` function``.
+        """
+        @functools.wraps(function)
+        def call_func():
+            """
+            Call the function ``self.func`` and return it's result.
+
+            :return: the result of the function ``self.func``
+            """
+            return function(kwargs)
         return call_func
     if func is None:
         def decore_call(function):
