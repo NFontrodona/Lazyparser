@@ -373,8 +373,9 @@ def test_type(marg, parser):
     return marg.value
 
 
-def wrapper(func=None, const=None, **kwargs):
+def parse(func=None, const=None, **kwargs):
     """
+    Create the parser.
 
     :param func: (function) the function of interest
     :param const: (dictionary) the params that don't need a value to fill.
@@ -426,6 +427,7 @@ def flag(func=None, **kwargs):
     """
     Function used to set a value to some parameters when they are called.
 
+    :param func: (function) the function to wrap
     :param kwargs: (dictionary) the named arguments
     :return: (function) wrap
     """
