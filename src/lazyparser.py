@@ -28,10 +28,38 @@ class Function(object):
     pass
 
 
-type_list = {"(int)": int, "(float)": float, "(string)": str, "(str)": str,
-             "(file)": str, "(bool)": bool,
-             "(function)": Function, "(Function)": Function,
-             "(boolean)": bool, None: None}
+class List(object):
+    """
+    Creation of a vector class
+    """
+    def __init__(self, size="+", vtype=None):
+        """
+        Initiate the vector class.
+
+        :param size: (int or str) the size of the vector
+        :param vtype: (type) the type of the vector
+        """
+        self.size = size
+        self.type = vtype
+
+
+def handled_type(atype, htype="m"):
+    """
+    Get the type of an argument.
+
+    :param atype: (type) a type
+    :param htype: (str) m for subtype and s for subtype
+    :return: (type) the type of an argument
+    """
+    handled_type = {"m": [int, float, Function, bool, str, FileType, List],
+                    "s": [int, float, Function, bool, str, FileType]}
+
+    if not isinstance(atype, type):
+        atype = type(atype)
+    if atype in handled_type[htype]:
+        return True
+    else:
+        return False
 
 
 class Argument(object):
@@ -47,8 +75,6 @@ class Argument(object):
         :param arg_type: (type) the type of the argument
         """
         self.name = name_arg
-        self.type = None if arg_type == inspect._empty else \
-            (arg_type if isinstance(arg_type, type) else None)
         self.default = str(default) if default in [True, False] else \
             (default if default != inspect._empty else None)
         self.help = "param %s" % self.name
@@ -56,6 +82,27 @@ class Argument(object):
         self.choice = None
         self.value = None
         self.const = "$$void$$"
+        self.type = self.set_type(arg_type)
+
+    def set_type(self, arg_type):
+        """
+        Set the type of self argument.
+
+        :param arg_type: (type) a type
+        :return: (type) the type of the argument
+        """
+        if arg_type == inspect._empty:
+            return None
+        if handled_type(arg_type):
+            return arg_type
+        if arg_type in handled_type:
+            return arg_type
+        if isinstance(arg_type, type):
+            msg = "unknown type %s" % arg_type.__name__
+        else:
+            msg = "unknown type %s" % str(arg_type)
+        print(message(msg, self, "e"))
+        exit(1)
 
     def update_default(self, default):
         """
@@ -91,8 +138,19 @@ class Argument(object):
         """
         if self.type in [bool, Function]:
             return str
+        elif isinstance(self.type, List):
+            if self.type.type in [bool, Function]:
+                return str
+            else:
+                return self.type.type
         else:
             return self.type
+
+    def argparse_narg(self):
+        if not isinstance(self.type, List):
+            return "?"
+        else:
+            return self.type.size
 
     def argparse_choice(self):
         """
@@ -157,7 +215,10 @@ class Lazyparser(object):
         if len(type_info) > 1:
             msg = "multiple type detected for %s only the first was selected"
             print(message(msg % arg_name, self.args[arg_name], "w"))
-        self.args[arg_name].type = type_info[0]
+
+        if type_info:
+            self.args[arg_name].type = type_info[0]
+
 
     def update_param(self):
         """
@@ -171,12 +232,12 @@ class Lazyparser(object):
                 flt = [word.strip() for word in flt]
                 if flt[0] in self.args.keys():
                     if isinstance(flt[1], list):
-                        flt_desc = ":".join(flt[1]).split(" ")
+                        flt_desc = ":".join(flt[1])
                     else:
-                        flt_desc = flt[1].split(" ")
-                    self.args[flt[0]].help = " ".join(flt_desc)
+                        flt_desc = flt[1]
+                    self.args[flt[0]].help = flt_desc
                     if not self.args[flt[0]].type:
-                        self.update_type(flt[0], flt_desc)
+                        self.update_type(flt[0], handle(flt_desc))
 
     def get_short_name(self):
         """
@@ -226,6 +287,32 @@ class Lazyparser(object):
                 else:
                     self.args[marg].choice = choices[marg]
 
+def handle(seq):
+    """
+    Return only string surrounded by ().
+
+    :param seq: (string) the string to process
+    :return: (list of string) list of word in seq sourrounded by ()
+    """
+    start = 0
+    res=  []
+    word = ""
+    for w in seq:
+        if w == "(":
+            start += 1
+            if start == 1:
+                word = "("
+            else:
+                word += "("
+        elif w == ")":
+            start -= 1
+            word += ")"
+            if start == 0:
+                res.append(word)
+        elif start > 0:
+            word += w
+    return res
+
 
 def get_name(name, list_of_name, size=1):
     """
@@ -251,23 +338,22 @@ def get_type(type_arg, argument):
     :param argument: (lazyparse argument) an argument type
     :return: (Type) the type of ``type_arg``
     """
-    if type_arg in type_list.keys():
-        return type_list[type_arg]
-    elif "FileType" in type_arg:
-        my_line = re.split(r"[()]", type_arg)
-        if len(my_line) != 5:
-            msg = "wrong definition of FileType "
-            msg += "(you must write FileType('o') o:open mode (in r, w ...)"
-            msg += ": set to str"
-            print(message(msg, argument, "w"))
-            return str
-        else:
-            my_line[2] = re.sub(r"[\"\']", "", my_line[2])
-            return FileType(my_line[2])
-    else:
-        msg = "unknown type: type set to string"
-        print(message(msg, argument, "w"))
-        return str
+    try:
+        type_arg = eval(type_arg)
+    except (SyntaxError, TypeError, NameError):
+        msg = "unknown type %s" % type_arg
+        print(message(msg, argument, "e"))
+        exit(1)
+    if handled_type(type_arg):
+        if isinstance(type_arg, List):
+            if handled_type(type_arg.type, "s"):
+                return type_arg
+            else:
+                msg = "unknown %s subtype of List"
+                print(message(msg % (type_arg.type),
+                              argument, "e"))
+                exit(1)
+        return type_arg
 
 
 def init_parser(lp):
@@ -282,14 +368,16 @@ def init_parser(lp):
     for arg in lp.args.keys():
         mchoice = lp.args[arg].argparse_choice()
         mtype = lp.args[arg].argparse_type()
+        nargs = lp.args[arg].argparse_narg()
         if lp.args[arg].const == "$$void$$" and not lp.args[arg].default:
             rargs.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                dest=arg, help=lp.args[arg].help, type=mtype,
-                               choices=mchoice, required=True)
+                               choices=mchoice, nargs=nargs, required=True)
         elif lp.args[arg].const == "$$void$$" and lp.args[arg].default:
             parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                 dest=arg, help=lp.args[arg].help, type=mtype,
-                                choices=mchoice, default=lp.args[arg].default)
+                                choices=mchoice, nargs=nargs,
+                                default=lp.args[arg].default)
         elif lp.args[arg].const != "$$void$$" and not lp.args[arg].default:
             print(message("const must be specified with default", lp.args[arg],
                           "e"))
@@ -297,7 +385,8 @@ def init_parser(lp):
         else:
             parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                 dest=arg, help=lp.args[arg].help,
-                                action="store_const", const=lp.args[arg].const,
+                                action="store_const", nargs=nargs,
+                                const=lp.args[arg].const,
                                 default=lp.args[arg].default)
     return parser
 
@@ -365,6 +454,7 @@ def test_type(marg, parser):
     :param marg: (Argument object) a lazyparser argument
     :param parser: (class ArgumentParser) the argparse parser.
     """
+    dic = {"True": True, "False": False}
     if marg.type == Function:
         try:
             marg.value = eval(marg.value)
@@ -372,14 +462,25 @@ def test_type(marg, parser):
             msg = "not a function %s" % marg.value
             parser.error(message(msg, marg))
     elif marg.type == bool:
-        print("'%s'" % marg.value)
-        if marg.value == "True":
-            marg.value = True
-        elif marg.value == "False":
-            marg.value = False
-        else:
+        try:
+            marg.value = dic[marg.value]
+        except KeyError:
             msg = "invalid bool type %s (choose from True, False)"
             parser.error(message(msg % marg.value, marg))
+    elif isinstance(marg.type, List):
+        if marg.type.type == Function:
+            try:
+                marg.value = [eval(v) for v in marg.value]
+            except (SyntaxError, TypeError, NameError):
+                msg = "not every element in %s is a function" % marg.value
+                parser.error(message(msg, marg))
+        elif marg.type.type == bool:
+
+            try:
+                marg.value = [dic[v] for v in marg.value]
+            except KeyError:
+                msg = "invalid bool type in %s (choose from True, False)"
+                parser.error(message(msg % marg.value, marg))
     return marg.value
 
 
