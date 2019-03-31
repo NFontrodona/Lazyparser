@@ -32,15 +32,23 @@ class List(object):
     """
     Creation of a vector class
     """
-    def __init__(self, size="+", vtype=None):
+    def __init__(self, size="+", vtype=None, value=None):
         """
         Initiate the vector class.
 
         :param size: (int or str) the size of the vector
         :param vtype: (type) the type of the vector
+        :param value: (values)
         """
         self.size = size
         self.type = vtype
+        if value:
+            if not isinstance(value, (list, tuple)):
+                print("error : %s not a list or tuple" % value)
+                exit(1)
+            self.value = value
+        else:
+            value = None
 
 
 def handled_type(atype, htype="m"):
@@ -83,6 +91,16 @@ class Argument(object):
         self.value = None
         self.const = "$$void$$"
         self.type = self.set_type(arg_type)
+
+    def get_type(self):
+        """
+
+        :return:(type) the type of self
+        """
+        if isinstance(self.type, type):
+            return self.type
+        else:
+            return type(self.type)
 
     def set_type(self, arg_type):
         """
@@ -262,12 +280,29 @@ class Lazyparser(object):
         elif const and isinstance(const, dict):
             for marg in const.keys():
                 if marg in self.args.keys():
-                    mtype = self.args[marg].type
-                    if not isinstance(const[marg], mtype):
+                    mtype = self.args[marg].get_type()
+                    if mtype == Function:
+                        if isinstance(const[marg], str):
+                            try:
+                                const[marg] = eval(const[marg])
+                            except (SyntaxError, TypeError, NameError):
+                                print(message(
+                                    "invalid const type %s" % mtype.__name__,
+                                    self.args[marg], "e"))
+                                exit(1)
+                        elif isinstance(const[marg], (type(sum), type(lambda x : 1))):
+                            const[marg] = const[marg]
+                    elif not handled_type(mtype, "s"):
                         print(message("invalid const type %s" % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
-                    if not isinstance(self.args[marg].default, mtype):
+                    elif not isinstance(const[marg], mtype):
+                        print("2")
+                        print(message("invalid const type %s" % mtype.__name__,
+                                      self.args[marg], "e"))
+                        exit(1)
+                    elif not isinstance(self.args[marg].default, mtype):
+                        print("3")
                         print(message("invalid default type %s" % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
@@ -385,7 +420,7 @@ def init_parser(lp):
         else:
             parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                 dest=arg, help=lp.args[arg].help,
-                                action="store_const", nargs=nargs,
+                                action="store_const",
                                 const=lp.args[arg].const,
                                 default=lp.args[arg].default)
     return parser
@@ -456,9 +491,13 @@ def test_type(marg, parser):
     """
     dic = {"True": True, "False": False}
     if marg.type == Function:
-        try:
-            marg.value = eval(marg.value)
-        except (SyntaxError, TypeError, NameError):
+        if isinstance(marg.value, str):
+            try:
+                marg.value = eval(marg.value)
+            except (SyntaxError, TypeError, NameError):
+                msg = "not a function %s" % marg.value
+                parser.error(message(msg, marg))
+        elif not isinstance(marg.value, (type(sum), type(lambda x : 1))):
             msg = "not a function %s" % marg.value
             parser.error(message(msg, marg))
     elif marg.type == bool:
@@ -470,6 +509,15 @@ def test_type(marg, parser):
     elif isinstance(marg.type, List):
         if marg.type.type == Function:
             try:
+                res = []
+                for v in marg.value:
+                    if isinstance(v, str):
+                        res.append(eval(v))
+                    elif isinstance(marg.value, (type(sum), type(lambda x: 1))):
+                        res.append(v)
+                    else:
+                        msg = "not every element in %s is a function" % marg.value
+                        parser.error(message(msg, marg))
                 marg.value = [eval(v) for v in marg.value]
             except (SyntaxError, TypeError, NameError):
                 msg = "not every element in %s is a function" % marg.value
