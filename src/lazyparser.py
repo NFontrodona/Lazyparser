@@ -274,6 +274,7 @@ class Lazyparser(object):
 
         :param const: (dictionary) value to set to a param called.
         """
+        msg = "invalid const type %s"
         if const and not isinstance(const, dict):
             print("warning: const must be a dictionary")
         elif const and isinstance(const, dict):
@@ -285,22 +286,21 @@ class Lazyparser(object):
                             try:
                                 const[marg] = eval(const[marg])
                             except (SyntaxError, TypeError, NameError):
-                                print(message(
-                                    "invalid const type %s" % mtype.__name__,
-                                    self.args[marg], "e"))
+                                print(message(msg % mtype.__name__,
+                                      self.args[marg], "e"))
                                 exit(1)
                         elif callable(const[marg]):
                             const[marg] = const[marg]
                     elif not handled_type(mtype, "s"):
-                        print(message("invalid const type %s" % mtype.__name__,
+                        print(message(msg % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
                     elif not isinstance(const[marg], mtype):
-                        print(message("invalid const type %s" % mtype.__name__,
+                        print(message(msg % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
                     elif not isinstance(self.args[marg].default, mtype):
-                        print(message("invalid default type %s" %
+                        print(message(msg %
                                       mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
