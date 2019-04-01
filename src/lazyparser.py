@@ -48,7 +48,7 @@ class List(object):
                 exit(1)
             self.value = value
         else:
-            value = None
+            self.value = None
 
 
 def handled_type(atype, htype="m"):
@@ -59,12 +59,12 @@ def handled_type(atype, htype="m"):
     :param htype: (str) m for subtype and s for subtype
     :return: (type) the type of an argument
     """
-    handled_type = {"m": [int, float, Function, bool, str, FileType, List],
-                    "s": [int, float, Function, bool, str, FileType]}
+    dic_type = {"m": [int, float, Function, bool, str, FileType, List],
+                "s": [int, float, Function, bool, str, FileType]}
 
     if not isinstance(atype, type):
         atype = type(atype)
-    if atype in handled_type[htype]:
+    if atype in dic_type[htype]:
         return True
     else:
         return False
@@ -237,7 +237,6 @@ class Lazyparser(object):
         if type_info:
             self.args[arg_name].type = type_info[0]
 
-
     def update_param(self):
         """
         Update if needed the type and the help of every args.
@@ -290,20 +289,19 @@ class Lazyparser(object):
                                     "invalid const type %s" % mtype.__name__,
                                     self.args[marg], "e"))
                                 exit(1)
-                        elif isinstance(const[marg], (type(sum), type(lambda x : 1))):
+                        elif callable(const[marg]):
                             const[marg] = const[marg]
                     elif not handled_type(mtype, "s"):
                         print(message("invalid const type %s" % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
                     elif not isinstance(const[marg], mtype):
-                        print("2")
                         print(message("invalid const type %s" % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
                     elif not isinstance(self.args[marg].default, mtype):
-                        print("3")
-                        print(message("invalid default type %s" % mtype.__name__,
+                        print(message("invalid default type %s" %
+                                      mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
 
@@ -322,6 +320,7 @@ class Lazyparser(object):
                 else:
                     self.args[marg].choice = choices[marg]
 
+
 def handle(seq):
     """
     Return only string surrounded by ().
@@ -330,7 +329,7 @@ def handle(seq):
     :return: (list of string) list of word in seq sourrounded by ()
     """
     start = 0
-    res=  []
+    res = []
     word = ""
     for w in seq:
         if w == "(":
@@ -385,8 +384,7 @@ def get_type(type_arg, argument):
                 return type_arg
             else:
                 msg = "unknown %s subtype of List"
-                print(message(msg % (type_arg.type),
-                              argument, "e"))
+                print(message(msg % type_arg.type, argument, "e"))
                 exit(1)
         return type_arg
 
@@ -497,7 +495,7 @@ def test_type(marg, parser):
             except (SyntaxError, TypeError, NameError):
                 msg = "not a function %s" % marg.value
                 parser.error(message(msg, marg))
-        elif not isinstance(marg.value, (type(sum), type(lambda x : 1))):
+        elif not callable(marg.value):
             msg = "not a function %s" % marg.value
             parser.error(message(msg, marg))
     elif marg.type == bool:
@@ -513,11 +511,11 @@ def test_type(marg, parser):
                 for v in marg.value:
                     if isinstance(v, str):
                         res.append(eval(v))
-                    elif isinstance(marg.value, (type(sum), type(lambda x: 1))):
+                    elif callable(v):
                         res.append(v)
                     else:
-                        msg = "not every element in %s is a function" % marg.value
-                        parser.error(message(msg, marg))
+                        msg = "not every element in %s is a function"
+                        parser.error(message(msg % marg.value, marg))
                 marg.value = [eval(v) for v in marg.value]
             except (SyntaxError, TypeError, NameError):
                 msg = "not every element in %s is a function" % marg.value
