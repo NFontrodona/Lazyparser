@@ -14,10 +14,19 @@ from argparse import FileType
 import re
 import inspect
 import functools
+import itertools
 import os
 import io
 
+
 __version__ = 0.1
+
+#####################################
+# sets the docstring environment
+pd1 = ":param" # param delimiter 1
+pd2 = ":" # param delimiter 2
+header = "" # header of arguments
+######################################
 
 
 class Function(object):
@@ -214,10 +223,17 @@ class Lazyparser(object):
         else:
             description = ""
             doc = filter(None, re.split("[\n\r]", self.func.__doc__))
+            if not header:
+                doc = itertools.takewhile(lambda x: pd1 not in x, doc)
+            else:
+                doc = itertools.takewhile(lambda x: pd1 not in x
+                                                    and header not in x, doc)
             for line in doc:
                 line = re.sub(r"\s+", ' ', line).strip()
-                if ":return:" not in line and "param" not in line:
-                    description += line
+                if description:
+                    description += "\n\n" + line
+                else:
+                    description = line
             return description
 
     def update_type(self, arg_name, help_info):
@@ -243,14 +259,14 @@ class Lazyparser(object):
         Update if needed the type and the help of every args.
         """
         if self.func.__doc__:
-            doc = filter(lambda x: ":param" in x,
+            doc = filter(lambda x: pd1 in x,
                          re.split("[\n\r]", self.func.__doc__))
             for line in doc:
-                flt = list(filter(None, line.split(":param")[1].split(":")))
+                flt = list(filter(None, line.split(pd1)[1].split(pd2)))
                 flt = [word.strip() for word in flt]
                 if flt[0] in self.args.keys():
                     if isinstance(flt[1], list):
-                        flt_desc = ":".join(flt[1])
+                        flt_desc = pd2.join(flt[1])
                     else:
                         flt_desc = flt[1]
                     self.args[flt[0]].help = flt_desc
@@ -321,6 +337,27 @@ class Lazyparser(object):
                     self.args[marg].choice = " %s " % choices[marg]
                 else:
                     self.args[marg].choice = choices[marg]
+
+
+def set_env(delim1, delim2, hd):
+    """
+    Change the param delimiters.
+
+    :param delim1: (string) param delimiter 1
+    :param delim2: (string) param delimiter 2
+    :param hd: (string) the header of parameter
+    """
+    args = delim1, delim2, hd
+    if sum([not isinstance(a, str) for a in args]) > 0:
+        print("error : delim1 and delim2 must be strings")
+        exit(1)
+    else:
+        global pd1
+        pd1 = delim1
+        global pd2
+        pd2 = delim2
+        global header
+        header = hd
 
 
 def handle(seq):
@@ -401,7 +438,9 @@ def init_parser(lp):
     :param lp: (Lazyparser object) the parser
     :return: (ArgumentParser object) the argparse parser.
     """
-    parser = argparse.ArgumentParser(description=lp.help)
+    parser = argparse.ArgumentParser(formatter_class=
+                                     argparse.RawDescriptionHelpFormatter,
+                                     description=lp.help)
     rargs = parser.add_argument_group("required arguments")
     for arg in lp.args.keys():
         mchoice = lp.args[arg].argparse_choice()
