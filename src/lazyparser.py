@@ -15,6 +15,7 @@ import re
 import inspect
 import functools
 import os
+import io
 
 __version__ = 0.1
 
@@ -315,7 +316,8 @@ class Lazyparser(object):
         """
         for marg in choices.keys():
             if marg in self.args.keys():
-                if isinstance(choices[marg], str) and choices[marg] != "dir":
+                if isinstance(choices[marg], str) and \
+                        choices[marg] not in ["dir", "file"]:
                     self.args[marg].choice = " %s " % choices[marg]
                 else:
                     self.args[marg].choice = choices[marg]
@@ -373,7 +375,10 @@ def get_type(type_arg, argument):
     :return: (Type) the type of ``type_arg``
     """
     try:
-        type_arg = eval(type_arg)
+        if type_arg != "(string)":
+            type_arg = eval(type_arg)
+        else:
+            type_arg = str
     except (SyntaxError, TypeError, NameError):
         msg = "unknown type %s" % type_arg
         print(message(msg, argument, "e"))
@@ -452,7 +457,7 @@ def tests_function(marg, parser):
     """
     spaced_n = " %s " % marg.name
     spaced_sn = " %s " % marg.short_name
-    if isinstance(marg.choice, str) and marg.choice != "dir":
+    if isinstance(marg.choice, str) and marg.choice not in ["dir", "file"]:
         if spaced_n in marg.choice or spaced_sn in marg.choice:
             if spaced_n in marg.choice:
                 cond = marg.choice.replace(spaced_n, str(marg.value))
@@ -469,15 +474,18 @@ def tests_function(marg, parser):
         else:
             msg = "not found in assertion: %s. It will be ignored"
             print(message(msg % marg.choice, marg, "w"))
-    if isinstance(marg.choice, str) and marg.choice == "dir":
-        eval_str = os.path.isdir(marg.value)
-        relevant = isinstance(marg.value, str)
-        if relevant and isinstance(marg.choice, str) and not eval_str:
-            msg = "invalid choice %s: it must be an existing dir"
-            parser.error(message(msg % marg.value, marg))
+    if isinstance(marg.choice, str) and marg.choice in ["dir", "file"]:
+        relevant = isinstance(marg.value, (str, io.IOBase))
         if not relevant:
-            msg = "not a string and therefore can't be a file."
-            print(message(msg, marg, "w"))
+            msg = "Wrong file type."
+            parser.error(message(msg, marg))
+        else:
+            if isinstance(marg.value, str):
+                eval_str = eval("os.path.is%s(marg.value)" % marg.choice)
+                if relevant and not eval_str:
+                    msg = "invalid choice %s: it must be an existing %s"
+                    parser.error(message(msg % (marg.value, marg.choice),
+                                         marg))
 
 
 def test_type(marg, parser):
