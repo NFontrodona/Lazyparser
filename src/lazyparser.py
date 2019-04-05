@@ -93,7 +93,7 @@ class Argument(object):
         :param arg_type: (type) the type of the argument
         """
         self.name = name_arg
-        self.default = str(default) if default in [True, False] else \
+        self.default = default if default in [True, False] else \
             (default if default != inspect._empty else None)
         self.help = "param %s" % self.name
         self.short_name = None
@@ -186,6 +186,12 @@ class Argument(object):
         """
         if isinstance(self.choice, str):
             return None
+        elif isinstance(self.choice, bool):
+            return str(self.choice)
+        elif isinstance(self.choice, list):
+            choice = [str(v) if isinstance(v, bool) else v
+                      for v in self.choice]
+            return choice
         else:
             return self.choice
 
@@ -317,9 +323,14 @@ class Lazyparser(object):
                                       self.args[marg], "e"))
                         exit(1)
                     elif not isinstance(self.args[marg].default, mtype):
-                        print(message(msg %
-                                      mtype.__name__,
-                                      self.args[marg], "e"))
+                        if self.args[marg].default is None:
+                            msg = "const must be specified with default"
+                            print(message(msg,
+                                          self.args[marg], "e"))
+                        else:
+                            print(message(msg %
+                                          mtype.__name__,
+                                          self.args[marg], "e"))
                         exit(1)
 
                     self.args[marg].const = const[marg]
@@ -455,7 +466,7 @@ def init_parser(lp):
                                 dest=arg, help=lp.args[arg].help, type=mtype,
                                 choices=mchoice, nargs=nargs,
                                 default=lp.args[arg].default)
-        elif lp.args[arg].const != "$$void$$" and not lp.args[arg].default:
+        elif lp.args[arg].const != "$$void$$" and lp.args[arg].default is None:
             print(message("const must be specified with default", lp.args[arg],
                           "e"))
             exit(1)
@@ -534,7 +545,7 @@ def test_type(marg, parser):
     :param marg: (Argument object) a lazyparser argument
     :param parser: (class ArgumentParser) the argparse parser.
     """
-    dic = {"True": True, "False": False}
+    dic = {"True": True, "False": False, True: True, False: False}
     if marg.type == Function:
         if isinstance(marg.value, str):
             try:
