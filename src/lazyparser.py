@@ -188,19 +188,19 @@ class Argument(object):
             return None
         elif isinstance(self.choice, bool):
             return str(self.choice)
-        elif isinstance(self.choice, list):
+        elif isinstance(self.choice, (list, tuple)):
             choice = []
             for v in self.choice:
                 if isinstance(v, bool):
                     choice.append(str(v))
                 elif callable(v):
-                    print("error : parse : you can't define a list of functions to respect")
+                    print("error : parse : functions to respect must be given in str format")
                     exit(1)
                 else:
                     choice.append(v)
             return choice
         elif callable(self.choice):
-            print("error : parse : you can't define a function to respect")
+            print("error : parse : function to respect must be given in str format")
             exit(1)
         else:
             return self.choice
