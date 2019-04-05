@@ -239,10 +239,14 @@ class Lazyparser(object):
         else:
             description = ""
             doc = filter(None, re.split("[\n\r]", self.func.__doc__))
-            if not header:
-                doc = itertools.takewhile(lambda x: pd1 not in x, doc)
+            if pd1 == "":
+                delim = pd2
             else:
-                doc = itertools.takewhile(lambda x: pd1 not in x
+                delim = pd1
+            if not header:
+                doc = itertools.takewhile(lambda x: delim not in x, doc)
+            else:
+                doc = itertools.takewhile(lambda x: delim not in x
                                                     and header not in x, doc)
             for line in doc:
                 line = re.sub(r"\s+", ' ', line).strip()
@@ -275,10 +279,13 @@ class Lazyparser(object):
         Update if needed the type and the help of every args.
         """
         if self.func.__doc__:
-            doc = filter(lambda x: pd1 in x,
+            doc = filter(lambda x: pd1 in x and pd2 in x,
                          re.split("[\n\r]", self.func.__doc__))
             for line in doc:
-                flt = list(filter(None, line.split(pd1)[1].split(pd2)))
+                if pd1 != "":
+                    flt = list(filter(None, line.split(pd1)[1].split(pd2)))
+                else:
+                    flt = list(filter(None, line.split(pd2)))
                 flt = [word.strip() for word in flt]
                 if flt[0] in self.args.keys():
                     if isinstance(flt[1], list):
@@ -371,6 +378,15 @@ def set_env(delim1, delim2, hd):
     args = delim1, delim2, hd
     if sum([not isinstance(a, str) for a in args]) > 0:
         print("error : delim1 and delim2 must be strings")
+        exit(1)
+    elif delim1 != "" and (delim1 in " \n\s\r\t" or delim2 in " \n\s\r\t"):
+        print("error : bad delim1 or delim2 definition")
+        exit(1)
+    elif delim2 in " \n\s\r\t":
+        print("error : bad delim2 definition")
+        exit(1)
+    elif hd != '' and hd in " \n\s\r\t":
+        print("error : bad header definition")
         exit(1)
     else:
         global pd1
