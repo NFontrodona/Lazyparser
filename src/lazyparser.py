@@ -189,9 +189,19 @@ class Argument(object):
         elif isinstance(self.choice, bool):
             return str(self.choice)
         elif isinstance(self.choice, list):
-            choice = [str(v) if isinstance(v, bool) else v
-                      for v in self.choice]
+            choice = []
+            for v in self.choice:
+                if isinstance(v, bool):
+                    choice.append(str(v))
+                elif callable(v):
+                    print("error : parse : you can't define a list of functions to respect")
+                    exit(1)
+                else:
+                    choice.append(v)
             return choice
+        elif callable(self.choice):
+            print("error : parse : you can't define a function to respect")
+            exit(1)
         else:
             return self.choice
 
@@ -574,9 +584,9 @@ def test_type(marg, parser):
                     else:
                         msg = "not every element in %s is a function"
                         parser.error(message(msg % marg.value, marg))
-                marg.value = [eval(v) for v in marg.value]
+                marg.value = res
             except (SyntaxError, TypeError, NameError):
-                msg = "not every element in %s is a function" % marg.value
+                msg = "not every element in %s is a function" % str(marg.value)
                 parser.error(message(msg, marg))
         elif marg.type.type == bool:
 
