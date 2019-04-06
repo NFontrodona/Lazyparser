@@ -240,7 +240,8 @@ class Lazyparser(object):
             return ""
         else:
             description = ""
-            doc = filter(None, re.split("[\n\r]", self.func.__doc__))
+            doc = iter(re.split("[\n\r]", self.func.__doc__))
+            doc = itertools.dropwhile(lambda x: x == "", doc)
             if pd1 == "":
                 delim = pd2
             else:
@@ -253,7 +254,7 @@ class Lazyparser(object):
             for line in doc:
                 line = re.sub(r"\s+", ' ', line).strip()
                 if description:
-                    description += "\n\n" + line
+                    description += "\n" + line
                 else:
                     description = line
             return description
