@@ -23,9 +23,9 @@ __version__ = 0.1
 
 #####################################
 # sets the docstring environment
-pd1 = ":param" # param delimiter 1
-pd2 = ":" # param delimiter 2
-header = "" # header of arguments
+pd1 = ":param"  # param delimiter 1
+pd2 = ":"  # param delimiter 2
+header = ""  # header of arguments
 ######################################
 
 
@@ -194,13 +194,15 @@ class Argument(object):
                 if isinstance(v, bool):
                     choice.append(str(v))
                 elif callable(v):
-                    print("error : parse : functions to respect must be given in str format")
+                    print("error : parse : functions to respect must be "
+                          "given in str format")
                     exit(1)
                 else:
                     choice.append(v)
             return choice
         elif callable(self.choice):
-            print("error : parse : function to respect must be given in str format")
+            print("error : parse : function to respect must be given "
+                  "in str format")
             exit(1)
         else:
             return self.choice
@@ -247,7 +249,7 @@ class Lazyparser(object):
                 doc = itertools.takewhile(lambda x: delim not in x, doc)
             else:
                 doc = itertools.takewhile(lambda x: delim not in x
-                                                    and header not in x, doc)
+                                          and header not in x, doc)
             for line in doc:
                 line = re.sub(r"\s+", ' ', line).strip()
                 if description:
@@ -379,13 +381,13 @@ def set_env(delim1, delim2, hd):
     if sum([not isinstance(a, str) for a in args]) > 0:
         print("error : delim1 and delim2 must be strings")
         exit(1)
-    elif delim1 != "" and (delim1 in " \n\s\r\t" or delim2 in " \n\s\r\t"):
+    elif delim1 != "" and (delim1 in " \n\r\t" or delim2 in " \n\r\t"):
         print("error : bad delim1 or delim2 definition")
         exit(1)
-    elif delim2 in " \n\s\r\t":
+    elif delim2 in " \n\r\t":
         print("error : bad delim2 definition")
         exit(1)
-    elif hd != '' and hd in " \n\s\r\t":
+    elif hd != '' and hd in " \n\r\t":
         print("error : bad header definition")
         exit(1)
     else:
@@ -475,8 +477,8 @@ def init_parser(lp):
     :param lp: (Lazyparser object) the parser
     :return: (ArgumentParser object) the argparse parser.
     """
-    parser = argparse.ArgumentParser(formatter_class=
-                                     argparse.RawDescriptionHelpFormatter,
+    fmt = argparse.RawDescriptionHelpFormatter
+    parser = argparse.ArgumentParser(formatter_class=fmt,
                                      description=lp.help)
     rargs = parser.add_argument_group("required arguments")
     for arg in lp.args.keys():
@@ -534,22 +536,43 @@ def tests_function(marg, parser):
     spaced_n = " %s " % marg.name
     spaced_sn = " %s " % marg.short_name
     if isinstance(marg.choice, str) and marg.choice not in ["dir", "file"]:
-        if spaced_n in marg.choice or spaced_sn in marg.choice:
-            if spaced_n in marg.choice:
-                cond = marg.choice.replace(spaced_n, str(marg.value))
+        if not isinstance(marg.type, List):
+            if spaced_n in marg.choice or spaced_sn in marg.choice:
+                if spaced_n in marg.choice:
+                    cond = marg.choice.replace(spaced_n, str(marg.value))
+                else:
+                    cond = marg.choice.replace(spaced_sn, str(marg.value))
+                try:
+                    if not eval(cond):
+                        msg = "invalid choice %s: it must respect : %s"
+                        parser.error(message(msg % (marg.value, marg.choice),
+                                             marg))
+                except (SyntaxError, TypeError, NameError):
+                    msg = "wrong assertion: %s. It will be ignored"
+                    print(message(msg % marg.choice, marg, "w"))
             else:
-                cond = marg.choice.replace(spaced_sn, str(marg.value))
-            try:
-                if not eval(cond):
-                    msg = "invalid choice %s: it must respect : %s"
-                    parser.error(message(msg % (marg.value, marg.choice),
-                                         marg))
-            except (SyntaxError, TypeError, NameError):
-                msg = "wrong assertion: %s. It will be ignored"
+                msg = "not found in assertion: %s. It will be ignored"
                 print(message(msg % marg.choice, marg, "w"))
         else:
-            msg = "not found in assertion: %s. It will be ignored"
-            print(message(msg % marg.choice, marg, "w"))
+            if spaced_n in marg.choice or spaced_sn in marg.choice:
+                if spaced_n in marg.choice:
+                    cond = marg.choice.replace(spaced_n, "$$!$$")
+                else:
+                    cond = marg.choice.replace(spaced_sn,  "$$!$$")
+                for val in marg.value:
+                    mcond = cond.replace("$$!$$", str(val))
+                    try:
+                        if not eval(mcond):
+                            msg = "invalid choice %s: it must respect : %s"
+                            parser.error(message(msg % (val, marg.choice),
+                                                 marg))
+                    except (SyntaxError, TypeError, NameError):
+                        msg = "wrong assertion: %s. It will be ignored"
+                        print(message(msg % marg.choice, marg, "w"))
+            else:
+                msg = "not found in assertion: %s. It will be ignored"
+                print(message(msg % marg.choice, marg, "w"))
+
     if isinstance(marg.choice, str) and marg.choice in ["dir", "file"]:
         relevant = isinstance(marg.value, (str, io.IOBase))
         if not relevant:
