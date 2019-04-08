@@ -9,15 +9,14 @@ Description:
     This script define the lazyparser.
 """
 
-import argparse
-from argparse import FileType
 import re
 import inspect
 import functools
 import itertools
-import os
+import os  # noqa
 import io
-
+import argparse
+from argparse import FileType
 
 __version__ = 0.1
 
@@ -51,7 +50,10 @@ class List(object):
         :param value: (values)
         """
         self.size = size
-        self.type = vtype
+        if vtype is None:
+            self.type = str
+        else:
+            self.type = vtype
         if value:
             if not isinstance(value, (list, tuple)):
                 print("error : %s not a list or tuple" % value)
@@ -378,18 +380,17 @@ def set_env(delim1, delim2, hd):
     :param delim2: (string) param delimiter 2
     :param hd: (string) the header of parameter
     """
-    args = delim1, delim2, hd
+    args = [delim1, delim2, hd]
     if sum([not isinstance(a, str) for a in args]) > 0:
         print("error : delim1 and delim2 must be strings")
         exit(1)
-    elif delim1 != "" and (delim1 in " \n\r\t" or delim2 in " \n\r\t"):
-        print("error : bad delim1 or delim2 definition")
-        exit(1)
-    elif delim2 in " \n\r\t":
+    for i in range(len(args)):
+        args[i] = args[i].replace("\n", "")
+        args[i] = args[i].replace("\r", "")
+        args[i] = args[i].replace("\t", "")
+        args[i] = args[i].replace(" ", "")
+    if not delim2:
         print("error : bad delim2 definition")
-        exit(1)
-    elif hd != '' and hd in " \n\r\t":
-        print("error : bad header definition")
         exit(1)
     else:
         global pd1
@@ -407,6 +408,7 @@ def handle(seq):
     :param seq: (string) the string to process
     :return: (list of string) list of word in seq sourrounded by ()
     """
+    seq = seq.replace("()", "")
     start = 0
     res = []
     word = ""
@@ -452,6 +454,7 @@ def get_type(type_arg, argument):
     :return: (Type) the type of ``type_arg``
     """
     try:
+        type_arg = type_arg.replace("(List)", "(List())")
         if type_arg != "(string)":
             type_arg = eval(type_arg)
         else:
@@ -663,7 +666,7 @@ def parse(func=None, const=None, **kwargs):
             """
             lazyparser = Lazyparser(function, mfilled, kwargs)
             parser = init_parser(lazyparser)
-            args = parser.parse_args()
+            args = parser.parse_args()  # noqa
             str_args = ""
             for my_arg in lazyparser.args.keys():
                 lazyparser.args[my_arg].value = eval("args.%s" % my_arg)
