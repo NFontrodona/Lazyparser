@@ -36,13 +36,14 @@ class TestLazyparser(unittest.TestCase):
 
     def test_get_type(self):
         argument = lp.Argument("t", 2, int)
-        assert isinstance(int, type(lp.get_type("(int)", argument)))
-        assert isinstance(float, type(lp.get_type("(float)", argument)))
-        assert isinstance(str, type(lp.get_type("(str)", argument)))
-        assert isinstance(str, type(lp.get_type("(string)", argument)))
-        assert isinstance(Function, type(lp.get_type("(Function)", argument)))
-        assert isinstance(lp.get_type("(List(vtype=int))", argument), List)
-        assert isinstance(lp.get_type("(List)", argument), List)
+        type_n = ["(int)", "(float)", "(str)", "(string)", "(Function)"]
+        type_r = [int, float, str, str, Function]
+        for i in range(len(type_n)):
+            res = lp.get_type(type_n[i], argument)
+            assert isinstance(type_r[i], type(res[0]))
+            assert type_n[i] == res[1]
+        assert isinstance(lp.get_type("(List(vtype=int))", argument)[0], List)
+        assert isinstance(lp.get_type("(List)", argument)[0], List)
         self.assertRaises(SystemExit, lp.get_type, "(gloubimou)", argument)
         self.assertRaises(SystemExit, lp.get_type, "(List(vtype=xd))",
                           argument)
