@@ -277,7 +277,9 @@ class Lazyparser(object):
             print(message(msg % arg_name, self.args[arg_name], "w"))
 
         if type_info:
-            self.args[arg_name].type = type_info[0]
+            self.args[arg_name].type = type_info[0][0]
+            self.args[arg_name].help = \
+                self.args[arg_name].help.replace(type_info[0][1], "")
 
     def update_param(self):
         """
@@ -453,6 +455,7 @@ def get_type(type_arg, argument):
     :param argument: (lazyparse argument) an argument type
     :return: (Type) the type of ``type_arg``
     """
+    ft = type_arg
     try:
         type_arg = type_arg.replace("(List)", "(List())")
         if type_arg != "(string)":
@@ -466,12 +469,12 @@ def get_type(type_arg, argument):
     if handled_type(type_arg):
         if isinstance(type_arg, List):
             if handled_type(type_arg.type, "s"):
-                return type_arg
+                return type_arg, ft
             else:
                 msg = "unknown %s subtype of List"
                 print(message(msg % type_arg.type, argument, "e"))
                 exit(1)
-        return type_arg
+        return type_arg, ft
 
 
 def init_parser(lp):
@@ -492,11 +495,13 @@ def init_parser(lp):
         if lp.args[arg].const == "$$void$$" and not lp.args[arg].default:
             rargs.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                dest=arg, help=lp.args[arg].help, type=mtype,
-                               choices=mchoice, nargs=nargs, required=True)
+                               choices=mchoice, nargs=nargs, required=True,
+                               metavar=arg[0].upper())
         elif lp.args[arg].const == "$$void$$" and lp.args[arg].default:
             parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                 dest=arg, help=lp.args[arg].help, type=mtype,
                                 choices=mchoice, nargs=nargs,
+                                metavar=arg[0].upper(),
                                 default=lp.args[arg].default)
         elif lp.args[arg].const != "$$void$$" and lp.args[arg].default is None:
             print(message("const must be specified with default", lp.args[arg],
@@ -505,7 +510,7 @@ def init_parser(lp):
         else:
             parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                 dest=arg, help=lp.args[arg].help,
-                                action="store_const",
+                                action="store_const", metavar=arg[0].upper(),
                                 const=lp.args[arg].const,
                                 default=lp.args[arg].default)
     return parser
