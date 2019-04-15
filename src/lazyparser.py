@@ -25,7 +25,7 @@ __version__ = 0.1
 pd1 = ":param"  # param delimiter 1
 pd2 = ":"  # param delimiter 2
 header = ""  # header of arguments
-tab = 4 # number of spaces composing tabulations
+tab = 4  # number of spaces composing tabulations
 ######################################
 
 
