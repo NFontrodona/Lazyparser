@@ -22,10 +22,10 @@ class TestLazyparser(unittest.TestCase):
             assert res[i] == lp.handle(seqs[i])
 
     def test_set_env(self):
-        self.assertRaises(SystemExit, lp.set_env, ":param", "", "")
-        self.assertRaises(SystemExit, lp.set_env, "", "", "")
-        assert lp.set_env("", ":", "") is None
-        assert lp.set_env("param", ":", "Keyword") is None
+        self.assertRaises(SystemExit, lp.set_env, ":param", "", "", 4)
+        self.assertRaises(SystemExit, lp.set_env, "", "", "", 4)
+        assert lp.set_env("", ":", "", 4) is None
+        assert lp.set_env("param", ":", "Keyword", 4) is None
 
     def test_get_name(self):
         res = ["L", "lo", "LO", "lol", "l"]
