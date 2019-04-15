@@ -383,7 +383,7 @@ def set_env(delim1, delim2, hd, tb):
     :param hd: (string) the header of parameter
     :param tb: (int) the number of space/tab that bedore the docstring
     """
-    if isinstance(int, tb):
+    if isinstance(tb, int):
         global tab
         tab = tb
     else:
