@@ -25,6 +25,7 @@ __version__ = 0.1
 pd1 = ":param"  # param delimiter 1
 pd2 = ":"  # param delimiter 2
 header = ""  # header of arguments
+tab = 4 # number of spaces composing tabulations
 ######################################
 
 
@@ -254,11 +255,10 @@ class Lazyparser(object):
                 doc = itertools.takewhile(lambda x: delim not in x
                                           and header not in x, doc)
             for line in doc:
-                line = re.sub(r"\s+", ' ', line).strip()
                 if description:
-                    description += "\n" + line
+                    description += "\n" + line[tab:]
                 else:
-                    description = line
+                    description = line[tab:]
             return description
 
     def update_type(self, arg_name, help_info):
@@ -374,14 +374,20 @@ class Lazyparser(object):
                     self.args[marg].choice = choices[marg]
 
 
-def set_env(delim1, delim2, hd):
+def set_env(delim1, delim2, hd, tb):
     """
     Change the param delimiters.
 
     :param delim1: (string) param delimiter 1
     :param delim2: (string) param delimiter 2
     :param hd: (string) the header of parameter
+    :param tb: (int) the number of space/tab that bedore the docstring
     """
+    if isinstance(int, tb):
+        global tab
+        tab = tb
+    else:
+        tab = 4
     args = [delim1, delim2, hd]
     if sum([not isinstance(a, str) for a in args]) > 0:
         print("error : delim1 and delim2 must be strings")
@@ -477,6 +483,52 @@ def get_type(type_arg, argument):
         return type_arg, ft
 
 
+class NewFormatter(argparse.RawDescriptionHelpFormatter):
+    """
+        New argparse Help Formatter
+    """
+
+    def __init__(self, prog):
+        """
+        Initiate the creation of the NewFormatter object.
+
+        :param prog: (str) the program filename.
+        """
+        # increase the max_help_position from 24 to 50.
+        super().__init__(prog, max_help_position=50, width=120)
+
+    def _format_action_invocation(self, action):
+        """
+        :param action: (argparse._StoreAction object) convert command line \
+        strings to python object.
+        :return: (str) parameter invocation string
+        """
+        if not action.option_strings:
+            dft = self._get_default_metavar_for_positional(action)
+            mvar, = self._metavar_formatter(action, dft)(1)
+            return mvar
+        else:
+            parts = []
+            if action.nargs == 0:
+                parts.extend(action.option_strings)
+            else:
+                dft = self._get_default_metavar_for_optional(action)
+                args_string = self._format_args(action, dft)
+                for option_string in action.option_strings:
+                    parts.append(option_string)
+                return '%s %s' % (', '.join(parts), args_string)
+            return ', '.join(parts)
+
+    def _get_default_metavar_for_optional(self, action):
+        """
+
+        :param action: (argparse._StoreAction object) convert command line \
+        strings to python object.
+        :return: (str) the default metavar names
+        """
+        return action.dest[0].upper()
+
+
 def init_parser(lp):
     """
     Create the parser using argparse.
@@ -484,8 +536,7 @@ def init_parser(lp):
     :param lp: (Lazyparser object) the parser
     :return: (ArgumentParser object) the argparse parser.
     """
-    fmt = argparse.RawDescriptionHelpFormatter
-    parser = argparse.ArgumentParser(formatter_class=fmt,
+    parser = argparse.ArgumentParser(formatter_class=NewFormatter,
                                      description=lp.help)
     rargs = parser.add_argument_group("required arguments")
     for arg in lp.args.keys():
@@ -495,13 +546,11 @@ def init_parser(lp):
         if lp.args[arg].const == "$$void$$" and not lp.args[arg].default:
             rargs.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                dest=arg, help=lp.args[arg].help, type=mtype,
-                               choices=mchoice, nargs=nargs, required=True,
-                               metavar=arg[0].upper())
+                               choices=mchoice, nargs=nargs, required=True)
         elif lp.args[arg].const == "$$void$$" and lp.args[arg].default:
             parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                 dest=arg, help=lp.args[arg].help, type=mtype,
                                 choices=mchoice, nargs=nargs,
-                                metavar=arg[0].upper(),
                                 default=lp.args[arg].default)
         elif lp.args[arg].const != "$$void$$" and lp.args[arg].default is None:
             print(message("const must be specified with default", lp.args[arg],
@@ -510,7 +559,7 @@ def init_parser(lp):
         else:
             parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
                                 dest=arg, help=lp.args[arg].help,
-                                action="store_const", metavar=arg[0].upper(),
+                                action="store_const",
                                 const=lp.args[arg].const,
                                 default=lp.args[arg].default)
     return parser
