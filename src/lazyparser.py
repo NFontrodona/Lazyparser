@@ -26,6 +26,7 @@ pd1 = ":param"  # param delimiter 1
 pd2 = ":"  # param delimiter 2
 header = ""  # header of arguments
 tab = 4  # number of spaces composing tabulations
+epi = None # epilog for the parser
 ######################################
 
 
@@ -255,10 +256,14 @@ class Lazyparser(object):
                 doc = itertools.takewhile(lambda x: delim not in x
                                           and header not in x, doc)
             for line in doc:
-                if description:
-                    description += "\n" + line[tab:]
+                if line[0:tab].strip() == "":
+                    line = line[tab:]
                 else:
-                    description = line[tab:]
+                    line = line.lstrip()
+                if description:
+                    description += "\n" + line
+                else:
+                    description = line
             return description
 
     def update_type(self, arg_name, help_info):
@@ -409,6 +414,17 @@ def set_env(delim1, delim2, hd, tb):
         header = hd
 
 
+def set_data(epilog):
+    """
+    Allow the user to define an epilog for the parser.
+
+    :param epilog: (str) a parser epilog.
+    """
+    if isinstance(epilog, str):
+        global epi
+        epi = epilog
+
+
 def handle(seq):
     """
     Return only string surrounded by ().
@@ -537,7 +553,8 @@ def init_parser(lp):
     :return: (ArgumentParser object) the argparse parser.
     """
     parser = argparse.ArgumentParser(formatter_class=NewFormatter,
-                                     description=lp.help)
+                                     description=lp.help,
+                                     epilog=epi)
     rargs = parser.add_argument_group("required arguments")
     for arg in lp.args.keys():
         mchoice = lp.args[arg].argparse_choice()
