@@ -82,4 +82,6 @@ class TestLazyparser(unittest.TestCase):
         assert "warning: " + msg == lp.message("Hello  world", arg, type_m="w")
         assert "error: " + msg == lp.message("Hello  world", arg, type_m="e")
 
+    def test_set_data(self):
+        assert lp.set_data("uigig") is None
 
