@@ -651,7 +651,7 @@ def tests_function(marg, parser):
 
     if isinstance(marg.choice, str) and marg.choice in ["dir", "file"]:
         relevant = isinstance(marg.value, (str, io.IOBase))
-        if not relevant:
+        if not relevant and not isinstance(marg.type, List):
             msg = "Wrong file type."
             parser.error(message(msg, marg))
         else:
@@ -661,6 +661,13 @@ def tests_function(marg, parser):
                     msg = "invalid choice %s: it must be an existing %s"
                     parser.error(message(msg % (marg.value, marg.choice),
                                          marg))
+            elif isinstance(marg.value, list):
+                for mfile in marg.value:
+                    eval_str = eval("os.path.is%s(mfile)" % marg.choice)
+                    if not eval_str:
+                        msg = "invalid choice %s: it must be an existing %s"
+                        parser.error(message(msg % (mfile, marg.choice),
+                                             marg))
 
 
 def test_type(marg, parser):
