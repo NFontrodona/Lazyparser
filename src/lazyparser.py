@@ -555,7 +555,8 @@ def init_parser(lp):
     parser = argparse.ArgumentParser(formatter_class=NewFormatter,
                                      description=lp.help,
                                      epilog=epi)
-    rargs = parser.add_argument_group("required arguments")
+    parser._optionals.title = 'Optional arguments'
+    rargs = parser.add_argument_group("Required arguments")
     for arg in lp.args.keys():
         mchoice = lp.args[arg].argparse_choice()
         mtype = lp.args[arg].argparse_type()
