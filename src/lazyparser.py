@@ -27,6 +27,10 @@ pd2 = ":"  # param delimiter 2
 header = ""  # header of arguments
 tab = 4  # number of spaces composing tabulations
 epi = None  # epilog for the parser
+groups = {}  # The groups of arguments
+lpg_name = {}
+optionals_title = "Optional arguments"
+required_title = "Required arguments"
 ######################################
 
 
@@ -97,14 +101,14 @@ class Argument(object):
         :param arg_type: (type) the type of the argument
         """
         self.name = name_arg
-        self.default = default if default in [True, False] else \
-            (default if default != inspect._empty else None)
+        self.default = default
         self.help = "param %s" % self.name
         self.short_name = None
         self.choice = None
         self.value = None
         self.const = "$$void$$"
         self.type = self.set_type(arg_type)
+        self.pgroup = self.get_parser_group()
 
     def get_type(self):
         """
@@ -210,6 +214,29 @@ class Argument(object):
             exit(1)
         else:
             return self.choice
+
+    def get_parser_group(self):
+        """
+        Get the group name of the wanted argument.
+
+        :return: (list of 2 string or NoneType) The name of the parser \
+        followed by the names of the group of arguments
+        """
+        if len(groups.keys()) == 0:
+            if self.default == inspect._empty:
+                return ["__rarg__", required_title]
+            else:
+                return ["__parser__", optionals_title]
+        for key in groups.keys():
+            if self.name in groups[key]:
+                if "help" in groups[key]:
+                    return ["__parser__", key]
+                else:
+                    return [lpg_name[key], key]
+        if self.default == inspect._empty:
+            return ["__rarg__", required_title]
+        else:
+            return ["__parser__", optionals_title]
 
 
 class Lazyparser(object):
@@ -425,6 +452,43 @@ def set_data(epilog):
         epi = epilog
 
 
+def set_groups(arg_groups):
+    """
+    Change the name of the argument groups.
+
+    :param arg_groups: (dictionary of list of string) links each arguments to \
+    its groups.
+    """
+    pname = {}
+    tmp = []
+    help_name = None
+    for key in arg_groups.keys():
+        if "help" in arg_groups[key]:
+            help_name = key
+            n = "__parser__"
+        else:
+            n = "".join(re.findall(r"[A-Za-z0-9_]", key))
+            n = re.sub(r"^[0-9]*", "", n)
+            if len(n) == 0:
+                print("Error : The name '%s' must have at least one of the"
+                      "following symbols [A-Za-z]" % key)
+                exit(1)
+        pname[key] = n
+        if n not in tmp:
+            tmp.append(n)
+        else:
+            print("Error %s after removing symbols not in [A-Za-z0-9]"
+                  "is already defined" % key)
+            exit(1)
+    global groups
+    groups = arg_groups
+    global lpg_name
+    lpg_name = pname
+    if help_name:
+        global optionals_title
+        optionals_title = help_name
+
+
 def handle(seq):
     """
     Return only string surrounded by ().
@@ -552,35 +616,52 @@ def init_parser(lp):
     :param lp: (Lazyparser object) the parser
     :return: (ArgumentParser object) the argparse parser.
     """
-    parser = argparse.ArgumentParser(formatter_class=NewFormatter,
-                                     description=lp.help,
-                                     epilog=epi)
-    parser._optionals.title = 'Optional arguments'
-    rargs = parser.add_argument_group("Required arguments")
-    for arg in lp.args.keys():
-        mchoice = lp.args[arg].argparse_choice()
-        mtype = lp.args[arg].argparse_type()
-        nargs = lp.args[arg].argparse_narg()
-        if lp.args[arg].const == "$$void$$" and not lp.args[arg].default:
-            rargs.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
-                               dest=arg, help=lp.args[arg].help, type=mtype,
-                               choices=mchoice, nargs=nargs, required=True)
+    __parser__ = argparse.ArgumentParser(formatter_class=NewFormatter,
+                                         description=lp.help,
+                                         epilog=epi)
+    __parser__._optionals.title = optionals_title
+    pgroups = []
+    for arg in sorted(lp.args.keys()):
+        pgroup = lp.args[arg].pgroup[0]
+        pname = lp.args[arg].pgroup[1]
+        if pgroup not in pgroups:
+            exec("%s = __parser__.add_argument_group('%s')" % (pgroup, pname))
+            pgroups.append(pname)
+        lp.args[arg].pgroup[0] = __parser__.add_argument_group
+        mchoice = lp.args[arg].argparse_choice()  # noqa
+        mtype = lp.args[arg].argparse_type()  # noqa
+        nargs = lp.args[arg].argparse_narg()  # noqa
+        if lp.args[arg].const == "$$void$$" and \
+                lp.args[arg].default == inspect._empty:
+            cmd = """{}.add_argument('-%s' % lp.args[arg].short_name,
+                                        '--%s' % arg, dest=arg,
+                                        help=lp.args[arg].help, type=mtype,
+                                        choices=mchoice, nargs=nargs,
+                                        required=True)""".format(pgroup)
+            exec(cmd)
         elif lp.args[arg].const == "$$void$$" and lp.args[arg].default:
-            parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
-                                dest=arg, help=lp.args[arg].help, type=mtype,
-                                choices=mchoice, nargs=nargs,
-                                default=lp.args[arg].default)
+            cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
+                                     "--%s" % arg,
+                                     dest=arg, help=lp.args[arg].help,
+                                     type=mtype,
+                                     choices=mchoice, nargs=nargs,
+                                     default=lp.args[arg].default)
+                                     """.format(pgroup)
+            exec(cmd)
         elif lp.args[arg].const != "$$void$$" and lp.args[arg].default is None:
             print(message("const must be specified with default", lp.args[arg],
                           "e"))
             exit(1)
         else:
-            parser.add_argument("-%s" % lp.args[arg].short_name, "--%s" % arg,
-                                dest=arg, help=lp.args[arg].help,
-                                action="store_const",
-                                const=lp.args[arg].const,
-                                default=lp.args[arg].default)
-    return parser
+            cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
+                                     "--" % arg, dest=arg,
+                                     help=lp.args[arg].help,
+                                     action="store_const",
+                                     const=lp.args[arg].const,
+                                     default=lp.args[arg].default)
+                                     """.format(pgroup)
+            exec(cmd)
+    return __parser__
 
 
 def message(sentence, argument, type_m=None):
