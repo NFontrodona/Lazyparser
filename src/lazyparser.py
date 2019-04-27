@@ -32,6 +32,7 @@ lpg_name = {}  # the name of the parser used
 grp_order = None  # the order of groups
 optionals_title = "Optional arguments"
 required_title = "Required arguments"
+help_arg = True
 ######################################
 
 
@@ -253,14 +254,28 @@ class Lazyparser(object):
         :param choice: (dictionary) the contains
         """
         self.func = function
-        sign = dict(inspect.signature(function).parameters)
-        self.args = {k: Argument(k, sign[k].default, sign[k].annotation) for
-                     k in sign.keys()}
+        self.args = self.init_args()
         self.help = self.description()
         self.update_param()
         self.get_short_name()
         self.set_filled(const)
         self.set_constrain(choice)
+
+    def init_args(self):
+        """
+        Initiate the creation the argument of interest.
+        """
+        sign = dict(inspect.signature(self.func).parameters)
+        if "help" not in sign.keys():
+            dic_args = {k: Argument(k, sign[k].default, sign[k].annotation)
+                        for k in sign.keys()}
+            if help_arg:
+                dic_args["help"] = Argument("help", "help", str)
+            return dic_args
+        else:
+            print("Error: argument conflict, help argument cannot be set in"
+                  "the parsed function")
+            exit(1)
 
     def description(self):
         """
@@ -341,7 +356,12 @@ class Lazyparser(object):
         Get the short param name of self.args
         """
         param_names = sorted(list(self.args.keys()))
-        selected_param = []
+        if "help" in param_names:
+            self.args["help"].short_name = "h"
+            selected_param = ["h"]
+            del(param_names[param_names.index("help")])
+        else:
+            selected_param = []
         for param in param_names:
             sn = get_name(param, selected_param)
             self.args[param].short_name = sn
@@ -413,7 +433,11 @@ class Lazyparser(object):
         :return: (list of str) the ordered list of arguments to display.
         """
         if grp_order is None:
-            return sorted(self.args.keys())
+            list_args = sorted(self.args.keys())
+            if "help" in list_args:
+                del(list_args[list_args.index("help")])
+                return ["help"] + list_args
+            return list_args
         else:
             dic_args = {}
             list_args = []
@@ -421,12 +445,18 @@ class Lazyparser(object):
                 arg = self.args[narg]
                 if arg.pgroup[1] not in dic_args.keys():
                     dic_args[arg.pgroup[1]] = [narg]
+                elif narg == "help":
+                    dic_args[arg.pgroup[1]].insert(0, narg)
                 else:
                     dic_args[arg.pgroup[1]].append(narg)
             for grp_arg in grp_order:
-                list_args += sorted(dic_args.pop(grp_arg))
+                if grp_arg not in dic_args.keys():
+                    print("Error the argument group %s don't exists" % grp_arg)
+                    exit(1)
+                else:
+                    list_args += dic_args.pop(grp_arg)
             for key in dic_args:
-                list_args += sorted(dic_args.pop(key))
+                list_args += sorted(dic_args[key])
             return list_args
 
 
@@ -476,47 +506,46 @@ def set_data(epilog):
         epi = epilog
 
 
-def set_groups(arg_groups, order=None):
+def set_groups(arg_groups=None, order=None, add_help=True):
     """
     Change the name of the argument groups.
 
     :param order: (list of string) the order of groups the user wants
     :param arg_groups: (dictionary of list of string) links each arguments to \
     its groups.
+    :param add_help: (bool) True to display the help, false else.
     """
     pname = {}
     tmp = []
     help_name = None
-    if order is not None:
-        for val in order:
-            if val not in arg_groups:
-                print("Error, the order contains groups that don't exist")
+    if arg_groups:
+        for key in arg_groups.keys():
+            if "help" in arg_groups[key]:
+                help_name = key
+                n = "__parser__"
+            else:
+                n = "".join(re.findall(r"[A-Za-z0-9_]", key))
+                n = re.sub(r"^[0-9]*", "", n)
+                if len(n) == 0:
+                    print("Error : The name '%s' must have at least one of the"
+                          "following symbols [A-Za-z]" % key)
+                    exit(1)
+            pname[key] = n
+            if n not in tmp:
+                tmp.append(n)
+            else:
+                print("Error %s after removing symbols not in [A-Za-z0-9]"
+                      "is already defined" % key)
                 exit(1)
-
-    for key in arg_groups.keys():
-        if "help" in arg_groups[key]:
-            help_name = key
-            n = "__parser__"
-        else:
-            n = "".join(re.findall(r"[A-Za-z0-9_]", key))
-            n = re.sub(r"^[0-9]*", "", n)
-            if len(n) == 0:
-                print("Error : The name '%s' must have at least one of the"
-                      "following symbols [A-Za-z]" % key)
-                exit(1)
-        pname[key] = n
-        if n not in tmp:
-            tmp.append(n)
-        else:
-            print("Error %s after removing symbols not in [A-Za-z0-9]"
-                  "is already defined" % key)
-            exit(1)
-    global groups
-    groups = arg_groups
-    global lpg_name
+        global groups
+        groups = arg_groups
+        global lpg_name
     global grp_order
     grp_order = order
     lpg_name = pname
+    if isinstance(add_help, bool):
+        global help_arg
+        help_arg = add_help
     if help_name:
         global optionals_title
         optionals_title = help_name
@@ -649,22 +678,28 @@ def init_parser(lp):
     :param lp: (Lazyparser object) the parser
     :return: (ArgumentParser object) the argparse parser.
     """
-    __parser__ = argparse.ArgumentParser(formatter_class=NewFormatter,
-                                         description=lp.help,
-                                         epilog=epi)
-    __parser__._optionals.title = optionals_title
+    parser = argparse.ArgumentParser(formatter_class=NewFormatter,
+                                     description=lp.help,
+                                     add_help=False,
+                                     epilog=epi)
     pgroups = []
     for arg in lp.get_order():
         pgroup = lp.args[arg].pgroup[0]
         pname = lp.args[arg].pgroup[1]
         if pgroup not in pgroups:
-            exec("%s = __parser__.add_argument_group('%s')" % (pgroup, pname))
+            exec("%s = parser.add_argument_group('%s')" % (pgroup, pname))
             pgroups.append(pgroup)
-        lp.args[arg].pgroup[0] = __parser__.add_argument_group
         mchoice = lp.args[arg].argparse_choice()  # noqa
         mtype = lp.args[arg].argparse_type()  # noqa
         nargs = lp.args[arg].argparse_narg()  # noqa
-        if lp.args[arg].const == "$$void$$" and \
+        if arg == "help":
+            cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
+                                     "--%s" % arg,
+                                     action="help",
+                                     help="show this help message and exit")
+                                     """.format(pgroup)
+            exec(cmd)
+        elif lp.args[arg].const == "$$void$$" and \
                 lp.args[arg].default == inspect._empty:
             cmd = """{}.add_argument('-%s' % lp.args[arg].short_name,
                                         '--%s' % arg, dest=arg,
@@ -694,7 +729,7 @@ def init_parser(lp):
                                      default=lp.args[arg].default)
                                      """.format(pgroup)
             exec(cmd)
-    return __parser__
+    return parser
 
 
 def message(sentence, argument, type_m=None):
