@@ -27,8 +27,9 @@ pd2 = ":"  # param delimiter 2
 header = ""  # header of arguments
 tab = 4  # number of spaces composing tabulations
 epi = None  # epilog for the parser
-groups = {}  # The groups of arguments
-lpg_name = {}
+groups = {}  # the groups of arguments
+lpg_name = {}  # the name of the parser used
+grp_order = None  # the order of groups
 optionals_title = "Optional arguments"
 required_title = "Required arguments"
 ######################################
@@ -405,6 +406,29 @@ class Lazyparser(object):
                 else:
                     self.args[marg].choice = choices[marg]
 
+    def get_order(self):
+        """
+        Get the order of groups of argument to display.
+
+        :return: (list of str) the ordered list of arguments to display.
+        """
+        if grp_order is None:
+            return sorted(self.args.keys())
+        else:
+            dic_args = {}
+            list_args = []
+            for narg in self.args.keys():
+                arg = self.args[narg]
+                if arg.pgroup[1] not in dic_args.keys():
+                    dic_args[arg.pgroup[1]] = [narg]
+                else:
+                    dic_args[arg.pgroup[1]].append(narg)
+            for grp_arg in grp_order:
+                list_args += sorted(dic_args.pop(grp_arg))
+            for key in dic_args:
+                list_args += sorted(dic_args.pop(key))
+            return list_args
+
 
 def set_env(delim1, delim2, hd, tb):
     """
@@ -452,16 +476,23 @@ def set_data(epilog):
         epi = epilog
 
 
-def set_groups(arg_groups):
+def set_groups(arg_groups, order=None):
     """
     Change the name of the argument groups.
 
+    :param order: (list of string) the order of groups the user wants
     :param arg_groups: (dictionary of list of string) links each arguments to \
     its groups.
     """
     pname = {}
     tmp = []
     help_name = None
+    if order is not None:
+        for val in order:
+            if val not in arg_groups:
+                print("Error, the order contains groups that don't exist")
+                exit(1)
+
     for key in arg_groups.keys():
         if "help" in arg_groups[key]:
             help_name = key
@@ -483,6 +514,8 @@ def set_groups(arg_groups):
     global groups
     groups = arg_groups
     global lpg_name
+    global grp_order
+    grp_order = order
     lpg_name = pname
     if help_name:
         global optionals_title
@@ -621,12 +654,12 @@ def init_parser(lp):
                                          epilog=epi)
     __parser__._optionals.title = optionals_title
     pgroups = []
-    for arg in sorted(lp.args.keys()):
+    for arg in lp.get_order():
         pgroup = lp.args[arg].pgroup[0]
         pname = lp.args[arg].pgroup[1]
         if pgroup not in pgroups:
             exec("%s = __parser__.add_argument_group('%s')" % (pgroup, pname))
-            pgroups.append(pname)
+            pgroups.append(pgroup)
         lp.args[arg].pgroup[0] = __parser__.add_argument_group
         mchoice = lp.args[arg].argparse_choice()  # noqa
         mtype = lp.args[arg].argparse_type()  # noqa
