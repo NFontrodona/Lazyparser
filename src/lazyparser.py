@@ -57,7 +57,14 @@ class List(object):
         :param vtype: (type) the type of the vector
         :param value: (values)
         """
-        self.size = size
+        if size != "+":
+            try:
+                self.size = int(size)
+            except ValueError:
+                print("Error : size must be an int or '+' symbol")
+                exit(1)
+        else:
+            self.size = size
         if vtype is None:
             self.type = str
         else:
@@ -186,9 +193,22 @@ class Argument(object):
 
     def argparse_narg(self):
         if not isinstance(self.type, List):
-            return "?"
+            return None
         else:
             return self.type.size
+
+    def argparse_metavar(self):
+        """
+        :return: (string) the metavar for the argument
+        """
+        if isinstance(self.type, List):
+            name = self.type.type.__name__.replace("Function", "Func")
+            if self.type.size == "+":
+                return "List[%s]" % name
+            else:
+                return "List[%s,%s]" % (self.type.size, name)
+        else:
+            return self.type.__name__.replace("Function", "Func")
 
     def argparse_choice(self):
         """
@@ -639,6 +659,11 @@ class NewFormatter(argparse.RawDescriptionHelpFormatter):
         # increase the max_help_position from 24 to 50.
         super().__init__(prog, max_help_position=50, width=120)
 
+    def _format_args(self, action, default_metavar):
+        get_metavar = self._metavar_formatter(action, default_metavar)
+        result = '%s' % get_metavar(1)
+        return result
+
     def _format_action_invocation(self, action):
         """
         :param action: (argparse._StoreAction object) convert command line \
@@ -692,6 +717,7 @@ def init_parser(lp):
         mchoice = lp.args[arg].argparse_choice()  # noqa
         mtype = lp.args[arg].argparse_type()  # noqa
         nargs = lp.args[arg].argparse_narg()  # noqa
+        metvar = lp.args[arg].argparse_metavar().upper()  # noqa
         if arg == "help":
             cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
                                      "--%s" % arg,
@@ -699,11 +725,13 @@ def init_parser(lp):
                                      help="show this help message and exit")
                                      """.format(pgroup)
             exec(cmd)
+            del(lp.args[arg])
         elif lp.args[arg].const == "$$void$$" and \
                 lp.args[arg].default == inspect._empty:
             cmd = """{}.add_argument('-%s' % lp.args[arg].short_name,
                                         '--%s' % arg, dest=arg,
                                         help=lp.args[arg].help, type=mtype,
+                                        metavar=metvar,
                                         choices=mchoice, nargs=nargs,
                                         required=True)""".format(pgroup)
             exec(cmd)
@@ -711,7 +739,7 @@ def init_parser(lp):
             cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
                                      "--%s" % arg,
                                      dest=arg, help=lp.args[arg].help,
-                                     type=mtype,
+                                     type=mtype, metavar=metvar,
                                      choices=mchoice, nargs=nargs,
                                      default=lp.args[arg].default)
                                      """.format(pgroup)
@@ -724,7 +752,7 @@ def init_parser(lp):
             cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
                                      "--" % arg, dest=arg,
                                      help=lp.args[arg].help,
-                                     action="store_const",
+                                     action="store_const", metavar=metvar,
                                      const=lp.args[arg].const,
                                      default=lp.args[arg].default)
                                      """.format(pgroup)
