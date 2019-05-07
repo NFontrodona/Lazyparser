@@ -137,7 +137,7 @@ class Argument(object):
         :return: (type) the type of the argument
         """
         if arg_type == inspect._empty:
-            return None
+            return inspect._empty
         if handled_type(arg_type):
             return arg_type
         if arg_type in handled_type:
@@ -201,8 +201,13 @@ class Argument(object):
         """
         :return: (string) the metavar for the argument
         """
-        if isinstance(self.type, List):
-            name = self.type.type.__name__.replace("Function", "Func")
+        if isinstance(self.type, FileType):
+            return "File(%s)" % self.type._mode
+        elif isinstance(self.type, List):
+            if isinstance(self.type.type, FileType):
+                name = "File(%s)" % self.type.type._mode
+            else:
+                name = self.type.type.__name__.replace("Function", "Func")
             if self.type.size == "+":
                 return "List[%s]" % name
             else:
@@ -293,7 +298,7 @@ class Lazyparser(object):
                 dic_args["help"] = Argument("help", "help", str)
             return dic_args
         else:
-            print("Error: argument conflict, help argument cannot be set in"
+            print("error: argument conflict, help argument cannot be set in"
                   "the parsed function")
             exit(1)
 
@@ -337,7 +342,7 @@ class Lazyparser(object):
         :param help_info: (list of string) the list string representing the \
         help for the parameter ``arg_name``
         """
-        type_info = [get_type(w.replace(" ", ""), self.args[arg_name])
+        type_info = [get_type(w, self.args[arg_name])
                      for w in help_info if re.search(r"\(.*\)", w) and
                      re.search(r"\(.*\)", w).span() == (0, len(w))]
         if len(type_info) > 1:
@@ -368,7 +373,7 @@ class Lazyparser(object):
                     else:
                         flt_desc = flt[1]
                     self.args[flt[0]].help = flt_desc
-                    if not self.args[flt[0]].type:
+                    if self.args[flt[0]].type == inspect._empty:
                         self.update_type(flt[0], handle(flt_desc))
 
     def get_short_name(self):
@@ -411,6 +416,15 @@ class Lazyparser(object):
                                 exit(1)
                         elif callable(const[marg]):
                             const[marg] = const[marg]
+                        else:
+                            print(message(msg % mtype.__name__,
+                                      self.args[marg], "e"))
+                            exit(1)
+                    elif mtype == FileType:
+                        msg = "not handled const type '%s'"
+                        print(message(msg % mtype.__name__,
+                                      self.args[marg], "e"))
+                        exit(1)
                     elif not handled_type(mtype, "s"):
                         print(message(msg % mtype.__name__,
                                       self.args[marg], "e"))
@@ -420,15 +434,17 @@ class Lazyparser(object):
                                       self.args[marg], "e"))
                         exit(1)
                     elif not isinstance(self.args[marg].default, mtype):
-                        if self.args[marg].default is None:
+                        if self.args[marg].default == inspect._empty:
                             msg = "const must be specified with default"
                             print(message(msg,
                                           self.args[marg], "e"))
-                        else:
+                            exit(1)
+                        elif self.args[marg].default is not None:
+                            msg = msg.replace("const", "default")
                             print(message(msg %
                                           mtype.__name__,
                                           self.args[marg], "e"))
-                        exit(1)
+                            exit(1)
 
                     self.args[marg].const = const[marg]
 
@@ -624,6 +640,7 @@ def get_type(type_arg, argument):
     :return: (Type) the type of ``type_arg``
     """
     ft = type_arg
+    type_arg = type_arg.replace(" ", "")
     try:
         type_arg = type_arg.replace("(List)", "(List())")
         if type_arg != "(string)":
@@ -735,7 +752,8 @@ def init_parser(lp):
                                         choices=mchoice, nargs=nargs,
                                         required=True)""".format(pgroup)
             exec(cmd)
-        elif lp.args[arg].const == "$$void$$" and lp.args[arg].default:
+        elif lp.args[arg].const == "$$void$$" and lp.args[arg].default != \
+                inspect._empty:
             cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
                                      "--%s" % arg,
                                      dest=arg, help=lp.args[arg].help,
@@ -744,13 +762,14 @@ def init_parser(lp):
                                      default=lp.args[arg].default)
                                      """.format(pgroup)
             exec(cmd)
-        elif lp.args[arg].const != "$$void$$" and lp.args[arg].default is None:
+        elif lp.args[arg].const != "$$void$$" and lp.args[arg].default \
+                == inspect._empty:
             print(message("const must be specified with default", lp.args[arg],
                           "e"))
             exit(1)
         else:
             cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
-                                     "--" % arg, dest=arg,
+                                     "--%s" % arg, dest=arg,
                                      help=lp.args[arg].help,
                                      action="store_const", metavar=metvar,
                                      const=lp.args[arg].const,
