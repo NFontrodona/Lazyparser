@@ -279,7 +279,7 @@ class Lazyparser(object):
         :param choice: (dictionary) the contains
         """
         self.func = function
-        self.args = self.init_args()
+        self.args, self.order = self.init_args()
         self.help = self.description()
         self.update_param()
         self.get_short_name()
@@ -290,13 +290,13 @@ class Lazyparser(object):
         """
         Initiate the creation the argument of interest.
         """
-        sign = dict(inspect.signature(self.func).parameters)
+        sign = inspect.signature(self.func).parameters
         if "help" not in sign.keys():
             dic_args = {k: Argument(k, sign[k].default, sign[k].annotation)
                         for k in sign.keys()}
             if help_arg:
                 dic_args["help"] = Argument("help", "help", str)
-            return dic_args
+            return dic_args, ["help"] + list(sign.keys())
         else:
             print("error: argument conflict, help argument cannot be set in"
                   "the parsed function")
@@ -469,15 +469,11 @@ class Lazyparser(object):
         :return: (list of str) the ordered list of arguments to display.
         """
         if grp_order is None:
-            list_args = sorted(self.args.keys())
-            if "help" in list_args:
-                del(list_args[list_args.index("help")])
-                return ["help"] + list_args
-            return list_args
+            return self.order
         else:
             dic_args = {}
             list_args = []
-            for narg in self.args.keys():
+            for narg in self.order:
                 arg = self.args[narg]
                 if arg.pgroup[1] not in dic_args.keys():
                     dic_args[arg.pgroup[1]] = [narg]
@@ -726,6 +722,8 @@ def init_parser(lp):
                                      epilog=epi)
     pgroups = []
     for arg in lp.get_order():
+        if lp.args[arg].type == inspect._empty:
+            lp.args[arg].type = str
         pgroup = lp.args[arg].pgroup[0]
         pname = lp.args[arg].pgroup[1]
         if pgroup not in pgroups:
