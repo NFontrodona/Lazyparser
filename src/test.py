@@ -10,9 +10,9 @@ Description:
 import lazyparser as lp
 from lazyparser import Function, List, FileType
 import unittest
+import inspect
 
-
-class TestLazyparser(unittest.TestCase):
+class TestFunction(unittest.TestCase):
 
     def test_handle(self):
         seqs = ["jdbgjdbgt (lol(lol)) (lilou() blup", "g (li) lou()",
@@ -45,7 +45,7 @@ class TestLazyparser(unittest.TestCase):
         assert isinstance(lp.get_type("(List(vtype=int))", argument)[0], List)
         assert isinstance(lp.get_type("(List)", argument)[0], List)
         self.assertRaises(SystemExit, lp.get_type, "(gloubimou)", argument)
-        self.assertRaises(SystemExit, lp.get_type, "(List(vtype=xd))",
+        self.assertRaises(SystemExit, lp.get_type, """(List(vtype="xd"))""",
                           argument)
 
     def test_handled_type(self):
@@ -56,11 +56,11 @@ class TestLazyparser(unittest.TestCase):
             assert lp.handled_type(float, o)
             assert lp.handled_type(Function, o)
             assert lp.handled_type(FileType("w"), o)
-            assert lp.handled_type(854, o)
-            assert lp.handled_type("blip", o)
+            assert not lp.handled_type(854, o)
+            assert not lp.handled_type("blip", o)
             assert not lp.handled_type(sum, o)
         assert lp.handled_type(List)
-        assert lp.handled_type(List(size=5, vtype="int"))
+        assert lp.handled_type(List(size=5, vtype=int))
         assert not lp.handled_type(List, "s")
         assert not lp.handled_type(List(size=5, vtype="int"), "s")
 
@@ -74,6 +74,7 @@ class TestLazyparser(unittest.TestCase):
         assert v.type == int
         assert v.value == [1, 2, 3]
         self.assertRaises(SystemExit, List, 4, int, 7)
+        self.assertRaises(SystemExit, List, "22u", int, 7)
 
     def test_message(self):
         arg = lp.Argument("t", 2, int)
@@ -84,4 +85,21 @@ class TestLazyparser(unittest.TestCase):
 
     def test_set_data(self):
         assert lp.set_data("uigig") is None
+
+
+class TestArgument(unittest.TestCase):
+
+    def test_get_type(self):
+        arg = lp.Argument("lol", 7, int)
+        assert arg.get_type() == int
+        arg = lp.Argument("lol", 7, List(vtype=int))
+        assert arg.get_type() == List
+
+    def test_set_type(self):
+        class Lol: pass
+        arg = lp.Argument("lol", 7, int)
+        assert arg.set_type(int) == int
+        assert arg.set_type(inspect._empty) == inspect._empty
+        self.assertRaises(SystemExit, arg.set_type, "bloup")
+        self.assertRaises(SystemExit, arg.set_type, Lol)
 
