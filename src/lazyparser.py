@@ -89,7 +89,7 @@ def handled_type(atype, htype="m"):
     dic_type = {"m": [int, float, Function, bool, str, FileType, List],
                 "s": [int, float, Function, bool, str, FileType]}
 
-    if not isinstance(atype, type):
+    if isinstance(atype, (FileType, List)):
         atype = type(atype)
     if atype in dic_type[htype]:
         return True
@@ -418,7 +418,7 @@ class Lazyparser(object):
                             const[marg] = const[marg]
                         else:
                             print(message(msg % mtype.__name__,
-                                      self.args[marg], "e"))
+                                          self.args[marg], "e"))
                             exit(1)
                     elif mtype == FileType:
                         msg = "not handled const type '%s'"
