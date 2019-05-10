@@ -140,10 +140,8 @@ class Argument(object):
             return inspect._empty
         if handled_type(arg_type):
             return arg_type
-        if arg_type in handled_type:
-            return arg_type
         if isinstance(arg_type, type):
-            msg = "unknown type %s" % arg_type.__name__
+            msg = "Not handled type %s" % arg_type.__name__
         else:
             msg = "unknown type %s" % str(arg_type)
         print(message(msg, self, "e"))
