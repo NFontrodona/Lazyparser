@@ -184,10 +184,10 @@ class Argument(object):
         :return: (string) the metavar for the argument
         """
         if isinstance(self.type, FileType):
-            return "File(%s)" % self.type._mode
+            return "File[%s]" % self.type._mode
         elif isinstance(self.type, List):
             if isinstance(self.type.type, FileType):
-                name = "File(%s)" % self.type.type._mode
+                name = "File[%s]" % self.type.type._mode
             else:
                 name = self.type.type.__name__.replace("Function", "Func")
             if self.type.size == "+":
