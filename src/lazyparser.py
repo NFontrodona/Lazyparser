@@ -147,14 +147,6 @@ class Argument(object):
         print(message(msg, self, "e"))
         exit(1)
 
-    def update_type(self, arg_type):
-        """
-        Update the type value of self if it set to None.
-
-        :param arg_type: (value)
-        """
-        self.type = self.type if self.type else arg_type
-
     def gfn(self):
         """
         Get the full name of the argument.
