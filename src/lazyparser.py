@@ -751,7 +751,7 @@ def init_parser(lp):
             cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
                                      "--%s" % arg, dest=arg,
                                      help=lp.args[arg].help,
-                                     action="store_const", metavar=metvar,
+                                     action="store_const", metavar="",
                                      const=lp.args[arg].const,
                                      default=lp.args[arg].default)
                                      """.format(pgroup)
