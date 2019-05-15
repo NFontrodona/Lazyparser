@@ -147,14 +147,6 @@ class Argument(object):
         print(message(msg, self, "e"))
         exit(1)
 
-    def update_default(self, default):
-        """
-        Update the default value of self if it set to None.
-
-        :param default: (value)
-        """
-        self.default = self.default if self.default else default
-
     def update_type(self, arg_type):
         """
         Update the type value of self if it set to None.
