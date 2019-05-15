@@ -231,11 +231,6 @@ class Argument(object):
         :return: (list of 2 string or NoneType) The name of the parser \
         followed by the names of the group of arguments
         """
-        if len(groups.keys()) == 0:
-            if self.default == inspect._empty:
-                return ["__rarg__", required_title]
-            else:
-                return ["__parser__", optionals_title]
         for key in groups.keys():
             if self.name in groups[key]:
                 if "help" in groups[key]:
