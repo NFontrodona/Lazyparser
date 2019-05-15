@@ -103,3 +103,77 @@ class TestArgument(unittest.TestCase):
         self.assertRaises(SystemExit, arg.set_type, "bloup")
         self.assertRaises(SystemExit, arg.set_type, Lol)
 
+    def test_gfn(self):
+        arg = lp.Argument("lol", 7, int)
+        assert arg.gfn() == "--lol"
+        arg.short_name = "l"
+        assert arg.gfn() == "-l/--lol"
+
+    def test_argparse_type(self):
+        arg = lp.Argument("lol", 7, bool)
+        assert arg.argparse_type() == str
+        arg = lp.Argument("lol", 7, Function)
+        assert arg.argparse_type() == str
+        arg = lp.Argument("lol", 7, List(vtype=int))
+        assert arg.argparse_type() == int
+        arg = lp.Argument("lol", 7, List(vtype=Function))
+        assert arg.argparse_type() == str
+        arg = lp.Argument("lol", 7, List(vtype=bool))
+        assert arg.argparse_type() == str
+        arg = lp.Argument("lol", 7, List(vtype=float))
+        assert arg.argparse_type() == float
+        arg = lp.Argument("lol", 7, float)
+        assert arg.argparse_type() == float
+        arg = lp.Argument("lol", 7, int)
+        assert arg.argparse_type() == int
+
+    def test_argparse_narg(self):
+        arg = lp.Argument("lol", 7, float)
+        assert arg.argparse_narg() is None
+        arg = lp.Argument("lol", 7, List(vtype=(float)))
+        assert arg.argparse_narg() == "+"
+        arg = lp.Argument("lol", 7, List(5, float))
+        assert arg.argparse_narg() == 5
+
+    def test_argparse_metavar(self):
+        arg = lp.Argument("lol", 7, FileType("w"))
+        assert arg.argparse_metavar() == "File[w]"
+        arg = lp.Argument("lol", 7, List(vtype=int))
+        assert arg.argparse_metavar() == "List[int]"
+        arg = lp.Argument("lol", 7, List(size=5, vtype=int))
+        assert arg.argparse_metavar() == "List[5,int]"
+        arg = lp.Argument("lol", 7, List(size=5, vtype=FileType("w")))
+        assert arg.argparse_metavar() == "List[5,File[w]]"
+        arg = lp.Argument("lol", 7, List(size=5, vtype=Function))
+        assert arg.argparse_metavar() == "List[5,Func]"
+        arg = lp.Argument("lol", 7, List(vtype=FileType("w")))
+        assert arg.argparse_metavar() == "List[File[w]]"
+        arg = lp.Argument("lol", 7, float)
+        assert arg.argparse_metavar() == "float"
+
+    def test_argparse_choice(self):
+        arg = lp.Argument("lol", 7, List(size=5, vtype=Function))
+        assert arg.argparse_choice() is None
+        arg.choice = "test"
+        assert arg.argparse_choice() is None
+        arg.choice = True
+        assert arg.argparse_choice() == "True"
+        arg.choice = [1, "foo", True]
+        assert arg.argparse_choice() == [1, "foo", 'True']
+        arg.choice = [1, "foo", lambda x : x * 2]
+        self.assertRaises(SystemExit, arg.argparse_choice)
+        arg.choice = lambda x : x * 2
+        self.assertRaises(SystemExit, arg.argparse_choice)
+        arg.choice = 5
+        assert arg.argparse_choice() == 5
+
+    def test_get_parser_group(self):
+        arg = lp.Argument("lol", inspect._empty, int)
+        assert arg.get_parser_group() == ["__rarg__", lp.required_title]
+        arg = lp.Argument("lol", 6, int)
+        assert arg.get_parser_group() == ["__parser__", lp.optionals_title]
+        lp.groups = {"foo": ["lol", "help"]}
+        lp.lpg_name = {"foo": "bar"}
+        assert arg.get_parser_group() == ["__parser__", "foo"]
+        lp.groups = {"foo": ["lol"]}
+        assert arg.get_parser_group() == ["bar", "foo"]
