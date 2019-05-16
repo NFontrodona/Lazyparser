@@ -374,10 +374,11 @@ class Lazyparser(object):
                     flt = list(filter(None, line.split(pd1)[1].split(pd2)))
                 else:
                     flt = list(filter(None, line.split(pd2)))
-                flt = [word.strip() for word in flt]
+                flt = [word for word in flt]
+                flt[0] = flt[0].strip()
                 if flt[0] in self.args.keys():
-                    if isinstance(flt[1], list):
-                        flt_desc = pd2.join(flt[1])
+                    if len(flt[1:]) > 1:
+                        flt_desc = pd2.join(flt[1:])
                     else:
                         flt_desc = flt[1]
                     self.args[flt[0]].help = flt_desc
