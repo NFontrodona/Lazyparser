@@ -119,6 +119,22 @@ class Argument(object):
         self.type = self.set_type(arg_type)
         self.pgroup = self.get_parser_group()
 
+    def __eq__(self, arg):
+        """
+        Compare to Argument object and say if they are equal.
+
+        :param arg: (Argument object)
+        """
+        return self.name == arg.name and \
+            self.default == arg.default and \
+            self.help == arg.help and \
+            self.short_name == arg.short_name and \
+            self.choice == arg.choice and \
+            self.value == arg.value and \
+            self.const == arg.const and \
+            self.type == arg.type and \
+            self.pgroup == arg.pgroup
+
     def get_type(self):
         """
 
@@ -263,6 +279,20 @@ class Lazyparser(object):
         self.set_filled(const)
         self.set_constrain(choice)
 
+    def __eq__(self, parser):
+        """
+        Compare to parser and say if they are the same. \
+        Note that the functions defining the two Lazyparser object \
+        can be different but if those function have the same signature \
+        this function will return True as they will store the same arguments.
+
+        :param parser: (Lazyparser object)
+        :return: (bool)
+        """
+        return self.args == parser.args and \
+            self.order == parser.order and \
+            self.help == parser.help
+
     def init_args(self):
         """
         Initiate the creation the argument of interest.
@@ -273,7 +303,8 @@ class Lazyparser(object):
                         for k in sign.keys()}
             if help_arg:
                 dic_args["help"] = Argument("help", "help", str)
-            return dic_args, ["help"] + list(sign.keys())
+                return dic_args, ["help"] + list(sign.keys())
+            return dic_args, list(sign.keys())
         else:
             print("error: argument conflict, help argument cannot be set in"
                   "the parsed function")
