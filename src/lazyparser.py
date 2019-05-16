@@ -351,8 +351,8 @@ class Lazyparser(object):
         help for the parameter ``arg_name``
         """
         type_info = [get_type(w, self.args[arg_name])
-                     for w in help_info if re.search(r"\(.*\)", w) and
-                     re.search(r"\(.*\)", w).span() == (0, len(w))]
+                     for w in help_info if re.search(r"\(.+\)", w) and
+                     re.search(r"\(.+\)", w).span() == (0, len(w))]
         if len(type_info) > 1:
             msg = "multiple type detected for %s only the first was selected"
             print(message(msg % arg_name, self.args[arg_name], "w"))
@@ -380,7 +380,7 @@ class Lazyparser(object):
                         flt_desc = pd2.join(flt[1])
                     else:
                         flt_desc = flt[1]
-                    self.args[flt[0]].help = flt_desc
+                    self.args[flt[0]].help = flt_desc.strip()
                     if self.args[flt[0]].type == inspect._empty:
                         self.update_type(flt[0], handle(flt_desc))
 
@@ -500,7 +500,7 @@ class Lazyparser(object):
             return list_args
 
 
-def set_env(delim1, delim2, hd, tb):
+def set_env(delim1=":param", delim2=":", hd="", tb=4):
     """
     Change the param delimiters.
 
