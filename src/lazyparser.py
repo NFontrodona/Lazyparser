@@ -416,16 +416,14 @@ class Lazyparser(object):
                 if marg in self.args.keys():
                     mtype = self.args[marg].get_type()
                     if mtype == Function:
-                        if isinstance(const[marg], str):
-                            try:
-                                const[marg] = eval(const[marg])
-                            except (SyntaxError, TypeError, NameError):
-                                print(message(msg % mtype.__name__,
-                                      self.args[marg], "e"))
-                                exit(1)
-                        elif callable(const[marg]):
+                        if callable(const[marg]):
                             const[marg] = const[marg]
                         else:
+                            print(message(msg % mtype.__name__,
+                                          self.args[marg], "e"))
+                            exit(1)
+                    elif mtype == List:
+                        if not isinstance(const[marg], (list, tuple)):
                             print(message(msg % mtype.__name__,
                                           self.args[marg], "e"))
                             exit(1)
@@ -434,7 +432,7 @@ class Lazyparser(object):
                         print(message(msg % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
-                    elif not handled_type(mtype, "s"):
+                    elif not handled_type(mtype, "m"):
                         print(message(msg % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
@@ -442,13 +440,25 @@ class Lazyparser(object):
                         print(message(msg % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
-                    elif not isinstance(self.args[marg].default, mtype):
-                        if self.args[marg].default == inspect._empty:
+                    if not isinstance(self.args[marg].default, mtype):
+                        if mtype == Function:
+                            if not callable(self.args[marg].default):
+                                msg = msg.replace("const", "default")
+                                print(message(msg % mtype.__name__,
+                                              self.args[marg], "e"))
+                                exit(1)
+                        elif mtype == List:
+                            if not isinstance(self.args[marg].default,
+                                              (list, tuple)):
+                                print(message(msg % mtype.__name__,
+                                              self.args[marg], "e"))
+                                exit(1)
+                        elif self.args[marg].default == inspect._empty:
                             msg = "const must be specified with default"
                             print(message(msg,
                                           self.args[marg], "e"))
                             exit(1)
-                        elif self.args[marg].default is not None:
+                        else:
                             msg = msg.replace("const", "default")
                             print(message(msg %
                                           mtype.__name__,
