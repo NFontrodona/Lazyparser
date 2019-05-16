@@ -699,21 +699,16 @@ class NewFormatter(argparse.RawDescriptionHelpFormatter):
         strings to python object.
         :return: (str) parameter invocation string
         """
-        if not action.option_strings:
-            dft = self._get_default_metavar_for_positional(action)
-            mvar, = self._metavar_formatter(action, dft)(1)
-            return mvar
+        parts = []
+        if action.nargs == 0:
+            parts.extend(action.option_strings)
         else:
-            parts = []
-            if action.nargs == 0:
-                parts.extend(action.option_strings)
-            else:
-                dft = self._get_default_metavar_for_optional(action)
-                args_string = self._format_args(action, dft)
-                for option_string in action.option_strings:
-                    parts.append(option_string)
-                return '%s %s' % (', '.join(parts), args_string)
-            return ', '.join(parts)
+            dft = self._get_default_metavar_for_optional(action)
+            args_string = self._format_args(action, dft)
+            for option_string in action.option_strings:
+                parts.append(option_string)
+            return '%s %s' % (', '.join(parts), args_string)
+        return ', '.join(parts)
 
     def _get_default_metavar_for_optional(self, action):
         """
