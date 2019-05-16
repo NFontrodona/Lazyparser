@@ -360,11 +360,11 @@ class Lazyparser(object):
         if type_info:
             self.args[arg_name].type = type_info[0][0]
             self.args[arg_name].help = \
-                self.args[arg_name].help.replace(type_info[0][1], "")
+                self.args[arg_name].help.replace(type_info[0][1], "").strip()
 
     def update_param(self):
         """
-        Update if needed the type and the help of every args.
+        Update if needed the type of every args.
         """
         if self.func.__doc__:
             doc = filter(lambda x: pd1 in x and pd2 in x,
@@ -380,7 +380,6 @@ class Lazyparser(object):
                         flt_desc = pd2.join(flt[1])
                     else:
                         flt_desc = flt[1]
-                    self.args[flt[0]].help = flt_desc.strip()
                     if self.args[flt[0]].type == inspect._empty:
                         self.update_type(flt[0], handle(flt_desc))
 
