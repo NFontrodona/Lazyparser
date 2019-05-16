@@ -496,8 +496,6 @@ class Lazyparser(object):
                 arg = self.args[narg]
                 if arg.pgroup[1] not in dic_args.keys():
                     dic_args[arg.pgroup[1]] = [narg]
-                elif narg == "help":
-                    dic_args[arg.pgroup[1]].insert(0, narg)
                 else:
                     dic_args[arg.pgroup[1]].append(narg)
             for grp_arg in grp_order:
@@ -568,7 +566,7 @@ def set_groups(arg_groups=None, order=None, add_help=True):
     """
     pname = {}
     tmp = []
-    help_name = None
+    help_name = "Optional arguments"
     if arg_groups:
         for key in arg_groups.keys():
             if "help" in arg_groups[key]:
@@ -588,18 +586,17 @@ def set_groups(arg_groups=None, order=None, add_help=True):
                 print("Error %s after removing symbols not in [A-Za-z0-9]"
                       "is already defined" % key)
                 exit(1)
-        global groups
-        groups = arg_groups
-        global lpg_name
+    global groups
+    groups = arg_groups if arg_groups is not None else {}
+    global lpg_name
     global grp_order
     grp_order = order
     lpg_name = pname
     if isinstance(add_help, bool):
         global help_arg
         help_arg = add_help
-    if help_name:
-        global optionals_title
-        optionals_title = help_name
+    global optionals_title
+    optionals_title = help_name
 
 
 def handle(seq):
