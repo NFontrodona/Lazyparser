@@ -436,6 +436,11 @@ class Lazyparser(object):
                         print(message(msg % mtype.__name__,
                                       self.args[marg], "e"))
                         exit(1)
+                    elif mtype == float:
+                        if not isinstance(const[marg], (int, float)):
+                            print(message(msg % mtype.__name__,
+                                  self.args[marg], "e"))
+                            exit(1)
                     elif not isinstance(const[marg], mtype):
                         print(message(msg % mtype.__name__,
                                       self.args[marg], "e"))
@@ -450,6 +455,12 @@ class Lazyparser(object):
                         elif mtype == List:
                             if not isinstance(self.args[marg].default,
                                               (list, tuple)):
+                                print(message(msg % mtype.__name__,
+                                              self.args[marg], "e"))
+                                exit(1)
+                        elif mtype == float:
+                            if not isinstance(self.args[marg].default,
+                                              (float, int)):
                                 print(message(msg % mtype.__name__,
                                               self.args[marg], "e"))
                                 exit(1)
@@ -771,11 +782,6 @@ def init_parser(lp):
                                      default=lp.args[arg].default)
                                      """.format(pgroup)
             exec(cmd)
-        elif lp.args[arg].const != "$$void$$" and lp.args[arg].default \
-                == inspect._empty:
-            print(message("const must be specified with default", lp.args[arg],
-                          "e"))
-            exit(1)
         else:
             cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
                                      "--%s" % arg, dest=arg,
