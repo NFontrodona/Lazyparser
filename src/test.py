@@ -11,7 +11,9 @@ import lazyparser as lp
 from lazyparser import Function, List, FileType
 import unittest
 import inspect
-from argparse import Action
+import sys
+from argparse import Action, ArgumentParser
+
 
 class TestFunction(unittest.TestCase):
 
@@ -35,11 +37,6 @@ class TestFunction(unittest.TestCase):
         assert lp.groups == {"lol": ["b", "help"]}
         self.assertRaises(SystemExit, lp.set_groups, {"lol": ["b"], "lol*": ["c"]})
         lp.set_groups()
-        print(lp.groups)
-        print(lp.lpg_name)
-        print(lp.optionals_title)
-        print(lp.help_arg)
-        print(lp.grp_order)
 
     def test_get_name(self):
         res = ["L", "lo", "LO", "lol", "l"]
@@ -99,6 +96,157 @@ class TestFunction(unittest.TestCase):
 
     def test_set_data(self):
         assert lp.set_data("uigig") is None
+
+    def test_init_parser(self):
+        lp.set_env(tb=17)
+        func = lambda x, y, z = 5, w = 7: x * y + z
+        doc = """Multiply x by y and add z
+
+                 Take two number and multiply them.
+
+                 :param x: (int) a number x
+                 :param y: (int) a number y
+                 :param z: (int) a number z"""
+        func.__doc__ = doc
+        myparser = lp.Lazyparser(func, {"z": 10}, {})
+        parser = lp.init_parser(myparser)
+        assert isinstance(parser, ArgumentParser)
+        assert parser.description.replace("\n", "") == \
+            """Multiply x by y and add zTake two number and multiply them."""
+
+    def test_tests_function(self):
+        func = lambda x, y: x * y
+        parser = lp.Lazyparser(func, {}, {})
+        parser = lp.init_parser(parser)
+        arg = lp.Argument("lol", 7, int)
+        arg.short_name = "l"
+        arg.value = 5
+        arg.choice = " l > 10 "
+        self.assertRaises(SystemExit, lp.tests_function, arg, parser)
+        arg.choice = " lol bloup 10 "
+        assert lp.tests_function(arg, parser) is None
+        arg.choice = " bloup 10 "
+        assert lp.tests_function(arg, parser) is None
+        arg = lp.Argument("lol", [1, 2, 3], List(vtype=int))
+        arg.short_name = "l"
+        arg.value = [1, 2, 3]
+        arg.choice = " l > 10 "
+        self.assertRaises(SystemExit, lp.tests_function, arg, parser)
+        arg.choice = " lol < 10 "
+        assert lp.tests_function(arg, parser) is None
+        arg.choice = " lol fgh 10 "
+        assert lp.tests_function(arg, parser) is None
+        arg.choice = " fgh 10 "
+        assert lp.tests_function(arg, parser) is None
+        arg = lp.Argument("lol", "lul.txt", str)
+        arg.short_name = "l"
+        arg.value = 7
+        arg.choice = "file"
+        self.assertRaises(SystemExit, lp.tests_function, arg, parser)
+        arg.value = "foo.txt"
+        self.assertRaises(SystemExit, lp.tests_function, arg, parser)
+        arg = lp.Argument("lol", ["lul.txt"], List(vtype=str))
+        arg.short_name = "l"
+        arg.value = ["boo.txt", "foo.txt", "bar.txt"]
+        arg.choice = "file"
+        self.assertRaises(SystemExit, lp.tests_function, arg, parser)
+
+    def test_test_type(self):
+        func = lambda x, y: x * y
+        parser = lp.Lazyparser(func, {}, {})
+        parser = lp.init_parser(parser)
+        arg = lp.Argument("lol", lambda x: x * 2, Function)
+        arg.value = "lambda x: x * 2"
+        assert callable(lp.test_type(arg, parser))
+        arg.value = "lambda x - x * 2"
+        self.assertRaises(SystemExit, lp.test_type, arg, parser)
+        arg.value = 77
+        self.assertRaises(SystemExit, lp.test_type, arg, parser)
+        arg = lp.Argument("lol", True, bool)
+        arg.value = True
+        assert lp.test_type(arg, parser)
+        arg.value = "foo"
+        self.assertRaises(SystemExit, lp.test_type, arg, parser)
+        arg = lp.Argument("lol", [lambda x : x * 2, "b"], List(vtype=Function))
+        arg.value = [lambda x : x * 2, "b"]
+        self.assertRaises(SystemExit, lp.test_type, arg, parser)
+        arg.value = [lambda x: x * 2, 17]
+        self.assertRaises(SystemExit, lp.test_type, arg, parser)
+        arg.value = [lambda x: x * 2]
+        assert callable(lp.test_type(arg, parser)[0])
+        assert len(lp.test_type(arg, parser)) == 1
+        assert inspect.getsource(lp.test_type(arg, parser)[0]).strip() == \
+               "arg.value = [lambda x: x * 2]"
+        arg = lp.Argument("lol", inspect._empty, List(vtype=bool))
+        arg.value = [True, False, True, "False", "True", "foo"]
+        self.assertRaises(SystemExit, lp.test_type, arg, parser)
+
+    def test_parse(self):
+        lp.set_env(tb=12)
+        @lp.parse(x = "x < 10")
+        def multiply(x , y):
+            """
+            Multiply a by b.
+
+            :param x: (int) a number x
+            :param y: (int) a number y
+            :return: x *y
+            """
+            return x * y
+
+        self.assertRaises(SystemExit, multiply)
+        sys.argv = [sys.argv[0]]
+        for word in "-x 7 -y 8".split():
+            sys.argv.append(word)
+        res = multiply()
+        assert res == 7 * 8
+        @lp.parse
+        def multiply(x , y):
+            """
+            Multiply a by b.
+
+            :param x: (int) a number x
+            :param y: (int) a number y
+            :return: x *y
+            """
+            return x * y
+        assert multiply() == 7 * 8
+
+    def test_flag(self):
+        lp.set_env(tb=12)
+        @lp.flag(y = 1)
+        @lp.parse(x = "x < 10")
+        def multiply(x , y = 10):
+            """
+            Multiply a by b.
+
+            :param x: (int) a number x
+            :param y: (int) a number y
+            :return: x * y
+            """
+            return x * y
+
+        self.assertRaises(SystemExit, multiply)
+        sys.argv = [sys.argv[0]]
+        for word in "-x 7 -y".split():
+            sys.argv.append(word)
+        assert multiply() == 7
+        sys.argv = [sys.argv[0]]
+        for word in "-x 7".split():
+            sys.argv.append(word)
+        assert multiply() == 70
+        @lp.flag
+        @lp.parse(x="x < 10")
+        def multiply(x, y=10):
+            """
+            Multiply a by b.
+
+            :param x: (int) a number x
+            :param y: (int) a number y
+            :return: x * y
+            """
+            return x * y
+        assert multiply() == 70
 
 
 class TestArgument(unittest.TestCase):
@@ -223,26 +371,21 @@ class TestLazyparser(unittest.TestCase):
         self.assertRaises(SystemExit, parser.init_args)
 
     def test_description(self):
-        lp.set_env(delim1=":param", delim2=":", hd="", tb=4)
+        lp.set_env(delim1=":param", delim2=":", hd="", tb=12)
         func = lambda x, y: x * y
         parser = lp.Lazyparser(func, {}, {})
         assert parser.description() == ""
         parser.func.__doc__ = """Multiply x by y
     
-    Take two number and multiply them.
-    @Keyword
-    :param x: (int) a number x
-    :param y: (int) a number y"""
-        desc = """Multiply x by y
-
-Take two number and multiply them.
-@Keyword"""
-        assert  parser.description() == desc
-        lp.set_env(delim1="", delim2=":", hd="@Keyword", tb=4)
-        desc = """Multiply x by y
-
-Take two number and multiply them."""
-        assert  parser.description() == desc
+            Take two number and multiply them.
+            @Keyword
+            :param x: (int) a number x
+            :param y: (int) a number y"""
+        desc = 'Multiply x by yTake two number and multiply them.@Keyword'
+        assert parser.description().replace("\n", "") == desc
+        lp.set_env(delim1="", delim2=":", hd="@Keyword", tb=12)
+        desc = """Multiply x by yTake two number and multiply them."""
+        assert  parser.description().replace("\n", "") == desc
 
     def test_update_type(self):
         func = lambda x, y: x * y
@@ -257,15 +400,15 @@ Take two number and multiply them."""
         assert parser.args["x"].type == str
 
     def test_update_param(self):
-        lp.set_env()
+        lp.set_env(tb=12)
         func = lambda x, y: x * y
         parser = lp.Lazyparser(func, {}, {})
         parser.func.__doc__ = """Multiply x by y
     
-    Take two number and multiply them.
+            Take two number and multiply them.
 
-    :param x: (int) a number x
-    :param y: (int) a number y"""
+            :param x: (int) a number x
+            :param y: (int) a number y"""
         assert parser.args["x"].help == "param x"
         assert parser.args["y"].type == inspect._empty
         parser.update_param()
@@ -273,15 +416,15 @@ Take two number and multiply them."""
         assert parser.args["y"].help == "a number y"
         assert parser.args["x"].type == int
         assert parser.args["y"].type == int
-        lp.set_env(delim1="")
+        lp.set_env(delim1="", tb=12)
         func = lambda x, y: x * y
         parser = lp.Lazyparser(func, {}, {})
         parser.func.__doc__ = """Multiply x by y
 
-    Take two number and multiply them.
+            Take two number and multiply them.
 
-    x: (int) a number : x
-    y: (int) a number : y"""
+            x: (int) a number : x
+            y: (int) a number : y"""
         parser.update_param()
         assert parser.args["x"].help == "a number : x"
         assert parser.args["y"].help == "a number : y"
@@ -299,6 +442,13 @@ Take two number and multiply them."""
         parser.args["x"].default = 3
         parser.set_filled(const={"x": 7})
         assert parser.args["x"].const == 7
+        parser.args["x"].type = float
+        self.assertRaises(SystemExit, parser.set_filled,
+                          const={"x": "b"})
+        parser.args["x"].default = "lul"
+        self.assertRaises(SystemExit, parser.set_filled,
+                          const={"x": 7})
+        parser.args["x"].default = 6
         parser.args["x"].type = Function
         self.assertRaises(SystemExit, parser.set_filled,
                           const={"x": lambda x : x* 5})
