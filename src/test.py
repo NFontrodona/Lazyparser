@@ -35,7 +35,8 @@ class TestFunction(unittest.TestCase):
         self.assertRaises(SystemExit, lp.set_groups, {"**": ["b"]})
         lp.set_groups({"lol": ["b", "help"]})
         assert lp.groups == {"lol": ["b", "help"]}
-        self.assertRaises(SystemExit, lp.set_groups, {"lol": ["b"], "lol*": ["c"]})
+        self.assertRaises(SystemExit, lp.set_groups,
+                          {"lol": ["b"], "lol*": ["c"]})
         lp.set_groups()
 
     def test_get_name(self):
@@ -99,7 +100,7 @@ class TestFunction(unittest.TestCase):
 
     def test_init_parser(self):
         lp.set_env(tb=17)
-        func = lambda x, y, z = 5, w = 7: x * y + z
+        def func(x, y, z=5, w=7): return x * y + z
         doc = """Multiply x by y and add z
 
                  Take two number and multiply them.
@@ -115,7 +116,7 @@ class TestFunction(unittest.TestCase):
             """Multiply x by y and add zTake two number and multiply them."""
 
     def test_tests_function(self):
-        func = lambda x, y: x * y
+        def func(x, y): return x * y
         parser = lp.Lazyparser(func, {}, {})
         parser = lp.init_parser(parser)
         arg = lp.Argument("lol", 7, int)
@@ -152,10 +153,11 @@ class TestFunction(unittest.TestCase):
         self.assertRaises(SystemExit, lp.tests_function, arg, parser)
 
     def test_test_type(self):
-        func = lambda x, y: x * y
+        def func(x, y): return x * y
         parser = lp.Lazyparser(func, {}, {})
         parser = lp.init_parser(parser)
-        arg = lp.Argument("lol", lambda x: x * 2, Function)
+        def foo(x): return x * 2
+        arg = lp.Argument("lol", foo, Function)
         arg.value = "lambda x: x * 2"
         assert callable(lp.test_type(arg, parser))
         arg.value = "lambda x - x * 2"
@@ -167,24 +169,24 @@ class TestFunction(unittest.TestCase):
         assert lp.test_type(arg, parser)
         arg.value = "foo"
         self.assertRaises(SystemExit, lp.test_type, arg, parser)
-        arg = lp.Argument("lol", [lambda x : x * 2, "b"], List(vtype=Function))
-        arg.value = [lambda x : x * 2, "b"]
+        arg = lp.Argument("lol", [foo, "b"], List(vtype=Function))
+        arg.value = [foo, "b"]
         self.assertRaises(SystemExit, lp.test_type, arg, parser)
-        arg.value = [lambda x: x * 2, 17]
+        arg.value = [foo, 17]
         self.assertRaises(SystemExit, lp.test_type, arg, parser)
-        arg.value = [lambda x: x * 2]
+        arg.value = [foo]
         assert callable(lp.test_type(arg, parser)[0])
         assert len(lp.test_type(arg, parser)) == 1
         assert inspect.getsource(lp.test_type(arg, parser)[0]).strip() == \
-               "arg.value = [lambda x: x * 2]"
+            "def foo(x): return x * 2"
         arg = lp.Argument("lol", inspect._empty, List(vtype=bool))
         arg.value = [True, False, True, "False", "True", "foo"]
         self.assertRaises(SystemExit, lp.test_type, arg, parser)
 
     def test_parse(self):
         lp.set_env(tb=12)
-        @lp.parse(x = "x < 10")
-        def multiply(x , y):
+        @lp.parse(x="x < 10")
+        def multiply(x, y):
             """
             Multiply a by b.
 
@@ -201,7 +203,7 @@ class TestFunction(unittest.TestCase):
         res = multiply()
         assert res == 7 * 8
         @lp.parse
-        def multiply(x , y):
+        def multiply(x, y):
             """
             Multiply a by b.
 
@@ -214,9 +216,9 @@ class TestFunction(unittest.TestCase):
 
     def test_flag(self):
         lp.set_env(tb=12)
-        @lp.flag(y = 1)
-        @lp.parse(x = "x < 10")
-        def multiply(x , y = 10):
+        @lp.flag(y=1)
+        @lp.parse(x="x < 10")
+        def multiply(x, y=10):
             """
             Multiply a by b.
 
@@ -258,7 +260,8 @@ class TestArgument(unittest.TestCase):
         assert arg.get_type() == List
 
     def test_set_type(self):
-        class Lol: pass
+        class Lol:
+            pass
         arg = lp.Argument("lol", 7, int)
         assert arg.set_type(int) == int
         assert arg.set_type(inspect._empty) == inspect._empty
@@ -292,7 +295,7 @@ class TestArgument(unittest.TestCase):
     def test_argparse_narg(self):
         arg = lp.Argument("lol", 7, float)
         assert arg.argparse_narg() is None
-        arg = lp.Argument("lol", 7, List(vtype=(float)))
+        arg = lp.Argument("lol", 7, List(vtype=float))
         assert arg.argparse_narg() == "+"
         arg = lp.Argument("lol", 7, List(5, float))
         assert arg.argparse_narg() == 5
@@ -314,6 +317,7 @@ class TestArgument(unittest.TestCase):
         assert arg.argparse_metavar() == "float"
 
     def test_argparse_choice(self):
+        def foo(x): return x * 2
         arg = lp.Argument("lol", 7, List(size=5, vtype=Function))
         assert arg.argparse_choice() is None
         arg.choice = "test"
@@ -322,9 +326,9 @@ class TestArgument(unittest.TestCase):
         assert arg.argparse_choice() == "True"
         arg.choice = [1, "foo", True]
         assert arg.argparse_choice() == [1, "foo", 'True']
-        arg.choice = [1, "foo", lambda x : x * 2]
+        arg.choice = [1, "foo", foo]
         self.assertRaises(SystemExit, arg.argparse_choice)
-        arg.choice = lambda x : x * 2
+        arg.choice = foo
         self.assertRaises(SystemExit, arg.argparse_choice)
         arg.choice = 5
         assert arg.argparse_choice() == 5
@@ -344,16 +348,16 @@ class TestArgument(unittest.TestCase):
 class TestLazyparser(unittest.TestCase):
 
     def test_equal(self):
-        func = lambda x, y: x * y
+        def func(x, y): return x * y
         parser = lp.Lazyparser(func, {}, {})
         parser2 = lp.Lazyparser(func, {}, {})
         assert parser == parser2
-        func = lambda x, z: x * z
-        parser2 = lp.Lazyparser(func, {}, {})
+        def func2(x, z): return x * z
+        parser2 = lp.Lazyparser(func2, {}, {})
         assert parser != parser2
 
     def test_init_arg(self):
-        func = lambda x, y: x * y
+        def func(x, y): return x * y
         parser = lp.Lazyparser(func, {}, {})
         dic = {"help": lp.Argument("help", "help", str),
                "x": lp.Argument("x", inspect._empty, inspect._empty),
@@ -366,17 +370,17 @@ class TestLazyparser(unittest.TestCase):
                "y": lp.Argument("y", inspect._empty, inspect._empty)}
         order = ["x", "y"]
         assert parser.init_args() == (dic, order)
-        func = lambda help, y: help * y
+        def func(help, y): return help * y
         parser.func = func
         self.assertRaises(SystemExit, parser.init_args)
 
     def test_description(self):
         lp.set_env(delim1=":param", delim2=":", hd="", tb=12)
-        func = lambda x, y: x * y
+        def func(x, y): return x * y
         parser = lp.Lazyparser(func, {}, {})
         assert parser.description() == ""
         parser.func.__doc__ = """Multiply x by y
-    
+
             Take two number and multiply them.
             @Keyword
             :param x: (int) a number x
@@ -385,10 +389,10 @@ class TestLazyparser(unittest.TestCase):
         assert parser.description().replace("\n", "") == desc
         lp.set_env(delim1="", delim2=":", hd="@Keyword", tb=12)
         desc = """Multiply x by yTake two number and multiply them."""
-        assert  parser.description().replace("\n", "") == desc
+        assert parser.description().replace("\n", "") == desc
 
     def test_update_type(self):
-        func = lambda x, y: x * y
+        def func(x, y): return x * y
         parser = lp.Lazyparser(func, {}, {})
         assert parser.args["x"].type == inspect._empty
         parser.update_type("x", ["qsfuhg", "srighdo", "()"])
@@ -401,10 +405,10 @@ class TestLazyparser(unittest.TestCase):
 
     def test_update_param(self):
         lp.set_env(tb=12)
-        func = lambda x, y: x * y
+        def func(x, y): return x * y
         parser = lp.Lazyparser(func, {}, {})
         parser.func.__doc__ = """Multiply x by y
-    
+
             Take two number and multiply them.
 
             :param x: (int) a number x
@@ -417,7 +421,7 @@ class TestLazyparser(unittest.TestCase):
         assert parser.args["x"].type == int
         assert parser.args["y"].type == int
         lp.set_env(delim1="", tb=12)
-        func = lambda x, y: x * y
+        def func(x, y): return x * y
         parser = lp.Lazyparser(func, {}, {})
         parser.func.__doc__ = """Multiply x by y
 
@@ -433,7 +437,7 @@ class TestLazyparser(unittest.TestCase):
 
     def test_set_filled(self):
         lp.set_env()
-        func = lambda x: x * 2
+        def func(x): return x * 2
         parser = lp.Lazyparser(func, {}, {})
         parser.set_filled(const="lolipop")
         assert parser.args["x"].const == "$$void$$"
@@ -450,10 +454,12 @@ class TestLazyparser(unittest.TestCase):
                           const={"x": 7})
         parser.args["x"].default = 6
         parser.args["x"].type = Function
+
+        def func(x): return x * 5
         self.assertRaises(SystemExit, parser.set_filled,
-                          const={"x": lambda x : x* 5})
+                          const={"x": func})
         self.assertRaises(SystemExit, parser.set_filled,
-                          const={"x": "lambda x : x* 5"})
+                          const={"x": "lambda x : x * 5"})
         parser.args["x"].type = List
         self.assertRaises(SystemExit, parser.set_filled,
                           const={"x": "bloup"})
@@ -462,7 +468,9 @@ class TestLazyparser(unittest.TestCase):
         parser.args["x"].type = FileType
         self.assertRaises(SystemExit, parser.set_filled,
                           const={"x": "bb"})
-        class Lol: pass
+
+        class Lol:
+            pass
         parser.args["x"].type = Lol
         self.assertRaises(SystemExit, parser.set_filled,
                           const={"x": "bb"})
@@ -473,7 +481,7 @@ class TestLazyparser(unittest.TestCase):
 
     def test_set_constrain(self):
         lp.set_env()
-        func = lambda x: x * 2
+        def func(x): return x * 2
         parser = lp.Lazyparser(func, {}, {})
         assert parser.args["x"].choice is None
         parser.set_constrain({"x": "file"})
@@ -486,7 +494,8 @@ class TestLazyparser(unittest.TestCase):
     def test_get_order(self):
         lp.set_groups()
         lp.set_env()
-        func = lambda v, w, x, y, z : v + w + x + y + z
+
+        def func(v, w, x, y, z): return v + w + x + y + z
         parser = lp.Lazyparser(func, {}, {})
         assert parser.get_order() == parser.order
         lp.grp_order = ["Foo", "Optional arguments"]
@@ -517,6 +526,3 @@ class TestNewFormatter(unittest.TestCase):
         assert fmt._format_action_invocation(action) == "d A"
         action = Action("d", "a", nargs=0)
         assert fmt._format_action_invocation(action) == "d"
-
-
-
