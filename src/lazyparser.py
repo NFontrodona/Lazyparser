@@ -569,7 +569,7 @@ def set_env(delim1=":param", delim2=":", hd="", tb=4):
         header = hd
 
 
-def set_data(epilog):
+def set_epilog(epilog):
     """
     Allow the user to define an epilog for the parser.
 
