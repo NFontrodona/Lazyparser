@@ -2,7 +2,7 @@ Lazyparser
 ==========
 
 Lazyparser is a small module that allow to automatize the creation of command-line interfaces.
-For this purpose it uses `argparse <https://docs.python.org/3.5/library/argparse.html>`_ developped by  by Steven J. Bethard.
+For this purpose it uses `argparse <https://docs.python.org/3.5/library/argparse.html>`_ developped by Steven J. Bethard.
 
 Examples
 --------
@@ -14,35 +14,38 @@ Let's say you have a function ``print_word`` That prints two words. To create a 
 
 .. code:: python
 
-	import lazyparser as lp
+    import lazyparser as lp
 
-	@lp.parse
-	def print_word(a, b):
-		print(a)
-		print(b)
+    @lp.parse
+    def print_word(a, b):
+        print(a)
+        print(b)
 
-	if __name__ == "__main__":
-		print_word()
+    if __name__ == "__main__":
+        print_word()
 
 
 Then you can run ``example.py`` by typing:
 
 .. code:: Bash
 
-	python example.py -h # to display the help of your program
-	#usage: example.py [-h] -b B -a A
-	#
-	#optional arguments:
-	#  -h, --help   show this help message and exit
-	#
-	#required argument:
-	#  -b B, --b B  (str) param b
-	#  -a A, --a A  (str) param a
-	python example.py -a hello -b word
-	# hello
-	# word
+    python example.py -h # to display the help of your program
 
-As you can see, if there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to `str`.  In addition, the **long names of the arguments for the parser** (defined with ``--`` in a command line) correspond to the **parameter names of the parsed function**. The sorth names (called with ``-`` in the command line interface) are computed on the fly and corresponds to the first letter(s) of the parameters to which they refer.
+This will display the following message :
+
+.. code:: Bash
+
+    usage: example.py [-h] -a STR -b STR
+
+    Optional arguments:
+      -h, --help   show this help message and exit
+
+    Required arguments:
+      -a, --a STR  param a
+      -b, --b STR  param b
+
+
+As you can see, if there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to `str`.  In addition, the **long names of the arguments for the parser** (defined with ``--``) correspond to the **parameter names of the decorated function**. The sort names (called with ``-``) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
 A default help message is generated for every parameter of the decorated function but don't explains what the parameter corresponds to.
 To better control what the help message will display you can write a docstring in the decorated function.
 
@@ -56,84 +59,89 @@ Example: (file ``example.py``)
 
 .. code:: python
 
-	import lazyparser as lp
+    import lazyparser as lp
 
-	@lp.parse
-	def mutliplication(a, b):
-	    """
-	    Mutiply a by b
+    @lp.parse
+    def multiplication(a, b):
+        """Multiply a by b
 
 	    :param a: (float) a number a
 	    :param b: (float) a number b
 	    """
-	    return a * b
+        return a * b
 
 
-	if __name__ == "__main__":
-	    v = mutliplication()
-	    print(v)
+    if __name__ == "__main__":
+        v = multiplication()
+        print(v)
 
 Then you can run ``example.py`` by typing:
 
 .. code:: Bash
 
-	python example.py -h # to display the help of your program
-	#usage: example.py [-h] -b B -a A
-	# Mutiply a by b
-	#
-	# optional arguments:
-	#   -h, --help   show this help message and exit
-	#
-	# required argument:
-	#   -a A, --a A  (float) a number a
-	#   -b B, --b B  (float) a number b
-	python example.py -a 8.3 -b 7.2
-	# 59.76
+    python example.py -h # to display the help of your program
+
+This displays the following message:
+
+.. code:: Bash
+
+    usage: example.py [-h] -a FLOAT -b FLOAT
+
+    Multiply a by b
+
+    Optional arguments:
+      -h, --help     show this help message and exit
+
+    Required arguments:
+      -a, --a FLOAT  a number a
+      -b, --b FLOAT  a number b
+
 
 Customize the docstring environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you are not a fan of pycharm docstrings you can set your own docstring environment by using the function ``set_env`` 
 
-the function ``set_env`` takes 3 arguments :
+the function ``set_env`` takes 4 arguments :
 
-	* ``delim1`` : the string preceding the definition of a parameter. *:param* is default in pycharm docstrings. This parameters can be set to an empty docstring if nothing precedes the parameter name.
-	* ``delim2`` : the string that comes just after the name of the parameter. It **MUST** be defined and can't be an empty string or a space, tabulation, etc...
-	* ``hd`` : This corresponds to an header preceding the argument name.
+    * ``delim1`` : the string preceding the definition of a parameter. *:param* is default in pycharm docstrings. This parameter can be an empty docstring if nothing precedes the parameter name.
+    * ``delim2`` : the string that comes just after the name of the parameter. It **MUST** be defined and can't be an empty string or a space, tabulation, etc...
+    * ``hd`` : the header preceding the argument name. By default, corresponds to an empty string.
+    * ``tb`` : an integer corresponding to the number of spaces at the beginning of each line in the docstring. By default equals to 4.
 
 .. note:: 
 
-	The text set before the parameters definition (or the parameters definition header) is considerated as being a part of the description of the function.
+    The text set before the parameters definition (or the parameters definition header) is considered as being a part of the description of the function.
 	
 	
 .. warning::
 
-	The type of the parameters in the docstring must be surrounded by parentheses so that the lazyparser can interpret them.
+    The type of the parameters in the docstring must be surrounded by parentheses so that the lazyparser can interpret them.
 	
 Here is an example of how using ``set_env``
 
 .. code:: python
 
-	# code in example.py file
-	import lazyparser as lp
-	
-	lp.set_env('', ':', "KeywordArgument")
+    # code in example.py file
+    import lazyparser as lp
+
+    lp.set_env('', ':', "KeywordArgument")
 
 
-	@lp.parse
-	def mutliplication(a, b):
-	    """
-	    Mutiply a by b
-		
-		KeywordArgument
-			 a : (float) a number a
-			 b : (float) a number b
-	    """
-	    return a * b
+    @lp.parse
+    def multiplication(a, b):
+        """
+        Multiply a by b
 
-	if __name__ == "__main__":
-	    v = mutliplication()
-	    print(v)
+        KeywordArgument
+             a : (float) a number a
+             b : (float) a number b
+        """
+        return a * b
+
+    if __name__ == "__main__":
+        v = multiplication()
+        print(v)
 
 
 Define the type of parameters
@@ -144,32 +152,32 @@ _________________________
 
 Lazyparser can handle different type of parameters:
 
-	* ``int`` 
-	* ``float`` 
-	* ``Function`` : a lazyparser type representing user defined functions or buildin functions.
-	* ``bool `` 
-	* ``str`` : default type if nothing is specified in the function docstring
-	*  ``FileType("o")`` : The argparse FileType. 'o' corresponds to the opening mode : same as you can use with open. It will give you an file object in the decorated function after parsing.  
-	* ``List`` : A list object used to handle lists.
+    * ``int``
+    * ``float``
+    * ``Function`` : a lazyparser type representing user defined functions or builtin functions.
+    * ``bool ``
+    * ``str`` : default type if nothing is specified in the function docstring.
+    *  ``FileType("o")`` : The argparse FileType. 'o' corresponds to the opening mode. It will give you an ``io.IOBase`` object in the decorated function after parsing.
+    * ``List`` : A list object used to handle lists.
 
 The ``List`` takes two parameters :
 
-	1. ``size`` : The size of the list
-	2. ``vtype`` : The type of the list. It must be one of the following types : 
+    1. ``size`` : The size of the list
+    2. ``vtype`` : The type of the list. It must be one of the following types :
 
-		* ``int`` 
-		* ``float`` 
-		* ``Function`` 
-		* ``bool `` 
-		* ``str`` 
-		*  ``FileType`` 
+        * ``int``
+        * ``float``
+        * ``Function``
+        * ``bool``
+        * ``str``
+        *  ``FileType``
 
 ``List``don't handle ``List`` subtype !
 
 
 .. warning::
 
-	The type of the parameter can't be a ``tuple`` or a ``list``. Use the type ``List`` for that.
+    The type of parameters can't be ``tuple`` or ``list``. Use the type ``List`` for that.
 
 
 An example of ``List`` usage :
@@ -178,152 +186,149 @@ An example of ``List`` usage :
 
 .. code:: python
 
-	# code in example.py file
-	import lazyparser as lp
+    # code in example.py file
+    import lazyparser as lp
 
 
-	@lp.parse
-	def mutliplication(a):
-	    """
-	    Sum up the numbers given in a
-		
-		:param a : (List(vtype=float)) a list of numbers
-	    """
-	    return sum(a)
+    @lp.parse
+    def multiplication(a):
+        """
+        Sum up the numbers given in a
 
-	if __name__ == "__main__":
-	    v = mutliplication()
-	    print(v)
+        :param a : (List(vtype=float)) a list of numbers
+        """
+        return sum(a)
+
+    if __name__ == "__main__":
+        v = multiplication()
+        print(v)
 		
 Defining a list without any size allows you to give as many data as you want after the ``-a`` in the command line interface. Those data must be separated by a space
 
 .. code:: bash
 
-	python example.py -a 1 2 3 20
-	# 26
+    python example.py -a 1 2 3 20
+    # 26.0
 
 An example of ``Function`` usage :
 ################################## 
 
 
-
 .. code:: python
 
-	# code in example.py file
-	import lazyparser as lp
+    # code in example.py file
+    import lazyparser as lp
 
 
-	@lp.parse
-	def apply_a(a):
-	    """
-	    Apply the a function to the number 10.
+    @lp.parse
+    def apply_a(a):
+        """
+        Apply the a function to the number 10.
 
-		:param a : (Function) a function
-	    """
-	    return a(10)
+        :param a : (Function) a function
+        """
+        return a(10)
 
-	if __name__ == "__main__":
-	    v = apply_a()
-	    print(v)
+    if __name__ == "__main__":
+        v = apply_a()
+        print(v)
 
 
 .. code:: bash
 
-	python example.py -a "lambda x: x - 5"
-	# 5
+    python example.py -a "lambda x: x - 5"
+    # 5
 
-As you can see if you define a lambda function you must surround its definition by quotes. It also works with buildin functions like``sum``.
-You can also define **a** ``List`` **of**  ``Functions`` as described below :
-
+As you can see if you define a lambda function you must surround its definition by quotes. It also works with builtin functions like``sum``.
+You can also define **a** ``List`` **of**  ``Function`` as described below :
 
 
 .. code:: python
 
-	# code in example.py file
-	import lazyparser as lp
+    # code in example.py file
+    import lazyparser as lp
 
 
-	@lp.parse
-	def apply_a(a):
-	    """
-	    Apply every functions in a to the number 10.
+    @lp.parse
+    def apply_a(a):
+        """
+        Apply every functions to the number 10.
 
-		:param a : (List(vtype=Function)) a list of functions
-	    """
-		for f in a:
-			print(f(10))
+        :param a : (List(vtype=Function)) a list of functions
+        """
+        for f in a:
+            print(f(10))
 
-	if __name__ == "__main__":
-	    apply_a()
+    if __name__ == "__main__":
+        apply_a()
 
 
 .. code:: bash
 
-	python example.py -a "lambda x: x - 5" "lambda x: x * 2"
-	# 5
-	# 20
+    python example.py -a "lambda x: x - 5" "lambda x: x * 2"
+    # 5
+    # 20
 
 
 An example of ``FileType`` usage :
 ##################################
 
 
-Writting in file :
+Writing in file :
 
  .. code:: python
 
-	# code in example.py file
-	import lazyparser as lp
+    # code in example.py file
+    import lazyparser as lp
 
 
-	@lp.parse
-	def hello(a):
-	    """
-	    write 'hello world' in the file a
+    @lp.parse
+    def hello(a):
+        """
+        write 'hello world' in the file a
 
-		:param a : (FileType('w')) a file
-	    """
-		a.write("hello world")
+        :param a : (FileType('w')) a file
+        """
+        a.write("hello world")
 
-	if __name__ == "__main__":
-	    hello()
+    if __name__ == "__main__":
+        hello()
 		
 
 .. code:: bash
 
-	python example.py -a "hello.txt" # this will create a file 'hello.txt' containing 'hello world' in it.
-
+    python example.py -a "hello.txt" # this will create a file 'hello.txt' containing 'hello world' in it.
 
 Reading a file :
 
  .. code:: python
 
-	# code in example.py file
+    # code in example.py file
 	import lazyparser as lp
 
 
-	@lp.parse
-	def read(a):
-	    """
-	    Print the content of a file a.
+    @lp.parse
+    def read(a):
+        """
+        Print the content of a file a.
 
-		:param a : (FileType('r')) a file
-	    """
-		print(a.readlines())
-		
+        :param a : (FileType('r')) a file
+        """
+        print(a.readlines())
 
-	if __name__ == "__main__":
-	    read()
+
+    if __name__ == "__main__":
+        read()
 		
 
 .. code:: bash
 
-	python example.py -a "hello.txt" # this will display the content of 'hello.txt' file.
-	#hello world
+    python example.py -a "hello.txt" # this will display the content of 'hello.txt' file.
+    # ['hello world']
 
 .. note::
 
-	You can also handle a list of ``FileType`` object by putting ``(List(vtype=FileType('w'))`` in a parameter description in the docstring of the parsed function.
+    You can also handle a list of ``FileType`` object by putting ``(List(vtype=FileType('w'))`` in a parameter description in the docstring of the parsed function.
 
 
 In the function signature
@@ -333,36 +338,34 @@ _________________________
 Lazyparser can interpret the type of parameter given in function signature. If the type of a parameter is given both in the docstring and the signature of the parsed function, **the type given in the signature will be used.**
 
 
-
 Example with the multiply function:
-
 
 .. code:: python
 
-	import lazyparser as lp
+    import lazyparser as lp
 
-	@lp.parse
-	def mutliplication(a : float, b : float):
-	    """
-	    Mutiply a by b
+    @lp.parse
+    def mutliplication(a : float, b : float):
+        """
+        Mutiply a by b
 
-	    :param a: a number a
-	    :param b: (decimal number) a number b
-	    """
-	    return a * b
+        :param a: (number) a number a
+        :param b: (str) a number b
+        """
+        return a * b
 
 
-	if __name__ == "__main__":
-	    v = mutliplication()
-	    print(v)
+    if __name__ == "__main__":
+        v = mutliplication()
+        print(v)
 
 
 
 .. code:: Bash
 
-	python example.py -a 10 -b "lol"
-	# usage: command.py [-h] -a [A] -b [B]
-	# command.py: error: argument -b/--b: invalid float value: 'lol'
+    python example.py -a 10 -b "lol"
+    # usage: example.py [-h] -a FLOAT -b FLOAT
+    # example.py: error: argument -b/--b: invalid float value: 'lol'
 
 Lazyparser handle the type given in the function signature first. If a type is given in the function signature for a parameter, no type is needed in the docstring for this parameter.
 
@@ -371,30 +374,30 @@ It also works with ``List``, ``Function`` and ``FileType`` objects.
 
 .. code:: python
 
-	import lazyparser as lp
-	from lazyparser import List, Function, FileType
+    import lazyparser as lp
+    from lazyparser import List, Function, FileType
 
 
-	@lp.parse
-	def apply_func(values : List(vtype=float), func : Function, afile : FileType('w')):
-	    """
-	    apply the function b to every element in values an write the results in afile.
+    @lp.parse
+    def apply_func(values : List(vtype=float), func : Function, afile : FileType('w')):
+        """
+        apply the function b to every element in values an write the results in afile.
 
-	    :param values: list of float 
-	    :param func: An amazing function
-		:param afile: A super file
-	    """
-	    for v in values:
-			afile.write("%s\n" % func(v))
-		afile.close()
+        :param values: list of float
+        :param func: An amazing function
+        :param afile: A super file
+        """
+        for v in values:
+            afile.write("%s\n" % func(v))
+        afile.close()
 
 
-	if __name__ == "__main__":
-	    apply_func()
+    if __name__ == "__main__":
+        apply_func()
  
 .. code:: Bash
 
-	python example.py -v 10 20 30 40 -f "lambda x : x * 2" -a result.txt # create a file result.txt containing 20 40 60 80.
+    python example.py -v 10 20 30 40 -f "lambda x : x * 2" -a result.txt # create a file result.txt containing 20 40 60 80.
 
 
 Constraints
@@ -404,78 +407,80 @@ You can constrain the values that a parameter can take with:
 
 .. code:: python
 
-	@lazyparser.parse(a=[1, 2]) # the parameter a must be equal to 1 or 2
-	@lazyparser.parse(a=["a", "b"]) # the parameter a must be equal to "a" or "b"
-	@lazyparser.parse(a="file") # the parameter a must be an existing file
-	@lazyparser.parse(a="dir") # the parameter a must be an existing dir
-	@lazyparser.parse(a="2 < a < 5") # a must be greater than 2 and lower than 5
-	@lazyparser.parse(a="a%2 == 0") # a must be even
+    @lazyparser.parse(a=[1, 2]) # the parameter a must be equal to 1 or 2
+    @lazyparser.parse(a=["a", "b"]) # the parameter a must be equal to "a" or "b"
+    @lazyparser.parse(a="file") # the parameter a must be an existing file
+    @lazyparser.parse(a="dir") # the parameter a must be an existing dir
+    @lazyparser.parse(a="2 < a < 5") # a must be greater than 2 and lower than 5
+    @lazyparser.parse(a="a%2 == 0") # a must be even
 
 .. warning::
 
-	Unfortunatly, you can't constrain parameters corresponding to a function. 
+    Unfortunatly, you can't constrain parameters corresponding to a function.
 
 
 .. note:: 
 
-	Those constraints alos apply to parameter having a ``List`` type. For example a constrain of ``a=[1, 2]`` in a parameter ``a`` will ensure that every element given in the command-line interface for ``a`` is 1 or 2.
+    Those constraints also apply to parameter having a ``List`` type. For example a constrain of ``a=[1, 2]`` in a parameter ``a`` will ensure that every element given in the command-line interface for ``a`` is 1 or 2.
 	
 	
 Example:
 ________
 
 
-
 .. code:: python
 
-	import lazyparser as lp
-	from lazyparser import List
+    import lazyparser as lp
+    from lazyparser import List
 
 
-	@lp.parse(values=range(5))
-	def apply_sum(values : List(vtype=float)):
-	    """
-	   sum every values in ``values`` parameter.
+    @lp.parse(values=range(5))
+    def apply_sum(values : List(vtype=float)):
+        """
+       sum every values in ``values`` parameter.
 
-	    :param values: list of float 
-	    """
-	    return sum(values)
-		
-	if __name__ == "__main__":
-	    v = apply_sum()
-		print(v)
+        :param values: list of float
+        """
+        return sum(values)
+
+    if __name__ == "__main__":
+        v = apply_sum()
+        print(v)
 
 
 .. code:: Bash
 
-	python example.py -v 10 20 30 40
-	# usage: command.py [-h] -v {0,1,2,3,4} [{0,1,2,3,4} ...]
-	# command.py: error: argument -v/--values: invalid choice: 10.0 (choose from 0, 1, 2, 3, 4)
-	python example.py -v 1 2 3 4
-	# 10
+    python example.py -v 10 20 30 40
+    # usage: example.py [-h] -v LIST[FLOAT]
+    # example.py: error: argument -v/--values: invalid choice: 10.0 (choose from 0, 1, 2, 3, 4)
+    python example.py -v 1 2 3 4
+    # 10.0
 
 .. code:: python
 
-	@lp.parse(values="values % 2 == 0")
-	def apply_sum(values: List(vtype=float)):
-		"""
-	   sum every values in ``values`` parameter.
+    from lazyparser import List
+    import lazyparser as lp
 
-		:param values: list of float
-		"""
-		return sum(values)
+    @lp.parse(values="values % 2 == 0")
+    def apply_sum(values: List(vtype=float)):
+        """
+       sum every values in ``values`` parameter.
+
+        :param values: list of float
+        """
+        return sum(values)
 
 
-	if __name__ == "__main__":
-		v = apply_sum()
-		print(v)
+    if __name__ == "__main__":
+        v = apply_sum()
+        print(v)
 
 
 .. code:: Bash
-	python command.py -v 10 20 31
-	# usage: command.py [-h] -v VALUES [VALUES ...]
-	# command.py: error: argument -v/--values: invalid choice 31.0: it must respect : values % 2 == 0
 
+    python example.py -v 10 20 31
+    # usage: example.py [-h] -v LIST[FLOAT]
+    # example.py: error: argument -v/--values: invalid choice 31.0: it must respect : values % 2 == 0
 
 Flag
 ~~~~
@@ -487,42 +492,144 @@ Here is an example :
 
 .. code:: python
 
-	import lazyparser as lp
-	from lazyparser import Function
+    import lazyparser as lp
+    from lazyparser import Function
 
 
-	@lp.flag(times=lambda x, y: x * y)
-	@lp.parse
-	def flag_func(a: float, b: float, times : Function = lambda x, y: x + y):
-		"""
+    @lp.flag(times=lambda x, y: x * y)
+    @lp.parse
+    def flag_func(a: float, b: float, times : Function = lambda x, y: x + y):
+        """
 
-		:param a: a number a
-		:param b: a number b
-		"""
-		return times(a, b)
+        :param a: a number a
+        :param b: a number b
+        """
+        return times(a, b)
 
 
-	if __name__ == "__main__":
-		v = flag_func()
-		print(v)
+    if __name__ == "__main__":
+        v = flag_func()
+        print(v)
 
 .. code:: Bash
 
-	python example.py -a 10 -b 2 -t
-	# 20
-	python example.py -a 10 -b 2
-	# 12
+    python example.py -a 10 -b 2 -t
+    # 20
+    python example.py -a 10 -b 2
+    # 12
 
 As you can see, if ``times`` is set in the command line, the function defined in flag applies otherwise it's the default values.
 
 .. warning::
 
-	If you want to use a parameter as a flag, you must give it a default value along with it's flag values.
+     If you want to use a parameter as a flag, you must give it a default value along with it's flag values.
+
+.. note::
+
+    The ``FileType`` type cannot be used with the decorator flag.
 
 
+Create an epilog
+~~~~~~~~~~~~~~~~
+
+To add an epilog in the help of the parser simply use the function ``set_epilog``. This function must be called before the decorator ``parse``.
+
+.. code::
+
+    lp.set_epilog("my epilog")
 
 
+Argument groups
+~~~~~~~~~~~~~~~
+
+By default Lazyparser creates two groups of arguments:
+
+    * ``Optional arguments``
+    * ``Required arguments``
+
+But you may want to create arguments groups with custom names.
+This can be done with the function ``set_groups`` that can takes the following arguments:
+
+    * arg_groups : A dictionary having group names as keys and the list of argument names as values
+    * order : A list of argument group names. Those names must be defined in ``arg_groups``
+    * add_help : A boolean to indicate if you want a parameter named ``help`` that will display an help message in the command line interface.
+
+This function must be called before the decorator ``parse``.
+
+.. note::
+
+    If ``set_groups(add_help=False)`` written in your script, then you won't be able to display an help message in you shell.
 
 
+Example
+_______
 
+Below, in an file named ``example.py`` function that prints the name and the first name of a user and also multiply to numbers:
+
+.. code:: python
+
+    import lazyparser as lp
+
+    lp.set_groups(arg_groups={"User_name": ["first_name", "name"],
+                              "Numbers": ["x", "y"]})
+
+    @lp.parse
+    def multiply(first_name, name, x, y):
+        """Say hello name fist_name and multiply x by y.
+
+        :param first_name: (str) your first name
+        :param name: (str) your name
+        :param x: (float) a number x
+        :param y: (float) a number y
+        """
+        print("Hello %s %s !" % (first_name, name))
+        print("%s x %s = %s" % (x, y, x * y))
+
+
+    if __name__ == "__main__":
+        multiply()
+
+I you run:
+
+.. code:: bash
+
+    python example.py -h
+
+It displays:
+
+.. code:: bash
+
+    usage: example.py [-h] -f STR -n STR -x FLOAT -y FLOAT
+
+    Say hello name fist_name and multiply x by y.
+
+    Optional arguments:
+      -h, --help            show this help message and exit
+
+    User_name:
+      -f, --first_name STR  your first name
+      -n, --name STR        your name
+
+    Numbers:
+      -x, --x FLOAT         a number x
+      -y, --y FLOAT         a number y
+
+If you want to change the name of ``Optional arguments`` group, just call ``set_groups`` like this:
+
+.. code::
+
+    lp.set_groups(arg_groups={"User_name": ["first_name", "name"],
+                              "Numbers": ["x", "y"],
+                              "Group_help": ["help"]})
+
+If you want the ``help`` argument to be in the user name groups, just call ``set_groups`` like this:
+
+.. code::
+
+    lp.set_groups(arg_groups={"User_name": ["help", "first_name", "name"],
+                              "Numbers": ["x", "y"]})
+
+.. note::
+
+    The arguments in each group are displayed in the order of the decorated function
 
