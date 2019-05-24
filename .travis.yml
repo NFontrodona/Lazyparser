@@ -8,4 +8,4 @@ python:
 install:
   - pip install pytest
 script:
-  - pystest -v --cov="." src/test.py
+  - pytest -v --cov="." src/test.py
