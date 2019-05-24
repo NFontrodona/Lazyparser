@@ -11,9 +11,9 @@ The lazyparser was written in ``python 3.5 `` with the version 1.4.0 of argparse
 
 ## Documentation
 
-The raw documentation is available at `doc/source/`.
+The raw documentation is available at [doc/source/lazyparser.rst](doc/source/lazyparser.rst).
 The documentation was created with sphinx (v 1.7).
-To build the documentation just go in the `doc` folder and type in a terminal 
+To build the documentation, clone the project repository, go in the `doc` folder and type :
 
 ```sh
 build html
