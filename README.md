@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/NFontrodona/Lazyparser.svg?token=kVsLPqgGYaJqBE1Jazyp&branch=master)](https://travis-ci.com/NFontrodona/Lazyparser)
+
 # Lazyparser README
 
 ## Description
