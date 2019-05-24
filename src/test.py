@@ -96,7 +96,7 @@ class TestFunction(unittest.TestCase):
         assert "error: " + msg == lp.message("Hello  world", arg, type_m="e")
 
     def test_set_data(self):
-        assert lp.set_data("uigig") is None
+        assert lp.set_epilog("uigig") is None
 
     def test_init_parser(self):
         lp.set_env(tb=17)
