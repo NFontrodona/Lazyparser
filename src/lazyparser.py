@@ -27,7 +27,8 @@ import re
 import inspect
 import functools
 import itertools
-import os  # noqa
+import sys
+import os
 import io
 import argparse
 from argparse import FileType
@@ -241,15 +242,17 @@ class Argument(object):
                 if isinstance(v, bool):
                     choice.append(str(v))
                 elif callable(v):
-                    print("error : parse : functions to respect must be "
-                          "given in str format")
+                    name = os.path.basename(sys.argv[0])
+                    print("%s: error: parse: functions to respect must be "
+                          "given in str format" % name)
                     exit(1)
                 else:
                     choice.append(v)
             return choice
         elif callable(self.choice):
-            print("error : parse : function to respect must be given "
-                  "in str format")
+            name = os.path.basename(sys.argv[0])
+            print("%s: error: parse: function to respect must be given "
+                  "in str format" % name)
             exit(1)
         else:
             return self.choice
@@ -817,14 +820,15 @@ def message(sentence, argument, type_m=None):
     :param type_m: (string or None) the type of the message to display
     :return: (string) the message in a correct format.
     """
+    name = os.path.basename(sys.argv[0])
     sentence = re.sub(r"\s+", ' ', sentence)
     sentence = "argument %s: " % argument.gfn() + sentence
     if not type_m:
         return sentence
     if type_m == "w":
-        return "warning: " + sentence
+        return name + ": warning: " + sentence
     if type_m == "e":
-        return "error: " + sentence
+        return name + ": error: " + sentence
 
 
 def tests_function(marg, parser):
