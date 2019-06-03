@@ -1,8 +1,8 @@
 Lazyparser
 ==========
 
-Lazyparser is a small module that allow to automatize the creation of command-line interfaces.
-For this purpose it uses `argparse <https://docs.python.org/3.5/library/argparse.html>`_ developped by Steven J. Bethard.
+Lazyparser is a small module that automate the creation of command-line interfaces.
+For this purpose, it uses `argparse <https://docs.python.org/3.5/library/argparse.html>`_ developped by Steven J. Bethard.
 
 Examples
 --------
@@ -25,13 +25,13 @@ Let's say you have a function ``print_word`` That prints two words. To create a 
         print_word()
 
 
-Then you can run ``example.py`` by typing:
+Then you can display the help of ``example.py`` by typing:
 
 .. code:: Bash
 
-    python example.py -h # to display the help of your program
+    python example.py -h  # to display the help of your program
 
-This will display the following message :
+This will print the following message :
 
 .. code:: Bash
 
@@ -45,14 +45,14 @@ This will display the following message :
       -b, --b STR  param b
 
 
-As you can see, if there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to `str`.  In addition, the **long names of the arguments for the parser** (defined with ``--``) correspond to the **parameter names of the decorated function**. The sort names (called with ``-``) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
-A default help message is generated for every parameter of the decorated function but don't explains what the parameter corresponds to.
+As you can see, if there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to `str`.  In addition, the **full names of the parser arguments** (defined with ``--``) correspond to the **parameter names of the decorated function**. The short names (called with ``-``) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
+A default help message is generated for every parameter of the decorated function but it doesn't explains what the parameter corresponds to.
 To better control what the help message will display you can write a docstring in the decorated function.
 
 With docstring
 ~~~~~~~~~~~~~~
 
-Lazyparser automatize the creation of command-line interfaces by taking advantage of the docstring in the decorated function.
+Lazyparser automates the creation of command-line interfaces by taking advantage of the docstring in the decorated function.
 By default, lazyparser parse the docstring in `PyCharm <https://www.jetbrains.com/pycharm/>`_ (A Python IDE) format.
 
 Example: (file ``example.py``)
@@ -75,7 +75,7 @@ Example: (file ``example.py``)
         v = multiplication()
         print(v)
 
-Then you can run ``example.py`` by typing:
+Then you can display the help of ``example.py`` by typing:
 
 .. code:: Bash
 
@@ -100,14 +100,14 @@ This displays the following message:
 Customize the docstring environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you are not a fan of pycharm docstrings you can set your own docstring environment by using the function ``set_env`` 
+If you are not a fan of Pycharm docstrings you can set your own docstring environment by using the function ``set_env``
 
 the function ``set_env`` takes 4 arguments :
 
-    * ``delim1`` : the string preceding the definition of a parameter. *:param* is default in pycharm docstrings. This parameter can be an empty docstring if nothing precedes the parameter name.
-    * ``delim2`` : the string that comes just after the name of the parameter. It **MUST** be defined and can't be an empty string or a space, tabulation, etc...
-    * ``hd`` : the header preceding the argument name. By default, corresponds to an empty string.
-    * ``tb`` : an integer corresponding to the number of spaces at the beginning of each line in the docstring. By default equals to 4.
+    * ``delim1`` : the string preceding the definition of a parameter. *:param* is the default value. This parameter can be an empty docstring if nothing precedes the parameter name in the docstring of the decorated function.
+    * ``delim2`` : the string that comes right after the name of the parameter. It **MUST** be defined and can't be an empty string or a space, tabulation, etc...
+    * ``hd`` : the header preceding the argument names. By default, corresponds to an empty string.
+    * ``tb`` : the number of spaces at the beginning of each line in the docstring. By default equals to 4.
 
 .. note:: 
 
@@ -116,7 +116,7 @@ the function ``set_env`` takes 4 arguments :
 	
 .. warning::
 
-    The type of the parameters in the docstring must be surrounded by parentheses so that the lazyparser can interpret them.
+    The type of the parameters in the docstring must be surrounded by parentheses so that lazyparser can interpret them.
 	
 Here is an example of how using ``set_env``
 
@@ -155,7 +155,7 @@ Lazyparser can handle different type of parameters:
     * ``int``
     * ``float``
     * ``Function`` : a lazyparser type representing user defined functions or builtin functions.
-    * ``bool ``
+    * ``bool``
     * ``str`` : default type if nothing is specified in the function docstring.
     *  ``FileType("o")`` : The argparse FileType. 'o' corresponds to the opening mode. It will give you an ``io.IOBase`` object in the decorated function after parsing.
     * ``List`` : A list object used to handle lists.
@@ -416,7 +416,7 @@ You can constrain the values that a parameter can take with:
 
 .. warning::
 
-    Unfortunatly, you can't constrain parameters corresponding to a function.
+    Unfortunately, you can't constrain parameters corresponding to a function.
 
 
 .. note:: 
@@ -486,7 +486,7 @@ Flag
 ~~~~
 
 Sometimes, you only want to call an argument without giving it a value when calling your program. For example you want to multiply ``a`` by ``b`` if ``-t (or --time)`` is present in the command line or add them otherwise.
-This can be done using the flag decorator.
+This can be done using the decorator named flag.
 
 Here is an example : 
 
@@ -547,7 +547,7 @@ By default Lazyparser creates two groups of arguments:
     * ``Optional arguments``
     * ``Required arguments``
 
-But you may want to create arguments groups with custom names.
+But you may want to create argument groups with custom names.
 This can be done with the function ``set_groups`` that can takes the following arguments:
 
     * arg_groups : A dictionary having group names as keys and the list of argument names as values
@@ -564,7 +564,7 @@ This function must be called before the decorator ``parse``.
 Example
 _______
 
-Below, in an file named ``example.py`` function that prints the name and the first name of a user and also multiply to numbers:
+Below, in an file named ``example.py``, you can see a function that prints the name and the first name of a user and also multiply two numbers:
 
 .. code:: python
 
