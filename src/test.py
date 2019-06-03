@@ -12,6 +12,7 @@ from lazyparser import Function, List, FileType
 import unittest
 import inspect
 import sys
+import os
 from argparse import Action, ArgumentParser
 
 
@@ -91,9 +92,10 @@ class TestFunction(unittest.TestCase):
     def test_message(self):
         arg = lp.Argument("t", 2, int)
         msg = "argument --t: Hello world"
+        n = os.path.basename(sys.argv[0])
         assert msg == lp.message("Hello  world", arg, type_m=None)
-        assert "warning: " + msg == lp.message("Hello  world", arg, type_m="w")
-        assert "error: " + msg == lp.message("Hello  world", arg, type_m="e")
+        assert "%s: warning: " % n + msg == lp.message("Hello  world", arg, type_m="w")
+        assert "%s: error: " % n + msg == lp.message("Hello  world", arg, type_m="e")
 
     def test_set_data(self):
         assert lp.set_epilog("uigig") is None
