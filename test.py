@@ -9,8 +9,6 @@ Description:
 
 import sys
 import os
-dir = os.path.realpath(os.path.dirname(__file__))
-sys.path.insert(0, "%s/../lazyparser" % dir)
 import lazyparser as lp
 from lazyparser import Function, List, FileType
 import unittest
