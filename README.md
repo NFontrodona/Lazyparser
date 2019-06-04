@@ -23,3 +23,12 @@ build html
 ```
 
 This will create a folder `doc/build/html`. This folder will contain a file named ``index.html``. Double click on it to open the documentation with your web browser. 
+
+
+## Installation
+
+To install lazyparser, run :
+
+```sh
+pip install lazyparser
+```
