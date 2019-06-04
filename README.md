@@ -12,7 +12,7 @@ It is compatible with ``python 3.5`` or higher.
 
 ## Documentation
 
-The raw documentation is available at [doc/source/lazyparser.rst](doc/source/lazyparser.rst).
+The raw documentation is available at [doc/source/lazyparser.rst](https://github.com/NFontrodona/Lazyparser/blob/master/doc/source/lazyparser.rst).
 The documentation was created with sphinx (v 1.7).
 To build the documentation, clone the project repository, go in the `doc` folder and type :
 
