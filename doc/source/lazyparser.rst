@@ -1,7 +1,7 @@
 Lazyparser
 ==========
 
-Lazyparser is a small module that automate the creation of command-line interfaces.
+Lazyparser is a small module that automates the creation of command-line interfaces.
 For this purpose, it uses `argparse <https://docs.python.org/3.5/library/argparse.html>`_ developped by Steven J. Bethard.
 
 Examples

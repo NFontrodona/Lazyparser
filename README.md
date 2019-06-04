@@ -4,7 +4,7 @@
 
 ## Description
 
-The lazyparser module allows to automatize the parsing of arguments. 
+The lazyparser module automates the parsing of arguments. 
 This module is based on [argparse](https://docs.python.org/3.5/library/argparse.html) developped by Steven J. Bethard.
 
 The lazyparser was written in ``python 3.5 `` with the version 1.4.0 of argparse.
