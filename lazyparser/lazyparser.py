@@ -34,6 +34,8 @@ import argparse
 from argparse import FileType
 
 __version__ = 0.1
+__all__ = ('Function', 'List', 'set_env', 'set_epilog', 'set_groups',
+           'parse', 'flag')
 
 #####################################
 # sets the docstring environment
