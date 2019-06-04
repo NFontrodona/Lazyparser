@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/NFontrodona/Lazyparser.svg?token=kVsLPqgGYaJqBE1Jazyp&branch=master)](https://travis-ci.com/NFontrodona/Lazyparser)
+[![Coverage Status](https://coveralls.io/repos/github/NFontrodona/Lazyparser/badge.svg?branch=master)](https://coveralls.io/github/NFontrodona/Lazyparser?branch=master)
 
 # Lazyparser README
 
