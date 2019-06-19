@@ -15,7 +15,7 @@ It is compatible with ``python 3.5`` or higher.
 
 ## Documentation
 
-The documentation is available on <https://github.com/NFontrodona/Lazyparser/blob/master/doc/source/lazyparser.rst>.
+The documentation is available on <https://nfontrodona.github.io/Lazyparser/>.
 The documentation was created with sphinx (v 1.7).
 To build the documentation, clone the project repository, go in the `doc` folder and type :
 
