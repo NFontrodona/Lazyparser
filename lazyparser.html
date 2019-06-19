@@ -1,0 +1,785 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Lazyparser &mdash; Lazyparser  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Lazyparser License" href="license.html" />
+    <link rel="prev" title="Welcome to Lazyparser’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Lazyparser
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Lazyparser</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#without-docstring">Without docstring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#with-docstring">With docstring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#customize-the-docstring-environment">Customize the docstring environment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#define-the-type-of-parameters">Define the type of parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#in-the-function-docstring">In the function docstring</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#in-the-function-signature">In the function signature</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#constraints">Constraints</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#example">Example:</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#flag">Flag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-an-epilog">Create an epilog</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#argument-groups">Argument groups</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">Lazyparser License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Lazyparser</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Lazyparser</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/lazyparser.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="lazyparser">
+<h1>Lazyparser<a class="headerlink" href="#lazyparser" title="Permalink to this headline">¶</a></h1>
+<p>Lazyparser is a small module that automates the creation of command-line interfaces.
+For this purpose, it uses <a class="reference external" href="https://docs.python.org/3.5/library/argparse.html">argparse</a> developped by Steven J. Bethard.</p>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="without-docstring">
+<h3>Without docstring<a class="headerlink" href="#without-docstring" title="Permalink to this headline">¶</a></h3>
+<p>Let’s say you have a function <code class="docutils literal notranslate"><span class="pre">print_word</span></code> That prints two words. To create a command line interface, you can simply type this in a file <code class="docutils literal notranslate"><span class="pre">example.py</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">print_word</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">print_word</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Then you can display the help of <code class="docutils literal notranslate"><span class="pre">example.py</span></code> by typing:</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -h  <span class="c1"># to display the help of your program</span>
+</pre></div>
+</div>
+<p>This will print the following message :</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>usage: example.py <span class="o">[</span>-h<span class="o">]</span> -a STR -b STR
+
+Optional arguments:
+  -h, --help   show this <span class="nb">help</span> message and <span class="nb">exit</span>
+
+Required arguments:
+  -a, --a STR  param a
+  -b, --b STR  param b
+</pre></div>
+</div>
+<p>As you can see, if there is no docstring in the decorated <code class="docutils literal notranslate"><span class="pre">print_word</span></code> function, the type of every parameters is set to <cite>str</cite>.  In addition, the <strong>full names of the parser arguments</strong> (defined with <code class="docutils literal notranslate"><span class="pre">--</span></code>) correspond to the <strong>parameter names of the decorated function</strong>. The short names (called with <code class="docutils literal notranslate"><span class="pre">-</span></code>) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
+A default help message is generated for every parameter of the decorated function but it doesn’t explains what the parameter corresponds to.
+To better control what the help message will display you can write a docstring in the decorated function.</p>
+</div>
+<div class="section" id="with-docstring">
+<h3>With docstring<a class="headerlink" href="#with-docstring" title="Permalink to this headline">¶</a></h3>
+<p>Lazyparser automates the creation of command-line interfaces by taking advantage of the docstring in the decorated function.
+By default, lazyparser parse the docstring in <a class="reference external" href="https://www.jetbrains.com/pycharm/">PyCharm</a> (A Python IDE) format.</p>
+<p>Example: (file <code class="docutils literal notranslate"><span class="pre">example.py</span></code>)</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">multiplication</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Multiply a by b</span>
+
+<span class="sd">        :param a: (float) a number a</span>
+<span class="sd">        :param b: (float) a number b</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">multiplication</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then you can display the help of <code class="docutils literal notranslate"><span class="pre">example.py</span></code> by typing:</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -h <span class="c1"># to display the help of your program</span>
+</pre></div>
+</div>
+<p>This displays the following message:</p>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>usage: example.py <span class="o">[</span>-h<span class="o">]</span> -a FLOAT -b FLOAT
+
+Multiply a by b
+
+Optional arguments:
+  -h, --help     show this <span class="nb">help</span> message and <span class="nb">exit</span>
+
+Required arguments:
+  -a, --a FLOAT  a number a
+  -b, --b FLOAT  a number b
+</pre></div>
+</div>
+</div>
+<div class="section" id="customize-the-docstring-environment">
+<h3>Customize the docstring environment<a class="headerlink" href="#customize-the-docstring-environment" title="Permalink to this headline">¶</a></h3>
+<p>If you are not a fan of Pycharm docstrings you can set your own docstring environment by using the function <code class="docutils literal notranslate"><span class="pre">set_env</span></code></p>
+<p>the function <code class="docutils literal notranslate"><span class="pre">set_env</span></code> takes 4 arguments :</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">delim1</span></code> : the string preceding the definition of a parameter. <em>:param</em> is the default value. This parameter can be an empty docstring if nothing precedes the parameter name in the docstring of the decorated function.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">delim2</span></code> : the string that comes right after the name of the parameter. It <strong>MUST</strong> be defined and can’t be an empty string or a space, tabulation, etc…</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hd</span></code> : the header preceding the argument names. By default, corresponds to an empty string.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tb</span></code> : the number of spaces at the beginning of each line in the docstring. By default equals to 4.</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The text set before the parameters definition (or the parameters definition header) is considered as being a part of the description of the function.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The type of the parameters in the docstring must be surrounded by parentheses so that lazyparser can interpret them.</p>
+</div>
+<p>Here is an example of how using <code class="docutils literal notranslate"><span class="pre">set_env</span></code></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
+<span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+<span class="n">lp</span><span class="o">.</span><span class="n">set_env</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s2">&quot;KeywordArgument&quot;</span><span class="p">)</span>
+
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">multiplication</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Multiply a by b</span>
+
+<span class="sd">    KeywordArgument</span>
+<span class="sd">         a : (float) a number a</span>
+<span class="sd">         b : (float) a number b</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">multiplication</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="define-the-type-of-parameters">
+<h3>Define the type of parameters<a class="headerlink" href="#define-the-type-of-parameters" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="in-the-function-docstring">
+<h4>In the function docstring<a class="headerlink" href="#in-the-function-docstring" title="Permalink to this headline">¶</a></h4>
+<p>Lazyparser can handle different type of parameters:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Function</span></code> : a lazyparser type representing user defined functions or builtin functions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">str</span></code> : default type if nothing is specified in the function docstring.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FileType(&quot;o&quot;)</span></code> : The argparse FileType. ‘o’ corresponds to the opening mode. It will give you an <code class="docutils literal notranslate"><span class="pre">io.IOBase</span></code> object in the decorated function after parsing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">List</span></code> : A list object used to handle lists.</p></li>
+</ul>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">List</span></code> takes two parameters :</p>
+<blockquote>
+<div><ol class="arabic">
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> : The size of the list</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vtype</span></code> : The type of the list. It must be one of the following types :</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Function</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FileType</span></code></p></li>
+</ul>
+</div></blockquote>
+</li>
+</ol>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">List``don't</span> <span class="pre">handle</span> <span class="pre">``List</span></code> subtype !</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The type of parameters can’t be <code class="docutils literal notranslate"><span class="pre">tuple</span></code> or <code class="docutils literal notranslate"><span class="pre">list</span></code>. Use the type <code class="docutils literal notranslate"><span class="pre">List</span></code> for that.</p>
+</div>
+<div class="section" id="an-example-of-list-usage">
+<h5>An example of <code class="docutils literal notranslate"><span class="pre">List</span></code> usage :<a class="headerlink" href="#an-example-of-list-usage" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
+<span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">multiplication</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sum up the numbers given in a</span>
+
+<span class="sd">    :param a : (List(vtype=float)) a list of numbers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">multiplication</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Defining a list without any size allows you to give as many data as you want after the <code class="docutils literal notranslate"><span class="pre">-a</span></code> in the command line interface. Those data must be separated by a space</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="m">1</span> <span class="m">2</span> <span class="m">3</span> <span class="m">20</span>
+<span class="c1"># 26.0</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="an-example-of-function-usage">
+<h5>An example of <code class="docutils literal notranslate"><span class="pre">Function</span></code> usage :<a class="headerlink" href="#an-example-of-function-usage" title="Permalink to this headline">¶</a></h5>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
+<span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">apply_a</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply the a function to the number 10.</span>
+
+<span class="sd">    :param a : (Function) a function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">a</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">apply_a</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="s2">&quot;lambda x: x - 5&quot;</span>
+<span class="c1"># 5</span>
+</pre></div>
+</div>
+<p>As you can see if you define a lambda function you must surround its definition by quotes. It also works with builtin functions like``sum``.
+You can also define <strong>a</strong> <code class="docutils literal notranslate"><span class="pre">List</span></code> <strong>of</strong>  <code class="docutils literal notranslate"><span class="pre">Function</span></code> as described below :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
+<span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">apply_a</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Apply every functions to the number 10.</span>
+
+<span class="sd">    :param a : (List(vtype=Function)) a list of functions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">apply_a</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="s2">&quot;lambda x: x - 5&quot;</span> <span class="s2">&quot;lambda x: x * 2&quot;</span>
+<span class="c1"># 5</span>
+<span class="c1"># 20</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="an-example-of-filetype-usage">
+<h5>An example of <code class="docutils literal notranslate"><span class="pre">FileType</span></code> usage :<a class="headerlink" href="#an-example-of-filetype-usage" title="Permalink to this headline">¶</a></h5>
+<p>Writing in file :</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
+<span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    write &#39;hello world&#39; in the file a</span>
+
+<span class="sd">    :param a : (FileType(&#39;w&#39;)) a file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">a</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;hello world&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">hello</span><span class="p">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="s2">&quot;hello.txt&quot;</span> <span class="c1"># this will create a file &#39;hello.txt&#39; containing &#39;hello world&#39; in it.</span>
+</pre></div>
+</div>
+<p>Reading a file :</p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
+    <span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Print the content of a file a.</span>
+
+<span class="sd">    :param a : (FileType(&#39;r&#39;)) a file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">readlines</span><span class="p">())</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">read</span><span class="p">()</span>
+</pre></div>
+</div>
+</div></blockquote>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="s2">&quot;hello.txt&quot;</span> <span class="c1"># this will display the content of &#39;hello.txt&#39; file.</span>
+<span class="c1"># [&#39;hello world&#39;]</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can also handle a list of <code class="docutils literal notranslate"><span class="pre">FileType</span></code> object by putting <code class="docutils literal notranslate"><span class="pre">(List(vtype=FileType('w'))</span></code> in a parameter description in the docstring of the parsed function.</p>
+</div>
+</div>
+</div>
+<div class="section" id="in-the-function-signature">
+<h4>In the function signature<a class="headerlink" href="#in-the-function-signature" title="Permalink to this headline">¶</a></h4>
+<p>Lazyparser can interpret the type of parameter given in function signature. If the type of a parameter is given both in the docstring and the signature of the parsed function, <strong>the type given in the signature will be used.</strong></p>
+<p>Example with the multiply function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">mutliplication</span><span class="p">(</span><span class="n">a</span> <span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span> <span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mutiply a by b</span>
+
+<span class="sd">    :param a: (number) a number a</span>
+<span class="sd">    :param b: (str) a number b</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">mutliplication</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="m">10</span> -b <span class="s2">&quot;lol&quot;</span>
+<span class="c1"># usage: example.py [-h] -a FLOAT -b FLOAT</span>
+<span class="c1"># example.py: error: argument -b/--b: invalid float value: &#39;lol&#39;</span>
+</pre></div>
+</div>
+<p>Lazyparser handle the type given in the function signature first. If a type is given in the function signature for a parameter, no type is needed in the docstring for this parameter.</p>
+<p>It also works with <code class="docutils literal notranslate"><span class="pre">List</span></code>, <code class="docutils literal notranslate"><span class="pre">Function</span></code> and <code class="docutils literal notranslate"><span class="pre">FileType</span></code> objects.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+<span class="kn">from</span> <span class="nn">lazyparser</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Function</span><span class="p">,</span> <span class="n">FileType</span>
+
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">apply_func</span><span class="p">(</span><span class="n">values</span> <span class="p">:</span> <span class="n">List</span><span class="p">(</span><span class="n">vtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">func</span> <span class="p">:</span> <span class="n">Function</span><span class="p">,</span> <span class="n">afile</span> <span class="p">:</span> <span class="n">FileType</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    apply the function b to every element in values an write the results in afile.</span>
+
+<span class="sd">    :param values: list of float</span>
+<span class="sd">    :param func: An amazing function</span>
+<span class="sd">    :param afile: A super file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+        <span class="n">afile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">func</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+    <span class="n">afile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">apply_func</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -v <span class="m">10</span> <span class="m">20</span> <span class="m">30</span> <span class="m">40</span> -f <span class="s2">&quot;lambda x : x * 2&quot;</span> -a result.txt <span class="c1"># create a file result.txt containing 20 40 60 80.</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="constraints">
+<h3>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h3>
+<p>You can constrain the values that a parameter can take with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nd">@lazyparser.parse</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span> <span class="c1"># the parameter a must be equal to 1 or 2</span>
+<span class="nd">@lazyparser.parse</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;a&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">])</span> <span class="c1"># the parameter a must be equal to &quot;a&quot; or &quot;b&quot;</span>
+<span class="nd">@lazyparser.parse</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s2">&quot;file&quot;</span><span class="p">)</span> <span class="c1"># the parameter a must be an existing file</span>
+<span class="nd">@lazyparser.parse</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s2">&quot;dir&quot;</span><span class="p">)</span> <span class="c1"># the parameter a must be an existing dir</span>
+<span class="nd">@lazyparser.parse</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s2">&quot;2 &lt; a &lt; 5&quot;</span><span class="p">)</span> <span class="c1"># a must be greater than 2 and lower than 5</span>
+<span class="nd">@lazyparser.parse</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s2">&quot;a%2 == 0&quot;</span><span class="p">)</span> <span class="c1"># a must be even</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Unfortunately, you can’t constrain parameters corresponding to a function.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Those constraints also apply to parameter having a <code class="docutils literal notranslate"><span class="pre">List</span></code> type. For example a constrain of <code class="docutils literal notranslate"><span class="pre">a=[1,</span> <span class="pre">2]</span></code> in a parameter <code class="docutils literal notranslate"><span class="pre">a</span></code> will ensure that every element given in the command-line interface for <code class="docutils literal notranslate"><span class="pre">a</span></code> is 1 or 2.</p>
+</div>
+<div class="section" id="example">
+<h4>Example:<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+<span class="kn">from</span> <span class="nn">lazyparser</span> <span class="kn">import</span> <span class="n">List</span>
+
+
+<span class="nd">@lp.parse</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>
+<span class="k">def</span> <span class="nf">apply_sum</span><span class="p">(</span><span class="n">values</span> <span class="p">:</span> <span class="n">List</span><span class="p">(</span><span class="n">vtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   sum every values in ``values`` parameter.</span>
+
+<span class="sd">    :param values: list of float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">apply_sum</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -v <span class="m">10</span> <span class="m">20</span> <span class="m">30</span> <span class="m">40</span>
+<span class="c1"># usage: example.py [-h] -v LIST[FLOAT]</span>
+<span class="c1"># example.py: error: argument -v/--values: invalid choice: 10.0 (choose from 0, 1, 2, 3, 4)</span>
+python example.py -v <span class="m">1</span> <span class="m">2</span> <span class="m">3</span> <span class="m">4</span>
+<span class="c1"># 10.0</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">lazyparser</span> <span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+<span class="nd">@lp.parse</span><span class="p">(</span><span class="n">values</span><span class="o">=</span><span class="s2">&quot;values % 2 == 0&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">apply_sum</span><span class="p">(</span><span class="n">values</span><span class="p">:</span> <span class="n">List</span><span class="p">(</span><span class="n">vtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   sum every values in ``values`` parameter.</span>
+
+<span class="sd">    :param values: list of float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">apply_sum</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -v <span class="m">10</span> <span class="m">20</span> <span class="m">31</span>
+<span class="c1"># usage: example.py [-h] -v LIST[FLOAT]</span>
+<span class="c1"># example.py: error: argument -v/--values: invalid choice 31.0: it must respect : values % 2 == 0</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="flag">
+<h3>Flag<a class="headerlink" href="#flag" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes, you only want to call an argument without giving it a value when calling your program. For example you want to multiply <code class="docutils literal notranslate"><span class="pre">a</span></code> by <code class="docutils literal notranslate"><span class="pre">b</span></code> if <code class="docutils literal notranslate"><span class="pre">-t</span> <span class="pre">(or</span> <span class="pre">--time)</span></code> is present in the command line or add them otherwise.
+This can be done using the decorator named flag.</p>
+<p>Here is an example :</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+<span class="kn">from</span> <span class="nn">lazyparser</span> <span class="kn">import</span> <span class="n">Function</span>
+
+
+<span class="nd">@lp.flag</span><span class="p">(</span><span class="n">times</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span>
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">flag_func</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">times</span> <span class="p">:</span> <span class="n">Function</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    :param a: a number a</span>
+<span class="sd">    :param b: a number b</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">times</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">flag_func</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="m">10</span> -b <span class="m">2</span> -t
+<span class="c1"># 20</span>
+python example.py -a <span class="m">10</span> -b <span class="m">2</span>
+<span class="c1"># 12</span>
+</pre></div>
+</div>
+<p>As you can see, if <code class="docutils literal notranslate"><span class="pre">times</span></code> is set in the command line, the function defined in flag applies otherwise it’s the default values.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you want to use a parameter as a flag, you must give it a default value along with it’s flag values.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FileType</span></code> type cannot be used with the decorator flag.</p>
+</div>
+</div>
+<div class="section" id="create-an-epilog">
+<h3>Create an epilog<a class="headerlink" href="#create-an-epilog" title="Permalink to this headline">¶</a></h3>
+<p>To add an epilog in the help of the parser simply use the function <code class="docutils literal notranslate"><span class="pre">set_epilog</span></code>. This function must be called before the decorator <code class="docutils literal notranslate"><span class="pre">parse</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lp</span><span class="o">.</span><span class="n">set_epilog</span><span class="p">(</span><span class="s2">&quot;my epilog&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="argument-groups">
+<h3>Argument groups<a class="headerlink" href="#argument-groups" title="Permalink to this headline">¶</a></h3>
+<p>By default Lazyparser creates two groups of arguments:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Optional</span> <span class="pre">arguments</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Required</span> <span class="pre">arguments</span></code></p></li>
+</ul>
+</div></blockquote>
+<p>But you may want to create argument groups with custom names.
+This can be done with the function <code class="docutils literal notranslate"><span class="pre">set_groups</span></code> that can takes the following arguments:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>arg_groups : A dictionary having group names as keys and the list of argument names as values</p></li>
+<li><p>order : A list of argument group names. Those names must be defined in <code class="docutils literal notranslate"><span class="pre">arg_groups</span></code></p></li>
+<li><p>add_help : A boolean to indicate if you want a parameter named <code class="docutils literal notranslate"><span class="pre">help</span></code> that will display an help message in the command line interface.</p></li>
+</ul>
+</div></blockquote>
+<p>This function must be called before the decorator <code class="docutils literal notranslate"><span class="pre">parse</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">set_groups(add_help=False)</span></code> written in your script, then you won’t be able to display an help message in you shell.</p>
+</div>
+<div class="section" id="id1">
+<h4>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
+<p>Below, in an file named <code class="docutils literal notranslate"><span class="pre">example.py</span></code>, you can see a function that prints the name and the first name of a user and also multiply two numbers:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
+
+<span class="n">lp</span><span class="o">.</span><span class="n">set_groups</span><span class="p">(</span><span class="n">arg_groups</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;User_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;first_name&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                          <span class="s2">&quot;Numbers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]})</span>
+
+<span class="nd">@lp.parse</span>
+<span class="k">def</span> <span class="nf">multiply</span><span class="p">(</span><span class="n">first_name</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Say hello name fist_name and multiply x by y.</span>
+
+<span class="sd">    :param first_name: (str) your first name</span>
+<span class="sd">    :param name: (str) your name</span>
+<span class="sd">    :param x: (float) a number x</span>
+<span class="sd">    :param y: (float) a number y</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Hello </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> !&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">first_name</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> x </span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">))</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">multiply</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>I you run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -h
+</pre></div>
+</div>
+<p>It displays:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>usage: example.py <span class="o">[</span>-h<span class="o">]</span> -f STR -n STR -x FLOAT -y FLOAT
+
+Say hello name fist_name and multiply x by y.
+
+Optional arguments:
+  -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
+
+User_name:
+  -f, --first_name STR  your first name
+  -n, --name STR        your name
+
+Numbers:
+  -x, --x FLOAT         a number x
+  -y, --y FLOAT         a number y
+</pre></div>
+</div>
+<p>If you want to change the name of <code class="docutils literal notranslate"><span class="pre">Optional</span> <span class="pre">arguments</span></code> group, just call <code class="docutils literal notranslate"><span class="pre">set_groups</span></code> like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lp</span><span class="o">.</span><span class="n">set_groups</span><span class="p">(</span><span class="n">arg_groups</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;User_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;first_name&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                          <span class="s2">&quot;Numbers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">],</span>
+                          <span class="s2">&quot;Group_help&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;help&quot;</span><span class="p">]})</span>
+</pre></div>
+</div>
+<p>If you want the <code class="docutils literal notranslate"><span class="pre">help</span></code> argument to be in the user name groups, just call <code class="docutils literal notranslate"><span class="pre">set_groups</span></code> like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lp</span><span class="o">.</span><span class="n">set_groups</span><span class="p">(</span><span class="n">arg_groups</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;User_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;help&quot;</span><span class="p">,</span> <span class="s2">&quot;first_name&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">],</span>
+                          <span class="s2">&quot;Numbers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">]})</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The arguments in each group are displayed in the order of the decorated function</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="license.html" class="btn btn-neutral float-right" title="Lazyparser License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to Lazyparser’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2019, Fontrodona Nicolas
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
