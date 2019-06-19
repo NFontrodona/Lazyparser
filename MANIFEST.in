@@ -1,0 +1,5 @@
+include LICENSE.txt
+include test.py
+
+recursive-include doc *
+prune doc/build
