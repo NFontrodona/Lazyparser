@@ -10,10 +10,10 @@ Description:
 import sys
 import os
 import lazyparser as lp
-from lazyparser import Function, List, FileType
+from lazyparser import List
 import unittest
 import inspect
-from argparse import Action, ArgumentParser
+from argparse import Action, ArgumentParser, FileType
 import typing
 
 
@@ -50,8 +50,8 @@ class TestFunction(unittest.TestCase):
 
     def test_get_type(self):
         argument = lp.Argument("t", 2, int)
-        type_n = ["(int)", "(float)", "(str)", "(string)", "(Function)"]
-        type_r = [int, float, str, str, Function]
+        type_n = ["(int)", "(float)", "(str)", "(string)"]
+        type_r = [int, float, str, str]
         for i in range(len(type_n)):
             res = lp.get_type(type_n[i], argument)
             assert isinstance(type_r[i], type(res[0]))
@@ -60,6 +60,7 @@ class TestFunction(unittest.TestCase):
         assert isinstance(lp.get_type("(List[int])", argument)[0], List)
         assert isinstance(lp.get_type("(List)", argument)[0], List)
         self.assertRaises(SystemExit, lp.get_type, "(gloubimou)", argument)
+        self.assertRaises(SystemExit, lp.get_type, "(Function)", argument)
         self.assertRaises(SystemExit, lp.get_type, """(List(vtype="xd"))""",
                           argument)
 
@@ -69,8 +70,7 @@ class TestFunction(unittest.TestCase):
             assert lp.handled_type(int, o)
             assert lp.handled_type(bool, o)
             assert lp.handled_type(float, o)
-            assert lp.handled_type(Function, o)
-            assert lp.handled_type(FileType("w"), o)
+            assert not lp.handled_type(FileType("w"), o)
             assert not lp.handled_type(854, o)
             assert not lp.handled_type("blip", o)
             assert not lp.handled_type(sum, o)
@@ -173,31 +173,21 @@ class TestFunction(unittest.TestCase):
         parser = lp.Lazyparser(func, {}, {})
         parser = lp.init_parser(parser)
         def foo(x): return x * 2
-        arg = lp.Argument("lol", foo, Function)
-        arg.value = "lambda x: x * 2"
-        assert callable(lp.test_type(arg, parser))
-        arg.value = "lambda x - x * 2"
-        self.assertRaises(SystemExit, lp.test_type, arg, parser)
+        arg = lp.Argument("lol", foo, List(vtype=int))
         arg.value = 77
-        self.assertRaises(SystemExit, lp.test_type, arg, parser)
+        assert lp.test_type(arg, parser)
+        arg.value = [17, 12]
+        assert lp.test_type(arg, parser)
         arg = lp.Argument("lol", True, bool)
         arg.value = True
         assert lp.test_type(arg, parser)
         arg.value = "foo"
         self.assertRaises(SystemExit, lp.test_type, arg, parser)
-        arg = lp.Argument("lol", [foo, "b"], List(vtype=Function))
-        arg.value = [foo, "b"]
-        self.assertRaises(SystemExit, lp.test_type, arg, parser)
-        arg.value = [foo, 17]
-        self.assertRaises(SystemExit, lp.test_type, arg, parser)
-        arg.value = [foo]
-        assert callable(lp.test_type(arg, parser)[0])
-        assert len(lp.test_type(arg, parser)) == 1
-        assert inspect.getsource(lp.test_type(arg, parser)[0]).strip() == \
-            "def foo(x): return x * 2"
         arg = lp.Argument("lol", inspect._empty, List(vtype=bool))
         arg.value = [True, False, True, "False", "True", "foo"]
         self.assertRaises(SystemExit, lp.test_type, arg, parser)
+        arg.value = [True, False, True, "False", "True"]
+        assert lp.test_type(arg, parser)
 
     def test_parse(self):
         lp.set_env(tb=12)
@@ -294,12 +284,8 @@ class TestArgument(unittest.TestCase):
     def test_argparse_type(self):
         arg = lp.Argument("lol", 7, bool)
         assert arg.argparse_type() == str
-        arg = lp.Argument("lol", 7, Function)
-        assert arg.argparse_type() == str
         arg = lp.Argument("lol", 7, List(vtype=int))
         assert arg.argparse_type() == int
-        arg = lp.Argument("lol", 7, List(vtype=Function))
-        assert arg.argparse_type() == str
         arg = lp.Argument("lol", 7, List(vtype=bool))
         assert arg.argparse_type() == str
         arg = lp.Argument("lol", 7, List(vtype=float))
@@ -318,24 +304,16 @@ class TestArgument(unittest.TestCase):
         assert arg.argparse_narg() == 5
 
     def test_argparse_metavar(self):
-        arg = lp.Argument("lol", 7, FileType("w"))
-        assert arg.argparse_metavar() == "File[w]"
         arg = lp.Argument("lol", 7, List(vtype=int))
         assert arg.argparse_metavar() == "List[int]"
         arg = lp.Argument("lol", 7, List(size=5, vtype=int))
         assert arg.argparse_metavar() == "List[5,int]"
-        arg = lp.Argument("lol", 7, List(size=5, vtype=FileType("w")))
-        assert arg.argparse_metavar() == "List[5,File[w]]"
-        arg = lp.Argument("lol", 7, List(size=5, vtype=Function))
-        assert arg.argparse_metavar() == "List[5,Func]"
-        arg = lp.Argument("lol", 7, List(vtype=FileType("w")))
-        assert arg.argparse_metavar() == "List[File[w]]"
         arg = lp.Argument("lol", 7, float)
         assert arg.argparse_metavar() == "float"
 
     def test_argparse_choice(self):
         def foo(x): return x * 2
-        arg = lp.Argument("lol", 7, List(size=5, vtype=Function))
+        arg = lp.Argument("lol", 7, List(vtype=str))
         assert arg.argparse_choice() is None
         arg.choice = "test"
         assert arg.argparse_choice() is None
@@ -470,13 +448,6 @@ class TestLazyparser(unittest.TestCase):
         self.assertRaises(SystemExit, parser.set_filled,
                           const={"x": 7})
         parser.args["x"].default = 6
-        parser.args["x"].type = Function
-
-        def func(x): return x * 5
-        self.assertRaises(SystemExit, parser.set_filled,
-                          const={"x": func})
-        self.assertRaises(SystemExit, parser.set_filled,
-                          const={"x": "lambda x : x * 5"})
         parser.args["x"].type = List
         self.assertRaises(SystemExit, parser.set_filled,
                           const={"x": "bloup"})
