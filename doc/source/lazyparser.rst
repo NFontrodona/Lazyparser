@@ -2,7 +2,7 @@ Lazyparser
 ==========
 
 Lazyparser is a small module that automates the creation of command-line interfaces.
-For this purpose, it uses `argparse <https://docs.python.org/3.5/library/argparse.html>`_ developped by Steven J. Bethard.
+For this purpose, it uses `argparse <https://docs.python.org/3.7/library/argparse.html>`_ developped by Steven J. Bethard.
 
 Examples
 --------
@@ -10,7 +10,7 @@ Examples
 Without docstring
 ~~~~~~~~~~~~~~~~~
 
-Let's say you have a function ``print_word`` That prints two words. To create a command line interface, you can simply type this in a file ``example.py``
+Let's say you have a function ``print_word`` that prints two words. To create a command line interface, you can simply type this in a file ``example.py``
 
 .. code:: python
 
@@ -45,7 +45,7 @@ This will print the following message :
       -b, --b STR  param b
 
 
-As you can see, if there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to `str`.  In addition, the **full names of the parser arguments** (defined with ``--``) correspond to the **parameter names of the decorated function**. The short names (called with ``-``) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
+As you can see, if there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to ``str``.  In addition, the **full names of the parser arguments** (defined with ``--``) correspond to the **parameter names of the decorated function**. The short names (called with ``-``) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
 A default help message is generated for every parameter of the decorated function but it doesn't explains what the parameter corresponds to.
 To better control what the help message will display you can write a docstring in the decorated function.
 
@@ -109,15 +109,15 @@ the function ``set_env`` takes 4 arguments :
     * ``hd`` : the header preceding the argument names. By default, corresponds to an empty string.
     * ``tb`` : the number of spaces at the beginning of each line in the docstring. By default equals to 4.
 
-.. note:: 
+.. note::
 
     The text set before the parameters definition (or the parameters definition header) is considered as being a part of the description of the function.
-	
-	
+
+
 .. warning::
 
     The type of the parameters in the docstring must be surrounded by parentheses so that lazyparser can interpret them.
-	
+
 Here is an example of how using ``set_env``
 
 .. code:: python
@@ -181,7 +181,7 @@ The ``List`` takes two parameters :
 
 
 An example of ``List`` usage :
-############################## 
+##############################
 
 
 .. code:: python
@@ -202,7 +202,7 @@ An example of ``List`` usage :
     if __name__ == "__main__":
         v = multiplication()
         print(v)
-		
+
 Defining a list without any size allows you to give as many data as you want after the ``-a`` in the command line interface. Those data must be separated by a space
 
 .. code:: bash
@@ -211,7 +211,7 @@ Defining a list without any size allows you to give as many data as you want aft
     # 26.0
 
 An example of ``Function`` usage :
-################################## 
+##################################
 
 
 .. code:: python
@@ -293,7 +293,7 @@ Writing in file :
 
     if __name__ == "__main__":
         hello()
-		
+
 
 .. code:: bash
 
@@ -319,7 +319,7 @@ Reading a file :
 
     if __name__ == "__main__":
         read()
-		
+
 
 .. code:: bash
 
@@ -371,6 +371,8 @@ Lazyparser handle the type given in the function signature first. If a type is g
 
 It also works with ``List``, ``Function`` and ``FileType`` objects.
 
+
+If you want to use the ``List`` type of the ``typing module``: it is possible ! Lazyparser will automatically transform a ``typing.List`` object into a ``lazyparser.List`` object. With the ``typing.List class``, you won't be able to limit the size of the list as it can be done with ``lazyparser.List(vtype=str, size=5)`` or simply ``List(5, str)``. Note that you can use the notation of the typing package in the docstring of the decorated function. Example ``:param a: (List[str]) my param``. With this method, it is also not possible to limit the length of the list.
 
 .. code:: python
 
