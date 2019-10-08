@@ -32,8 +32,10 @@ import os
 import io
 import argparse
 from argparse import FileType
+import typing
 
-__version__ = 0.1
+
+__version__ = 0.11
 __all__ = ('Function', 'List', 'set_env', 'set_epilog', 'set_groups',
            'parse', 'flag')
 
@@ -166,12 +168,14 @@ class Argument(object):
         """
         Set the type of self argument.
 
-        :param arg_type: (type) a type
+        :param arg_type: (type or class instance) a type
         :return: (type) the type of the argument
         """
+        arg_type = handle_list_typing_type(arg_type)
         if arg_type == inspect._empty:
             return inspect._empty
         if handled_type(arg_type):
+            check_subtype(arg_type, self)
             return arg_type
         if isinstance(arg_type, type):
             msg = "Not handled type %s" % arg_type.__name__
@@ -685,6 +689,8 @@ def get_type(type_arg, argument):
     type_arg = type_arg.replace(" ", "")
     try:
         type_arg = type_arg.replace("(List)", "(List())")
+        if "[" in type_arg and "," not in type_arg:
+            type_arg = type_arg.replace("[", "(vtype=").replace("]", ")")
         if type_arg != "(string)":
             type_arg = eval(type_arg)
         else:
@@ -694,14 +700,40 @@ def get_type(type_arg, argument):
         print(message(msg, argument, "e"))
         exit(1)
     if handled_type(type_arg):
-        if isinstance(type_arg, List):
-            if handled_type(type_arg.type, "s"):
-                return type_arg, ft
-            else:
-                msg = "unknown %s subtype of List"
-                print(message(msg % type_arg.type, argument, "e"))
-                exit(1)
+        check_subtype(type_arg, argument)
         return type_arg, ft
+
+
+def handle_list_typing_type(arg_type):
+    """
+    Turn a list from the typing module into a lazyparser list.
+
+    :param arg_type: (type or class instance) a type
+    :return:
+    """
+    if isinstance(arg_type, type(typing.List)):
+        try:
+            if arg_type.__name__ == 'List':  # for python 3.5
+                arg_type = List(vtype=arg_type.__args__[0])
+        except AttributeError:
+            if arg_type._name == "List":  # for python 3.7
+                arg_type = List(vtype=arg_type.__args__[0])
+        return arg_type
+    return arg_type
+
+
+def check_subtype(argtype, arg):
+    """
+    check if the subtype is supported.
+
+    :param argtype: (type or List instance) a type or list object
+    :param arg: (Argument object) an Argument
+    """
+    if isinstance(argtype, List):
+        if not handled_type(argtype.type, "s"):
+            print(message("unknown %s subtype of %s" %
+                          (argtype, argtype.type), arg, "e"))
+            exit(1)
 
 
 class NewFormatter(argparse.RawDescriptionHelpFormatter):
