@@ -31,13 +31,12 @@ import sys
 import os
 import io
 import argparse
-from argparse import FileType
 import typing
 
 
-__version__ = '0.1.1'
-__all__ = ('Function', 'List', 'set_env', 'set_epilog', 'set_groups',
-           'parse', 'flag')
+__version__ = '0.2.0'
+__all__ = ('List', 'set_env', 'set_epilog', 'set_groups', 'parse', 'flag')
+
 
 #####################################
 # sets the docstring environment
@@ -53,15 +52,6 @@ optionals_title = "Optional arguments"
 required_title = "Required arguments"
 help_arg = True
 ######################################
-
-
-class Function(object):
-    """
-    Class representing lazyparser function.
-
-    Made to handle both building and user defined function
-    """
-    pass
 
 
 class List(object):
@@ -105,10 +95,9 @@ def handled_type(atype, htype="m"):
     :param htype: (str) m for subtype and s for subtype
     :return: (type) the type of an argument
     """
-    dic_type = {"m": [int, float, Function, bool, str, FileType, List],
-                "s": [int, float, Function, bool, str, FileType]}
-
-    if isinstance(atype, (FileType, List)):
+    dic_type = {"m": [int, float, bool, str, List],
+                "s": [int, float, bool, str]}
+    if isinstance(atype, List):
         atype = type(atype)
     if atype in dic_type[htype]:
         return True
@@ -200,10 +189,10 @@ class Argument(object):
         """
         :return: (type)
         """
-        if self.type in [bool, Function]:
+        if self.type == bool:
             return str
         elif isinstance(self.type, List):
-            if self.type.type in [bool, Function]:
+            if self.type.type == bool:
                 return str
             else:
                 return self.type.type
@@ -220,17 +209,12 @@ class Argument(object):
         """
         :return: (string) the metavar for the argument
         """
-        if isinstance(self.type, FileType):
-            return "File[%s]" % self.type._mode
-        elif isinstance(self.type, List):
-            if isinstance(self.type.type, FileType):
-                name = "File[%s]" % self.type.type._mode
-            else:
-                name = self.type.type.__name__.replace("Function", "Func")
+        if isinstance(self.type, List):
             if self.type.size == "+":
-                return "List[%s]" % name
+                return "List[%s]" % self.type.type.__name__
             else:
-                return "List[%s,%s]" % (self.type.size, name)
+                return "List[%s,%s]" % (self.type.size,
+                                        self.type.type.__name__)
         else:
             return self.type.__name__.replace("Function", "Func")
 
@@ -431,30 +415,18 @@ class Lazyparser(object):
 
         :param const: (dictionary) value to set to a param called.
         """
-        msg = "invalid const type %s"
+        msg = "invalid flag type %s"
         if const and not isinstance(const, dict):
-            print("warning: const must be a dictionary")
+            print("warning: flags must be defined as a dictionary")
         elif const and isinstance(const, dict):
             for marg in const.keys():
                 if marg in self.args.keys():
                     mtype = self.args[marg].get_type()
-                    if mtype == Function:
-                        if callable(const[marg]):
-                            const[marg] = const[marg]
-                        else:
-                            print(message(msg % mtype.__name__,
-                                          self.args[marg], "e"))
-                            exit(1)
-                    elif mtype == List:
+                    if mtype == List:
                         if not isinstance(const[marg], (list, tuple)):
                             print(message(msg % mtype.__name__,
                                           self.args[marg], "e"))
                             exit(1)
-                    elif mtype == FileType:
-                        msg = "not handled const type '%s'"
-                        print(message(msg % mtype.__name__,
-                                      self.args[marg], "e"))
-                        exit(1)
                     elif not handled_type(mtype, "m"):
                         print(message(msg % mtype.__name__,
                                       self.args[marg], "e"))
@@ -469,13 +441,7 @@ class Lazyparser(object):
                                       self.args[marg], "e"))
                         exit(1)
                     if not isinstance(self.args[marg].default, mtype):
-                        if mtype == Function:
-                            if not callable(self.args[marg].default):
-                                msg = msg.replace("const", "default")
-                                print(message(msg % mtype.__name__,
-                                              self.args[marg], "e"))
-                                exit(1)
-                        elif mtype == List:
+                        if mtype == List:
                             if not isinstance(self.args[marg].default,
                                               (list, tuple)):
                                 print(message(msg % mtype.__name__,
@@ -488,7 +454,7 @@ class Lazyparser(object):
                                               self.args[marg], "e"))
                                 exit(1)
                         elif self.args[marg].default == inspect._empty:
-                            msg = "const must be specified with default"
+                            msg = "default value required"
                             print(message(msg,
                                           self.args[marg], "e"))
                             exit(1)
@@ -941,40 +907,14 @@ def test_type(marg, parser):
     :param parser: (class ArgumentParser) the argparse parser.
     """
     dic = {"True": True, "False": False, True: True, False: False}
-    if marg.type == Function:
-        if isinstance(marg.value, str):
-            try:
-                marg.value = eval(marg.value)
-            except (SyntaxError, TypeError, NameError):
-                msg = "not a function %s" % marg.value
-                parser.error(message(msg, marg))
-        elif not callable(marg.value):
-            msg = "not a function %s" % marg.value
-            parser.error(message(msg, marg))
-    elif marg.type == bool:
+    if marg.type == bool:
         try:
             marg.value = dic[marg.value]
         except KeyError:
             msg = "invalid bool type %s (choose from True, False)"
             parser.error(message(msg % marg.value, marg))
     elif isinstance(marg.type, List):
-        if marg.type.type == Function:
-            try:
-                res = []
-                for v in marg.value:
-                    if isinstance(v, str):
-                        res.append(eval(v))
-                    elif callable(v):
-                        res.append(v)
-                    else:
-                        msg = "not every element in %s is a function"
-                        parser.error(message(msg % marg.value, marg))
-                marg.value = res
-            except (SyntaxError, TypeError, NameError):
-                msg = "not every element in %s is a function" % str(marg.value)
-                parser.error(message(msg, marg))
-        elif marg.type.type == bool:
-
+        if marg.type.type == bool:
             try:
                 marg.value = [dic[v] for v in marg.value]
             except KeyError:
