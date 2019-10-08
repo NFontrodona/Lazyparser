@@ -17,36 +17,42 @@
   
 
   
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
 
+  
+  
     
 
   
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Lazyparser License" href="license.html" />
-    <link rel="prev" title="Welcome to Lazyparser’s documentation!" href="index.html" /> 
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Lazyparser  documentation" href="index.html"/>
+        <link rel="next" title="Lazyparser License" href="license.html"/>
+        <link rel="prev" title="Welcome to Lazyparser’s documentation!" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
 </head>
 
-<body class="wy-body-for-nav">
+<body class="wy-body-for-nav" role="document">
 
    
   <div class="wy-grid-for-nav">
+
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search" >
+        <div class="wy-side-nav-search">
           
 
           
@@ -60,7 +66,7 @@
             
             
               <div class="version">
-                0.1
+                0.1.1
               </div>
             
           
@@ -122,7 +128,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" aria-label="top navigation">
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Lazyparser</a>
@@ -130,10 +136,9 @@
       </nav>
 
 
+      
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
           
 
 
@@ -178,12 +183,12 @@
   <div class="section" id="lazyparser">
 <h1>Lazyparser<a class="headerlink" href="#lazyparser" title="Permalink to this headline">¶</a></h1>
 <p>Lazyparser is a small module that automates the creation of command-line interfaces.
-For this purpose, it uses <a class="reference external" href="https://docs.python.org/3.5/library/argparse.html">argparse</a> developped by Steven J. Bethard.</p>
+For this purpose, it uses <a class="reference external" href="https://docs.python.org/3.7/library/argparse.html">argparse</a> developped by Steven J. Bethard.</p>
 <div class="section" id="examples">
 <h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="without-docstring">
 <h3>Without docstring<a class="headerlink" href="#without-docstring" title="Permalink to this headline">¶</a></h3>
-<p>Let’s say you have a function <code class="docutils literal notranslate"><span class="pre">print_word</span></code> That prints two words. To create a command line interface, you can simply type this in a file <code class="docutils literal notranslate"><span class="pre">example.py</span></code></p>
+<p>Let’s say you have a function <code class="docutils literal notranslate"><span class="pre">print_word</span></code> that prints two words. To create a command line interface, you can simply type this in a file <code class="docutils literal notranslate"><span class="pre">example.py</span></code></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
 
 <span class="nd">@lp.parse</span>
@@ -210,7 +215,7 @@ Required arguments:
   -b, --b STR  param b
 </pre></div>
 </div>
-<p>As you can see, if there is no docstring in the decorated <code class="docutils literal notranslate"><span class="pre">print_word</span></code> function, the type of every parameters is set to <cite>str</cite>.  In addition, the <strong>full names of the parser arguments</strong> (defined with <code class="docutils literal notranslate"><span class="pre">--</span></code>) correspond to the <strong>parameter names of the decorated function</strong>. The short names (called with <code class="docutils literal notranslate"><span class="pre">-</span></code>) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
+<p>As you can see, if there is no docstring in the decorated <code class="docutils literal notranslate"><span class="pre">print_word</span></code> function, the type of every parameters is set to <code class="docutils literal notranslate"><span class="pre">str</span></code>.  In addition, the <strong>full names of the parser arguments</strong> (defined with <code class="docutils literal notranslate"><span class="pre">--</span></code>) correspond to the <strong>parameter names of the decorated function</strong>. The short names (called with <code class="docutils literal notranslate"><span class="pre">-</span></code>) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
 A default help message is generated for every parameter of the decorated function but it doesn’t explains what the parameter corresponds to.
 To better control what the help message will display you can write a docstring in the decorated function.</p>
 </div>
@@ -498,6 +503,7 @@ You can also define <strong>a</strong> <code class="docutils literal notranslate
 </div>
 <p>Lazyparser handle the type given in the function signature first. If a type is given in the function signature for a parameter, no type is needed in the docstring for this parameter.</p>
 <p>It also works with <code class="docutils literal notranslate"><span class="pre">List</span></code>, <code class="docutils literal notranslate"><span class="pre">Function</span></code> and <code class="docutils literal notranslate"><span class="pre">FileType</span></code> objects.</p>
+<p>If you want to use the <code class="docutils literal notranslate"><span class="pre">List</span></code> type of the <code class="docutils literal notranslate"><span class="pre">typing</span> <span class="pre">module</span></code>: it is possible ! Lazyparser will automatically transform a <code class="docutils literal notranslate"><span class="pre">typing.List</span></code> object into a <code class="docutils literal notranslate"><span class="pre">lazyparser.List</span></code> object. With the <code class="docutils literal notranslate"><span class="pre">typing.List</span> <span class="pre">class</span></code>, you won’t be able to limit the size of the list as it can be done with <code class="docutils literal notranslate"><span class="pre">lazyparser.List(vtype=str,</span> <span class="pre">size=5)</span></code> or simply <code class="docutils literal notranslate"><span class="pre">List(5,</span> <span class="pre">str)</span></code>. Note that you can use the notation of the typing package in the docstring of the decorated function. Example <code class="docutils literal notranslate"><span class="pre">:param</span> <span class="pre">a:</span> <span class="pre">(List[str])</span> <span class="pre">my</span> <span class="pre">param</span></code>. With this method, it is also not possible to limit the length of the list.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
 <span class="kn">from</span> <span class="nn">lazyparser</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Function</span><span class="p">,</span> <span class="n">FileType</span>
 
@@ -735,7 +741,9 @@ Numbers:
 
 
            </div>
-           
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
@@ -744,7 +752,7 @@ Numbers:
         <a href="license.html" class="btn btn-neutral float-right" title="Lazyparser License" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to Lazyparser’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral" title="Welcome to Lazyparser’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -753,11 +761,11 @@ Numbers:
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2019, Fontrodona Nicolas
+        &copy; Copyright 2019, Fontrodona Nicolas.
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -770,15 +778,37 @@ Numbers:
   
 
 
-  <script type="text/javascript">
-      jQuery(function () {
-          SphinxRtdTheme.Navigation.enable(true);
-      });
-  </script>
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+
+  
 
   
   
-    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
    
 
 </body>

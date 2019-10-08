@@ -2,7 +2,7 @@ Lazyparser
 ==========
 
 Lazyparser is a small module that automates the creation of command-line interfaces.
-For this purpose, it uses `argparse <https://docs.python.org/3.5/library/argparse.html>`_ developped by Steven J. Bethard.
+For this purpose, it uses `argparse <https://docs.python.org/3.7/library/argparse.html>`_ developped by Steven J. Bethard.
 
 Examples
 --------
@@ -10,7 +10,7 @@ Examples
 Without docstring
 ~~~~~~~~~~~~~~~~~
 
-Let's say you have a function ``print_word`` That prints two words. To create a command line interface, you can simply type this in a file ``example.py``
+Let's say you have a function ``print_word`` that prints two words. To create a command line interface, you can simply type this in a file ``example.py``
 
 .. code:: python
 
@@ -45,7 +45,7 @@ This will print the following message :
       -b, --b STR  param b
 
 
-As you can see, if there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to `str`.  In addition, the **full names of the parser arguments** (defined with ``--``) correspond to the **parameter names of the decorated function**. The short names (called with ``-``) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
+As you can see, if there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to ``str``.  In addition, the **full names of the parser arguments** (defined with ``--``) correspond to the **parameter names of the decorated function**. The short names (called with ``-``) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
 A default help message is generated for every parameter of the decorated function but it doesn't explains what the parameter corresponds to.
 To better control what the help message will display you can write a docstring in the decorated function.
 
@@ -371,6 +371,8 @@ Lazyparser handle the type given in the function signature first. If a type is g
 
 It also works with ``List``, ``Function`` and ``FileType`` objects.
 
+
+If you want to use the ``List`` type of the ``typing module``: it is possible ! Lazyparser will automatically transform a ``typing.List`` object into a ``lazyparser.List`` object. With the ``typing.List class``, you won't be able to limit the size of the list as it can be done with ``lazyparser.List(vtype=str, size=5)`` or simply ``List(5, str)``. Note that you can use the notation of the typing package in the docstring of the decorated function. Example ``:param a: (List[str]) my param``. With this method, it is also not possible to limit the length of the list.
 
 .. code:: python
 
