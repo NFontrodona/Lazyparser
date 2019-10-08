@@ -14,6 +14,7 @@ from lazyparser import Function, List, FileType
 import unittest
 import inspect
 from argparse import Action, ArgumentParser
+import typing
 
 
 class TestFunction(unittest.TestCase):
@@ -56,6 +57,7 @@ class TestFunction(unittest.TestCase):
             assert isinstance(type_r[i], type(res[0]))
             assert type_n[i] == res[1]
         assert isinstance(lp.get_type("(List(vtype=int))", argument)[0], List)
+        assert isinstance(lp.get_type("(List[int])", argument)[0], List)
         assert isinstance(lp.get_type("(List)", argument)[0], List)
         self.assertRaises(SystemExit, lp.get_type, "(gloubimou)", argument)
         self.assertRaises(SystemExit, lp.get_type, """(List(vtype="xd"))""",
@@ -96,6 +98,18 @@ class TestFunction(unittest.TestCase):
         assert msg == lp.message("Hello  world", arg, type_m=None)
         assert "%s: warning: " % n + msg == lp.message("Hello  world", arg, type_m="w")
         assert "%s: error: " % n + msg == lp.message("Hello  world", arg, type_m="e")
+
+    def test_handle_list_typing_type(self):
+        arg = lp.Argument("lol", 7, int)
+        assert int == lp.handle_list_typing_type(int)
+        a = lp.handle_list_typing_type(List(vtype=int))
+        assert isinstance(a, List) and a.type == int and a.size == "+"
+        b = lp.handle_list_typing_type(List(vtype=str, size=6))
+        assert isinstance(b, List) and b.type == str and b.size == 6
+        c = lp.handle_list_typing_type(typing.List[str])
+        assert isinstance(c, List) and c.type == str and c.size == "+"
+        d = lp.handle_list_typing_type(typing.List[int])
+        assert isinstance(d, List) and d.type == int and d.size == "+"
 
     def test_set_data(self):
         assert lp.set_epilog("uigig") is None
@@ -269,6 +283,7 @@ class TestArgument(unittest.TestCase):
         assert arg.set_type(inspect._empty) == inspect._empty
         self.assertRaises(SystemExit, arg.set_type, "bloup")
         self.assertRaises(SystemExit, arg.set_type, Lol)
+        self.assertRaises(SystemExit, arg.set_type, List(vtype=Lol))
 
     def test_gfn(self):
         arg = lp.Argument("lol", 7, int)
