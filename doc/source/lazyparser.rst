@@ -154,10 +154,8 @@ Lazyparser can handle different type of parameters:
 
     * ``int``
     * ``float``
-    * ``Function`` : a lazyparser type representing user defined functions or builtin functions.
     * ``bool``
     * ``str`` : default type if nothing is specified in the function docstring.
-    *  ``FileType("o")`` : The argparse FileType. 'o' corresponds to the opening mode. It will give you an ``io.IOBase`` object in the decorated function after parsing.
     * ``List`` : A list object used to handle lists.
 
 The ``List`` takes two parameters :
@@ -167,10 +165,8 @@ The ``List`` takes two parameters :
 
         * ``int``
         * ``float``
-        * ``Function``
         * ``bool``
         * ``str``
-        *  ``FileType``
 
 ``List``don't handle ``List`` subtype !
 
@@ -210,132 +206,12 @@ Defining a list without any size allows you to give as many data as you want aft
     python example.py -a 1 2 3 20
     # 26.0
 
-An example of ``Function`` usage :
-##################################
-
-
-.. code:: python
-
-    # code in example.py file
-    import lazyparser as lp
-
-
-    @lp.parse
-    def apply_a(a):
-        """
-        Apply the a function to the number 10.
-
-        :param a : (Function) a function
-        """
-        return a(10)
-
-    if __name__ == "__main__":
-        v = apply_a()
-        print(v)
-
-
-.. code:: bash
-
-    python example.py -a "lambda x: x - 5"
-    # 5
-
-As you can see if you define a lambda function you must surround its definition by quotes. It also works with builtin functions like``sum``.
-You can also define **a** ``List`` **of**  ``Function`` as described below :
-
-
-.. code:: python
-
-    # code in example.py file
-    import lazyparser as lp
-
-
-    @lp.parse
-    def apply_a(a):
-        """
-        Apply every functions to the number 10.
-
-        :param a : (List(vtype=Function)) a list of functions
-        """
-        for f in a:
-            print(f(10))
-
-    if __name__ == "__main__":
-        apply_a()
-
-
-.. code:: bash
-
-    python example.py -a "lambda x: x - 5" "lambda x: x * 2"
-    # 5
-    # 20
-
-
-An example of ``FileType`` usage :
-##################################
-
-
-Writing in file :
-
- .. code:: python
-
-    # code in example.py file
-    import lazyparser as lp
-
-
-    @lp.parse
-    def hello(a):
-        """
-        write 'hello world' in the file a
-
-        :param a : (FileType('w')) a file
-        """
-        a.write("hello world")
-
-    if __name__ == "__main__":
-        hello()
-
-
-.. code:: bash
-
-    python example.py -a "hello.txt" # this will create a file 'hello.txt' containing 'hello world' in it.
-
-Reading a file :
-
- .. code:: python
-
-    # code in example.py file
-	import lazyparser as lp
-
-
-    @lp.parse
-    def read(a):
-        """
-        Print the content of a file a.
-
-        :param a : (FileType('r')) a file
-        """
-        print(a.readlines())
-
-
-    if __name__ == "__main__":
-        read()
-
-
-.. code:: bash
-
-    python example.py -a "hello.txt" # this will display the content of 'hello.txt' file.
-    # ['hello world']
-
-.. note::
-
-    You can also handle a list of ``FileType`` object by putting ``(List(vtype=FileType('w'))`` in a parameter description in the docstring of the parsed function.
-
 
 In the function signature
 _________________________
 
 
-Lazyparser can interpret the type of parameter given in function signature. If the type of a parameter is given both in the docstring and the signature of the parsed function, **the type given in the signature will be used.**
+Lazyparser can interpret the type of parameter given in function signature. If the type of a parameter is given both in the docstring and in the signature of the parsed function, **the type given in the signature will be used.**
 
 
 Example with the multiply function:
@@ -369,37 +245,33 @@ Example with the multiply function:
 
 Lazyparser handle the type given in the function signature first. If a type is given in the function signature for a parameter, no type is needed in the docstring for this parameter.
 
-It also works with ``List``, ``Function`` and ``FileType`` objects.
+It also works with ``List`` objects.
 
 
-If you want to use the ``List`` type of the ``typing module``: it is possible ! Lazyparser will automatically transform a ``typing.List`` object into a ``lazyparser.List`` object. With the ``typing.List class``, you won't be able to limit the size of the list as it can be done with ``lazyparser.List(vtype=str, size=5)`` or simply ``List(5, str)``. Note that you can use the notation of the typing package in the docstring of the decorated function. Example ``:param a: (List[str]) my param``. With this method, it is also not possible to limit the length of the list.
+It is possible to use the ``List`` type of the ``typing module``! Lazyparser will automatically transform a ``typing.List`` object into a ``lazyparser.List`` object. With the ``typing.List class``, you won't be able to limit the size of the list as it can be done with ``lazyparser.List(vtype=str, size=5)`` or simply ``List(5, str)``. Note that you can use the notation of the typing package in the docstring of the decorated function. Example ``:param a: (List[str]) my param``. With this method, it is also not possible to limit the length of the list.
 
 .. code:: python
 
     import lazyparser as lp
-    from lazyparser import List, Function, FileType
+    from typing import List
 
 
     @lp.parse
-    def apply_func(values : List(vtype=float), func : Function, afile : FileType('w')):
+    def make_sum(values : List[float]): # typing typo
         """
-        apply the function b to every element in values an write the results in afile.
+        make the sum
 
         :param values: list of float
-        :param func: An amazing function
-        :param afile: A super file
         """
-        for v in values:
-            afile.write("%s\n" % func(v))
-        afile.close()
+        return sum(values)
 
 
     if __name__ == "__main__":
-        apply_func()
+        print(make_sum())
  
 .. code:: Bash
 
-    python example.py -v 10 20 30 40 -f "lambda x : x * 2" -a result.txt # create a file result.txt containing 20 40 60 80.
+    python example.py -v 10 20 30 40
 
 
 Constraints
@@ -415,10 +287,6 @@ You can constrain the values that a parameter can take with:
     @lazyparser.parse(a="dir") # the parameter a must be an existing dir
     @lazyparser.parse(a="2 < a < 5") # a must be greater than 2 and lower than 5
     @lazyparser.parse(a="a%2 == 0") # a must be even
-
-.. warning::
-
-    Unfortunately, you can't constrain parameters corresponding to a function.
 
 
 .. note:: 
@@ -495,18 +363,20 @@ Here is an example :
 .. code:: python
 
     import lazyparser as lp
-    from lazyparser import Function
 
 
-    @lp.flag(times=lambda x, y: x * y)
+    @lp.flag(times=True)
     @lp.parse
-    def flag_func(a: float, b: float, times : Function = lambda x, y: x + y):
+    def flag_func(a: float, b: float, times : bool = False):
         """
 
         :param a: a number a
         :param b: a number b
         """
-        return times(a, b)
+        if times:
+            return a * b
+        else:
+            return a + b
 
 
     if __name__ == "__main__":
@@ -516,19 +386,14 @@ Here is an example :
 .. code:: Bash
 
     python example.py -a 10 -b 2 -t
-    # 20
+    # 20.0
     python example.py -a 10 -b 2
-    # 12
-
-As you can see, if ``times`` is set in the command line, the function defined in flag applies otherwise it's the default values.
+    # 12.0
 
 .. warning::
 
      If you want to use a parameter as a flag, you must give it a default value along with it's flag values.
 
-.. note::
-
-    The ``FileType`` type cannot be used with the decorator flag.
 
 
 Create an epilog
