@@ -66,7 +66,7 @@
             
             
               <div class="version">
-                0.1.1
+                0.2.0
               </div>
             
           
@@ -312,10 +312,8 @@ Required arguments:
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Function</span></code> : a lazyparser type representing user defined functions or builtin functions.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">str</span></code> : default type if nothing is specified in the function docstring.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">FileType(&quot;o&quot;)</span></code> : The argparse FileType. ‘o’ corresponds to the opening mode. It will give you an <code class="docutils literal notranslate"><span class="pre">io.IOBase</span></code> object in the decorated function after parsing.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">List</span></code> : A list object used to handle lists.</p></li>
 </ul>
 </div></blockquote>
@@ -328,10 +326,8 @@ Required arguments:
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">float</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Function</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">bool</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">str</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">FileType</span></code></p></li>
 </ul>
 </div></blockquote>
 </li>
@@ -368,115 +364,10 @@ Required arguments:
 </pre></div>
 </div>
 </div>
-<div class="section" id="an-example-of-function-usage">
-<h5>An example of <code class="docutils literal notranslate"><span class="pre">Function</span></code> usage :<a class="headerlink" href="#an-example-of-function-usage" title="Permalink to this headline">¶</a></h5>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
-<span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
-
-
-<span class="nd">@lp.parse</span>
-<span class="k">def</span> <span class="nf">apply_a</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Apply the a function to the number 10.</span>
-
-<span class="sd">    :param a : (Function) a function</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">a</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">v</span> <span class="o">=</span> <span class="n">apply_a</span><span class="p">()</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="s2">&quot;lambda x: x - 5&quot;</span>
-<span class="c1"># 5</span>
-</pre></div>
-</div>
-<p>As you can see if you define a lambda function you must surround its definition by quotes. It also works with builtin functions like``sum``.
-You can also define <strong>a</strong> <code class="docutils literal notranslate"><span class="pre">List</span></code> <strong>of</strong>  <code class="docutils literal notranslate"><span class="pre">Function</span></code> as described below :</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
-<span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
-
-
-<span class="nd">@lp.parse</span>
-<span class="k">def</span> <span class="nf">apply_a</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Apply every functions to the number 10.</span>
-
-<span class="sd">    :param a : (List(vtype=Function)) a list of functions</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">apply_a</span><span class="p">()</span>
-</pre></div>
-</div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="s2">&quot;lambda x: x - 5&quot;</span> <span class="s2">&quot;lambda x: x * 2&quot;</span>
-<span class="c1"># 5</span>
-<span class="c1"># 20</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="an-example-of-filetype-usage">
-<h5>An example of <code class="docutils literal notranslate"><span class="pre">FileType</span></code> usage :<a class="headerlink" href="#an-example-of-filetype-usage" title="Permalink to this headline">¶</a></h5>
-<p>Writing in file :</p>
-<blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
-<span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
-
-
-<span class="nd">@lp.parse</span>
-<span class="k">def</span> <span class="nf">hello</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    write &#39;hello world&#39; in the file a</span>
-
-<span class="sd">    :param a : (FileType(&#39;w&#39;)) a file</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">a</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;hello world&quot;</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">hello</span><span class="p">()</span>
-</pre></div>
-</div>
-</div></blockquote>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="s2">&quot;hello.txt&quot;</span> <span class="c1"># this will create a file &#39;hello.txt&#39; containing &#39;hello world&#39; in it.</span>
-</pre></div>
-</div>
-<p>Reading a file :</p>
-<blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
-    <span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
-
-
-<span class="nd">@lp.parse</span>
-<span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Print the content of a file a.</span>
-
-<span class="sd">    :param a : (FileType(&#39;r&#39;)) a file</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">readlines</span><span class="p">())</span>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">read</span><span class="p">()</span>
-</pre></div>
-</div>
-</div></blockquote>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="s2">&quot;hello.txt&quot;</span> <span class="c1"># this will display the content of &#39;hello.txt&#39; file.</span>
-<span class="c1"># [&#39;hello world&#39;]</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>You can also handle a list of <code class="docutils literal notranslate"><span class="pre">FileType</span></code> object by putting <code class="docutils literal notranslate"><span class="pre">(List(vtype=FileType('w'))</span></code> in a parameter description in the docstring of the parsed function.</p>
-</div>
-</div>
 </div>
 <div class="section" id="in-the-function-signature">
 <h4>In the function signature<a class="headerlink" href="#in-the-function-signature" title="Permalink to this headline">¶</a></h4>
-<p>Lazyparser can interpret the type of parameter given in function signature. If the type of a parameter is given both in the docstring and the signature of the parsed function, <strong>the type given in the signature will be used.</strong></p>
+<p>Lazyparser can interpret the type of parameter given in function signature. If the type of a parameter is given both in the docstring and in the signature of the parsed function, <strong>the type given in the signature will be used.</strong></p>
 <p>Example with the multiply function:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
 
@@ -502,31 +393,27 @@ You can also define <strong>a</strong> <code class="docutils literal notranslate
 </pre></div>
 </div>
 <p>Lazyparser handle the type given in the function signature first. If a type is given in the function signature for a parameter, no type is needed in the docstring for this parameter.</p>
-<p>It also works with <code class="docutils literal notranslate"><span class="pre">List</span></code>, <code class="docutils literal notranslate"><span class="pre">Function</span></code> and <code class="docutils literal notranslate"><span class="pre">FileType</span></code> objects.</p>
-<p>If you want to use the <code class="docutils literal notranslate"><span class="pre">List</span></code> type of the <code class="docutils literal notranslate"><span class="pre">typing</span> <span class="pre">module</span></code>: it is possible ! Lazyparser will automatically transform a <code class="docutils literal notranslate"><span class="pre">typing.List</span></code> object into a <code class="docutils literal notranslate"><span class="pre">lazyparser.List</span></code> object. With the <code class="docutils literal notranslate"><span class="pre">typing.List</span> <span class="pre">class</span></code>, you won’t be able to limit the size of the list as it can be done with <code class="docutils literal notranslate"><span class="pre">lazyparser.List(vtype=str,</span> <span class="pre">size=5)</span></code> or simply <code class="docutils literal notranslate"><span class="pre">List(5,</span> <span class="pre">str)</span></code>. Note that you can use the notation of the typing package in the docstring of the decorated function. Example <code class="docutils literal notranslate"><span class="pre">:param</span> <span class="pre">a:</span> <span class="pre">(List[str])</span> <span class="pre">my</span> <span class="pre">param</span></code>. With this method, it is also not possible to limit the length of the list.</p>
+<p>It also works with <code class="docutils literal notranslate"><span class="pre">List</span></code> objects.</p>
+<p>It is possible to use the <code class="docutils literal notranslate"><span class="pre">List</span></code> type of the <code class="docutils literal notranslate"><span class="pre">typing</span> <span class="pre">module</span></code>! Lazyparser will automatically transform a <code class="docutils literal notranslate"><span class="pre">typing.List</span></code> object into a <code class="docutils literal notranslate"><span class="pre">lazyparser.List</span></code> object. With the <code class="docutils literal notranslate"><span class="pre">typing.List</span> <span class="pre">class</span></code>, you won’t be able to limit the size of the list as it can be done with <code class="docutils literal notranslate"><span class="pre">lazyparser.List(vtype=str,</span> <span class="pre">size=5)</span></code> or simply <code class="docutils literal notranslate"><span class="pre">List(5,</span> <span class="pre">str)</span></code>. Note that you can use the notation of the typing package in the docstring of the decorated function. Example <code class="docutils literal notranslate"><span class="pre">:param</span> <span class="pre">a:</span> <span class="pre">(List[str])</span> <span class="pre">my</span> <span class="pre">param</span></code>. With this method, it is also not possible to limit the length of the list.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
-<span class="kn">from</span> <span class="nn">lazyparser</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Function</span><span class="p">,</span> <span class="n">FileType</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
 
 <span class="nd">@lp.parse</span>
-<span class="k">def</span> <span class="nf">apply_func</span><span class="p">(</span><span class="n">values</span> <span class="p">:</span> <span class="n">List</span><span class="p">(</span><span class="n">vtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">func</span> <span class="p">:</span> <span class="n">Function</span><span class="p">,</span> <span class="n">afile</span> <span class="p">:</span> <span class="n">FileType</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">)):</span>
+<span class="k">def</span> <span class="nf">make_sum</span><span class="p">(</span><span class="n">values</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]):</span> <span class="c1"># typing typo</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    apply the function b to every element in values an write the results in afile.</span>
+<span class="sd">    make the sum</span>
 
 <span class="sd">    :param values: list of float</span>
-<span class="sd">    :param func: An amazing function</span>
-<span class="sd">    :param afile: A super file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
-        <span class="n">afile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">func</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
-    <span class="n">afile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="n">apply_func</span><span class="p">()</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">make_sum</span><span class="p">())</span>
 </pre></div>
 </div>
-<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -v <span class="m">10</span> <span class="m">20</span> <span class="m">30</span> <span class="m">40</span> -f <span class="s2">&quot;lambda x : x * 2&quot;</span> -a result.txt <span class="c1"># create a file result.txt containing 20 40 60 80.</span>
+<div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -v <span class="m">10</span> <span class="m">20</span> <span class="m">30</span> <span class="m">40</span>
 </pre></div>
 </div>
 </div>
@@ -541,10 +428,6 @@ You can also define <strong>a</strong> <code class="docutils literal notranslate
 <span class="nd">@lazyparser.parse</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s2">&quot;2 &lt; a &lt; 5&quot;</span><span class="p">)</span> <span class="c1"># a must be greater than 2 and lower than 5</span>
 <span class="nd">@lazyparser.parse</span><span class="p">(</span><span class="n">a</span><span class="o">=</span><span class="s2">&quot;a%2 == 0&quot;</span><span class="p">)</span> <span class="c1"># a must be even</span>
 </pre></div>
-</div>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Unfortunately, you can’t constrain parameters corresponding to a function.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -608,18 +491,20 @@ python example.py -v <span class="m">1</span> <span class="m">2</span> <span cla
 This can be done using the decorator named flag.</p>
 <p>Here is an example :</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
-<span class="kn">from</span> <span class="nn">lazyparser</span> <span class="kn">import</span> <span class="n">Function</span>
 
 
-<span class="nd">@lp.flag</span><span class="p">(</span><span class="n">times</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">)</span>
+<span class="nd">@lp.flag</span><span class="p">(</span><span class="n">times</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="nd">@lp.parse</span>
-<span class="k">def</span> <span class="nf">flag_func</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">times</span> <span class="p">:</span> <span class="n">Function</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">flag_func</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">times</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    :param a: a number a</span>
 <span class="sd">    :param b: a number b</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">times</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">times</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
@@ -628,19 +513,14 @@ This can be done using the decorator named flag.</p>
 </pre></div>
 </div>
 <div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -a <span class="m">10</span> -b <span class="m">2</span> -t
-<span class="c1"># 20</span>
+<span class="c1"># 20.0</span>
 python example.py -a <span class="m">10</span> -b <span class="m">2</span>
-<span class="c1"># 12</span>
+<span class="c1"># 12.0</span>
 </pre></div>
 </div>
-<p>As you can see, if <code class="docutils literal notranslate"><span class="pre">times</span></code> is set in the command line, the function defined in flag applies otherwise it’s the default values.</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>If you want to use a parameter as a flag, you must give it a default value along with it’s flag values.</p>
-</div>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">FileType</span></code> type cannot be used with the decorator flag.</p>
 </div>
 </div>
 <div class="section" id="create-an-epilog">
