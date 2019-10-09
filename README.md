@@ -20,7 +20,7 @@ The documentation was created with sphinx (v 1.7).
 To build the documentation, clone the project repository, go in the `doc` folder and type :
 
 ```sh
-build html
+make html
 ```
 
 This will create a folder `doc/build/html`. This folder will contain a file named ``index.html``. Double click on it to open the documentation with your web browser. 
