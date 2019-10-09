@@ -45,9 +45,9 @@ This will print the following message :
       -b, --b STR  param b
 
 
-As you can see, if there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to ``str``.  In addition, the **full names of the parser arguments** (defined with ``--``) correspond to the **parameter names of the decorated function**. The short names (called with ``-``) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
-A default help message is generated for every parameter of the decorated function but it doesn't explains what the parameter corresponds to.
-To better control what the help message will display you can write a docstring in the decorated function.
+If there is no docstring in the decorated ``print_word`` function, the type of every parameters is set to ``str``.  In addition, the **full names of the parser arguments** (defined with ``--``) correspond to the **parameter names of the decorated function**. The short names (called with ``-``) are computed on the fly and correspond to the first letter of the parameter to which they refer.
+A default help message is generated for every parameter of the decorated function but it doesn't explain what the parameter corresponds to.
+To better control what the help message will display, you can write a docstring in the decorated function.
 
 With docstring
 ~~~~~~~~~~~~~~
@@ -75,7 +75,7 @@ Example: (file ``example.py``)
         v = multiplication()
         print(v)
 
-Then you can display the help of ``example.py`` by typing:
+Then, you can display the help of ``example.py`` by typing:
 
 .. code:: Bash
 
@@ -100,23 +100,23 @@ This displays the following message:
 Customize the docstring environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you are not a fan of Pycharm docstrings you can set your own docstring environment by using the function ``set_env``
+If you are not a fan of Pycharm docstrings, you can set your own docstring environment by using the function ``set_env``
 
 the function ``set_env`` takes 4 arguments :
 
     * ``delim1`` : the string preceding the definition of a parameter. *:param* is the default value. This parameter can be an empty docstring if nothing precedes the parameter name in the docstring of the decorated function.
     * ``delim2`` : the string that comes right after the name of the parameter. It **MUST** be defined and can't be an empty string or a space, tabulation, etc...
     * ``hd`` : the header preceding the argument names. By default, corresponds to an empty string.
-    * ``tb`` : the number of spaces at the beginning of each line in the docstring. By default equals to 4.
+    * ``tb`` : the number of spaces at the beginning of each line in the docstring. By default, it is equal to 4.
 
 .. note::
 
-    The text set before the parameters definition (or the parameters definition header) is considered as being a part of the description of the function.
+    The text set before parameters definition (or the parameters definition header) is considered as being a part of the description of the function.
 
 
 .. warning::
 
-    The type of the parameters in the docstring must be surrounded by parentheses so that lazyparser can interpret them.
+    The type of parameters in the docstring must be surrounded by parentheses so that lazyparser can interpret them.
 
 Here is an example of how using ``set_env``
 
@@ -150,7 +150,7 @@ Define the type of parameters
 In the function docstring
 _________________________
 
-Lazyparser can handle different type of parameters:
+Lazyparser can handle different types of parameters:
 
     * ``int``
     * ``float``
@@ -168,7 +168,7 @@ The ``List`` takes two parameters :
         * ``bool``
         * ``str``
 
-``List``don't handle ``List`` subtype !
+``List`` don't handle ``List`` subtype !
 
 
 .. warning::
@@ -211,7 +211,7 @@ In the function signature
 _________________________
 
 
-Lazyparser can interpret the type of parameter given in function signature. If the type of a parameter is given both in the docstring and in the signature of the parsed function, **the type given in the signature will be used.**
+Lazyparser can interpret the type of parameters given in function signature. If the type of a parameter is given both in the docstring and in the signature, **the type given in the signature will be used.**
 
 
 Example with the multiply function:
@@ -248,7 +248,7 @@ Lazyparser handle the type given in the function signature first. If a type is g
 It also works with ``List`` objects.
 
 
-It is possible to use the ``List`` type of the ``typing module``! Lazyparser will automatically transform a ``typing.List`` object into a ``lazyparser.List`` object. With the ``typing.List class``, you won't be able to limit the size of the list as it can be done with ``lazyparser.List(vtype=str, size=5)`` or simply ``List(5, str)``. Note that you can use the notation of the typing package in the docstring of the decorated function. Example ``:param a: (List[str]) my param``. With this method, it is also not possible to limit the length of the list.
+It is possible to use the ``List`` type of the ``typing`` module! Lazyparser will automatically transform a ``typing.List`` object into a ``lazyparser.List`` object. With the ``typing.List`` class, you won't be able to limit the size of the list as it can be done with ``lazyparser.List(vtype=str, size=5)`` or simply ``List(5, str)``. Note that you can use the notation of the typing package in the docstring of the decorated function. Example ``:param a: (List[str]) my param``. With this method, it is also not possible to limit the length of the list.
 
 .. code:: python
 
@@ -291,7 +291,7 @@ You can constrain the values that a parameter can take with:
 
 .. note:: 
 
-    Those constraints also apply to parameter having a ``List`` type. For example a constrain of ``a=[1, 2]`` in a parameter ``a`` will ensure that every element given in the command-line interface for ``a`` is 1 or 2.
+    Those constraints also apply to parameters having a ``List`` type. For example, a constrain of ``a=[1, 2]`` in a list ``a`` will ensure that every element given in the command-line interface for ``a`` is 1 or 2.
 	
 	
 Example:
@@ -355,7 +355,7 @@ ________
 Flag
 ~~~~
 
-Sometimes, you only want to call an argument without giving it a value when calling your program. For example you want to multiply ``a`` by ``b`` if ``-t (or --time)`` is present in the command line or add them otherwise.
+Sometimes, you only want to call an argument without giving it a value when calling your program. For example, if we want to multiply ``a`` by ``b`` if ``-t (or --time)`` is present in the command line or add them otherwise.
 This can be done using the decorator named flag.
 
 Here is an example : 
@@ -367,7 +367,7 @@ Here is an example :
 
     @lp.flag(times=True)
     @lp.parse
-    def flag_func(a: float, b: float, times : bool = False):
+    def flag_func(a: float, b: float, times: bool = False):
         """
 
         :param a: a number a
@@ -392,7 +392,7 @@ Here is an example :
 
 .. warning::
 
-     If you want to use a parameter as a flag, you must give it a default value along with it's flag values.
+     If we want to use a parameter as a flag, you must give it a default value and a flag value.
 
 
 
@@ -409,16 +409,16 @@ To add an epilog in the help of the parser simply use the function ``set_epilog`
 Argument groups
 ~~~~~~~~~~~~~~~
 
-By default Lazyparser creates two groups of arguments:
+By default, Lazyparser creates two groups of arguments:
 
     * ``Optional arguments``
     * ``Required arguments``
 
-But you may want to create argument groups with custom names.
+But, you may want to create argument groups with custom names.
 This can be done with the function ``set_groups`` that can takes the following arguments:
 
-    * arg_groups : A dictionary having group names as keys and the list of argument names as values
-    * order : A list of argument group names. Those names must be defined in ``arg_groups``
+    * arg_groups : A dictionary having group names as keys and lists of argument names as values
+    * order : A list of group names. Those names must be defined in ``arg_groups``
     * add_help : A boolean to indicate if you want a parameter named ``help`` that will display an help message in the command line interface.
 
 This function must be called before the decorator ``parse``.
@@ -431,7 +431,7 @@ This function must be called before the decorator ``parse``.
 Example
 _______
 
-Below, in an file named ``example.py``, you can see a function that prints the name and the first name of a user and also multiply two numbers:
+Below, in an file named ``example.py``. You can see a function that prints the name and the first name of a user and also multiply two numbers:
 
 .. code:: python
 
@@ -456,7 +456,7 @@ Below, in an file named ``example.py``, you can see a function that prints the n
     if __name__ == "__main__":
         multiply()
 
-I you run:
+If you run:
 
 .. code:: bash
 
@@ -498,5 +498,5 @@ If you want the ``help`` argument to be in the user name groups, just call ``set
 
 .. note::
 
-    The arguments in each group are displayed in the order of the decorated function
+    Arguments in each group are displayed in the order of the decorated function.
 
