@@ -1,6 +1,10 @@
 # Update Notes
 
-## version 1.1.1
+## version 0.2.0
+
+* Lazyparser doesn't handle FileType and Function types anymore.
+
+## version 0.1.1
 
 * Fix list subtypes checking when defined in the function definition.
 * The object `List` form **typing** package is now recognized by Lazyparser and automatically transformed in ``lazyparser.List`` object.
