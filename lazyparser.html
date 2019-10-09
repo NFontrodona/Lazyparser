@@ -215,9 +215,9 @@ Required arguments:
   -b, --b STR  param b
 </pre></div>
 </div>
-<p>As you can see, if there is no docstring in the decorated <code class="docutils literal notranslate"><span class="pre">print_word</span></code> function, the type of every parameters is set to <code class="docutils literal notranslate"><span class="pre">str</span></code>.  In addition, the <strong>full names of the parser arguments</strong> (defined with <code class="docutils literal notranslate"><span class="pre">--</span></code>) correspond to the <strong>parameter names of the decorated function</strong>. The short names (called with <code class="docutils literal notranslate"><span class="pre">-</span></code>) are computed on the fly and corresponds to the first letter of the parameter to which they refer.
-A default help message is generated for every parameter of the decorated function but it doesn’t explains what the parameter corresponds to.
-To better control what the help message will display you can write a docstring in the decorated function.</p>
+<p>If there is no docstring in the decorated <code class="docutils literal notranslate"><span class="pre">print_word</span></code> function, the type of every parameters is set to <code class="docutils literal notranslate"><span class="pre">str</span></code>.  In addition, the <strong>full names of the parser arguments</strong> (defined with <code class="docutils literal notranslate"><span class="pre">--</span></code>) correspond to the <strong>parameter names of the decorated function</strong>. The short names (called with <code class="docutils literal notranslate"><span class="pre">-</span></code>) are computed on the fly and correspond to the first letter of the parameter to which they refer.
+A default help message is generated for every parameter of the decorated function but it doesn’t explain what the parameter corresponds to.
+To better control what the help message will display, you can write a docstring in the decorated function.</p>
 </div>
 <div class="section" id="with-docstring">
 <h3>With docstring<a class="headerlink" href="#with-docstring" title="Permalink to this headline">¶</a></h3>
@@ -241,7 +241,7 @@ By default, lazyparser parse the docstring in <a class="reference external" href
     <span class="k">print</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Then you can display the help of <code class="docutils literal notranslate"><span class="pre">example.py</span></code> by typing:</p>
+<p>Then, you can display the help of <code class="docutils literal notranslate"><span class="pre">example.py</span></code> by typing:</p>
 <div class="highlight-Bash notranslate"><div class="highlight"><pre><span></span>python example.py -h <span class="c1"># to display the help of your program</span>
 </pre></div>
 </div>
@@ -261,23 +261,23 @@ Required arguments:
 </div>
 <div class="section" id="customize-the-docstring-environment">
 <h3>Customize the docstring environment<a class="headerlink" href="#customize-the-docstring-environment" title="Permalink to this headline">¶</a></h3>
-<p>If you are not a fan of Pycharm docstrings you can set your own docstring environment by using the function <code class="docutils literal notranslate"><span class="pre">set_env</span></code></p>
+<p>If you are not a fan of Pycharm docstrings, you can set your own docstring environment by using the function <code class="docutils literal notranslate"><span class="pre">set_env</span></code></p>
 <p>the function <code class="docutils literal notranslate"><span class="pre">set_env</span></code> takes 4 arguments :</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">delim1</span></code> : the string preceding the definition of a parameter. <em>:param</em> is the default value. This parameter can be an empty docstring if nothing precedes the parameter name in the docstring of the decorated function.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">delim2</span></code> : the string that comes right after the name of the parameter. It <strong>MUST</strong> be defined and can’t be an empty string or a space, tabulation, etc…</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">hd</span></code> : the header preceding the argument names. By default, corresponds to an empty string.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">tb</span></code> : the number of spaces at the beginning of each line in the docstring. By default equals to 4.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tb</span></code> : the number of spaces at the beginning of each line in the docstring. By default, it is equal to 4.</p></li>
 </ul>
 </div></blockquote>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The text set before the parameters definition (or the parameters definition header) is considered as being a part of the description of the function.</p>
+<p>The text set before parameters definition (or the parameters definition header) is considered as being a part of the description of the function.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>The type of the parameters in the docstring must be surrounded by parentheses so that lazyparser can interpret them.</p>
+<p>The type of parameters in the docstring must be surrounded by parentheses so that lazyparser can interpret them.</p>
 </div>
 <p>Here is an example of how using <code class="docutils literal notranslate"><span class="pre">set_env</span></code></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># code in example.py file</span>
@@ -307,7 +307,7 @@ Required arguments:
 <h3>Define the type of parameters<a class="headerlink" href="#define-the-type-of-parameters" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="in-the-function-docstring">
 <h4>In the function docstring<a class="headerlink" href="#in-the-function-docstring" title="Permalink to this headline">¶</a></h4>
-<p>Lazyparser can handle different type of parameters:</p>
+<p>Lazyparser can handle different types of parameters:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">int</span></code></p></li>
@@ -333,7 +333,7 @@ Required arguments:
 </li>
 </ol>
 </div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">List``don't</span> <span class="pre">handle</span> <span class="pre">``List</span></code> subtype !</p>
+<p><code class="docutils literal notranslate"><span class="pre">List</span></code> don’t handle <code class="docutils literal notranslate"><span class="pre">List</span></code> subtype !</p>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>The type of parameters can’t be <code class="docutils literal notranslate"><span class="pre">tuple</span></code> or <code class="docutils literal notranslate"><span class="pre">list</span></code>. Use the type <code class="docutils literal notranslate"><span class="pre">List</span></code> for that.</p>
@@ -367,7 +367,7 @@ Required arguments:
 </div>
 <div class="section" id="in-the-function-signature">
 <h4>In the function signature<a class="headerlink" href="#in-the-function-signature" title="Permalink to this headline">¶</a></h4>
-<p>Lazyparser can interpret the type of parameter given in function signature. If the type of a parameter is given both in the docstring and in the signature of the parsed function, <strong>the type given in the signature will be used.</strong></p>
+<p>Lazyparser can interpret the type of parameters given in function signature. If the type of a parameter is given both in the docstring and in the signature, <strong>the type given in the signature will be used.</strong></p>
 <p>Example with the multiply function:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
 
@@ -394,7 +394,7 @@ Required arguments:
 </div>
 <p>Lazyparser handle the type given in the function signature first. If a type is given in the function signature for a parameter, no type is needed in the docstring for this parameter.</p>
 <p>It also works with <code class="docutils literal notranslate"><span class="pre">List</span></code> objects.</p>
-<p>It is possible to use the <code class="docutils literal notranslate"><span class="pre">List</span></code> type of the <code class="docutils literal notranslate"><span class="pre">typing</span> <span class="pre">module</span></code>! Lazyparser will automatically transform a <code class="docutils literal notranslate"><span class="pre">typing.List</span></code> object into a <code class="docutils literal notranslate"><span class="pre">lazyparser.List</span></code> object. With the <code class="docutils literal notranslate"><span class="pre">typing.List</span> <span class="pre">class</span></code>, you won’t be able to limit the size of the list as it can be done with <code class="docutils literal notranslate"><span class="pre">lazyparser.List(vtype=str,</span> <span class="pre">size=5)</span></code> or simply <code class="docutils literal notranslate"><span class="pre">List(5,</span> <span class="pre">str)</span></code>. Note that you can use the notation of the typing package in the docstring of the decorated function. Example <code class="docutils literal notranslate"><span class="pre">:param</span> <span class="pre">a:</span> <span class="pre">(List[str])</span> <span class="pre">my</span> <span class="pre">param</span></code>. With this method, it is also not possible to limit the length of the list.</p>
+<p>It is possible to use the <code class="docutils literal notranslate"><span class="pre">List</span></code> type of the <code class="docutils literal notranslate"><span class="pre">typing</span></code> module! Lazyparser will automatically transform a <code class="docutils literal notranslate"><span class="pre">typing.List</span></code> object into a <code class="docutils literal notranslate"><span class="pre">lazyparser.List</span></code> object. With the <code class="docutils literal notranslate"><span class="pre">typing.List</span></code> class, you won’t be able to limit the size of the list as it can be done with <code class="docutils literal notranslate"><span class="pre">lazyparser.List(vtype=str,</span> <span class="pre">size=5)</span></code> or simply <code class="docutils literal notranslate"><span class="pre">List(5,</span> <span class="pre">str)</span></code>. Note that you can use the notation of the typing package in the docstring of the decorated function. Example <code class="docutils literal notranslate"><span class="pre">:param</span> <span class="pre">a:</span> <span class="pre">(List[str])</span> <span class="pre">my</span> <span class="pre">param</span></code>. With this method, it is also not possible to limit the length of the list.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
 
@@ -431,7 +431,7 @@ Required arguments:
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Those constraints also apply to parameter having a <code class="docutils literal notranslate"><span class="pre">List</span></code> type. For example a constrain of <code class="docutils literal notranslate"><span class="pre">a=[1,</span> <span class="pre">2]</span></code> in a parameter <code class="docutils literal notranslate"><span class="pre">a</span></code> will ensure that every element given in the command-line interface for <code class="docutils literal notranslate"><span class="pre">a</span></code> is 1 or 2.</p>
+<p>Those constraints also apply to parameters having a <code class="docutils literal notranslate"><span class="pre">List</span></code> type. For example, a constrain of <code class="docutils literal notranslate"><span class="pre">a=[1,</span> <span class="pre">2]</span></code> in a list <code class="docutils literal notranslate"><span class="pre">a</span></code> will ensure that every element given in the command-line interface for <code class="docutils literal notranslate"><span class="pre">a</span></code> is 1 or 2.</p>
 </div>
 <div class="section" id="example">
 <h4>Example:<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h4>
@@ -487,7 +487,7 @@ python example.py -v <span class="m">1</span> <span class="m">2</span> <span cla
 </div>
 <div class="section" id="flag">
 <h3>Flag<a class="headerlink" href="#flag" title="Permalink to this headline">¶</a></h3>
-<p>Sometimes, you only want to call an argument without giving it a value when calling your program. For example you want to multiply <code class="docutils literal notranslate"><span class="pre">a</span></code> by <code class="docutils literal notranslate"><span class="pre">b</span></code> if <code class="docutils literal notranslate"><span class="pre">-t</span> <span class="pre">(or</span> <span class="pre">--time)</span></code> is present in the command line or add them otherwise.
+<p>Sometimes, you only want to call an argument without giving it a value when calling your program. For example, if we want to multiply <code class="docutils literal notranslate"><span class="pre">a</span></code> by <code class="docutils literal notranslate"><span class="pre">b</span></code> if <code class="docutils literal notranslate"><span class="pre">-t</span> <span class="pre">(or</span> <span class="pre">--time)</span></code> is present in the command line or add them otherwise.
 This can be done using the decorator named flag.</p>
 <p>Here is an example :</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
@@ -495,7 +495,7 @@ This can be done using the decorator named flag.</p>
 
 <span class="nd">@lp.flag</span><span class="p">(</span><span class="n">times</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="nd">@lp.parse</span>
-<span class="k">def</span> <span class="nf">flag_func</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">times</span> <span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">flag_func</span><span class="p">(</span><span class="n">a</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">b</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">times</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    :param a: a number a</span>
@@ -520,7 +520,7 @@ python example.py -a <span class="m">10</span> -b <span class="m">2</span>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
-<p>If you want to use a parameter as a flag, you must give it a default value along with it’s flag values.</p>
+<p>If we want to use a parameter as a flag, you must give it a default value and a flag value.</p>
 </div>
 </div>
 <div class="section" id="create-an-epilog">
@@ -532,19 +532,19 @@ python example.py -a <span class="m">10</span> -b <span class="m">2</span>
 </div>
 <div class="section" id="argument-groups">
 <h3>Argument groups<a class="headerlink" href="#argument-groups" title="Permalink to this headline">¶</a></h3>
-<p>By default Lazyparser creates two groups of arguments:</p>
+<p>By default, Lazyparser creates two groups of arguments:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Optional</span> <span class="pre">arguments</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Required</span> <span class="pre">arguments</span></code></p></li>
 </ul>
 </div></blockquote>
-<p>But you may want to create argument groups with custom names.
+<p>But, you may want to create argument groups with custom names.
 This can be done with the function <code class="docutils literal notranslate"><span class="pre">set_groups</span></code> that can takes the following arguments:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>arg_groups : A dictionary having group names as keys and the list of argument names as values</p></li>
-<li><p>order : A list of argument group names. Those names must be defined in <code class="docutils literal notranslate"><span class="pre">arg_groups</span></code></p></li>
+<li><p>arg_groups : A dictionary having group names as keys and lists of argument names as values</p></li>
+<li><p>order : A list of group names. Those names must be defined in <code class="docutils literal notranslate"><span class="pre">arg_groups</span></code></p></li>
 <li><p>add_help : A boolean to indicate if you want a parameter named <code class="docutils literal notranslate"><span class="pre">help</span></code> that will display an help message in the command line interface.</p></li>
 </ul>
 </div></blockquote>
@@ -555,7 +555,7 @@ This can be done with the function <code class="docutils literal notranslate"><s
 </div>
 <div class="section" id="id1">
 <h4>Example<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h4>
-<p>Below, in an file named <code class="docutils literal notranslate"><span class="pre">example.py</span></code>, you can see a function that prints the name and the first name of a user and also multiply two numbers:</p>
+<p>Below, in an file named <code class="docutils literal notranslate"><span class="pre">example.py</span></code>. You can see a function that prints the name and the first name of a user and also multiply two numbers:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">lazyparser</span> <span class="kn">as</span> <span class="nn">lp</span>
 
 <span class="n">lp</span><span class="o">.</span><span class="n">set_groups</span><span class="p">(</span><span class="n">arg_groups</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;User_name&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;first_name&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">],</span>
@@ -578,7 +578,7 @@ This can be done with the function <code class="docutils literal notranslate"><s
     <span class="n">multiply</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>I you run:</p>
+<p>If you run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python example.py -h
 </pre></div>
 </div>
@@ -612,7 +612,7 @@ Numbers:
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>The arguments in each group are displayed in the order of the decorated function</p>
+<p>Arguments in each group are displayed in the order of the decorated function.</p>
 </div>
 </div>
 </div>
