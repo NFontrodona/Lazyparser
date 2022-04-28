@@ -34,7 +34,7 @@ import argparse
 import typing
 
 
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __all__ = ('List', 'set_env', 'set_epilog', 'set_groups', 'parse', 'flag')
 
 
