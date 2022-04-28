@@ -677,7 +677,7 @@ def handle_list_typing_type(arg_type):
     :param arg_type: (type or class instance) a type
     :return:
     """
-    if isinstance(arg_type, type(typing.List)):
+    if isinstance(arg_type, type(typing.List[typing.Any])):
         try:
             if arg_type.__name__ == 'List':  # for python 3.5
                 arg_type = List(vtype=arg_type.__args__[0])
