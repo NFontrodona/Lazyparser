@@ -23,19 +23,20 @@ limitations under the License.
 This script define the lazyparser.
 """
 
-import re
-import inspect
 import functools
+import inspect
 import itertools
-import sys
 import os
-import io
-import argparse
-import typing
+import re
+import sys
+import types
+from collections.abc import Callable
 
+import rich_click as click
+from rich import print as rprint
 
-__version__ = '0.2.1'
-__all__ = ('List', 'set_env', 'set_epilog', 'set_groups', 'parse', 'flag')
+__version__ = "0.2.1"
+__all__ = ("set_env", "set_epilog", "set_groups", "parse", "flag")
 
 
 #####################################
@@ -50,41 +51,7 @@ lpg_name = {}  # the name of the parser used
 grp_order = None  # the order of groups
 optionals_title = "Optional arguments"
 required_title = "Required arguments"
-help_arg = True
 ######################################
-
-
-class List(object):
-    """
-    Creation of a vector class
-    """
-    def __init__(self, size="+", vtype=None, value=None):
-        """
-        Initiate the vector class.
-
-        :param size: (int or str) the size of the vector
-        :param vtype: (type) the type of the vector
-        :param value: (values)
-        """
-        if size != "+":
-            try:
-                self.size = int(size)
-            except ValueError:
-                print("Error : size must be an int or '+' symbol")
-                exit(1)
-        else:
-            self.size = size
-        if vtype is None:
-            self.type = str
-        else:
-            self.type = vtype
-        if value:
-            if not isinstance(value, (list, tuple)):
-                print("error : %s not a list or tuple" % value)
-                exit(1)
-            self.value = value
-        else:
-            self.value = None
 
 
 def handled_type(atype, htype="m"):
@@ -95,10 +62,12 @@ def handled_type(atype, htype="m"):
     :param htype: (str) m for subtype and s for subtype
     :return: (type) the type of an argument
     """
-    dic_type = {"m": [int, float, bool, str, List],
-                "s": [int, float, bool, str]}
-    if isinstance(atype, List):
-        atype = type(atype)
+    dic_type = {
+        "m": [int, float, bool, str, tuple],
+        "s": [int, float, str, Ellipsis],
+    }
+    if isinstance(atype, types.GenericAlias):
+        atype = atype.__mro__[0]
     if atype in dic_type[htype]:
         return True
     else:
@@ -109,6 +78,7 @@ class Argument(object):
     """
     Represent a Lazyparser Argument.
     """
+
     def __init__(self, name_arg, default, arg_type):
         """
         Initiate the creation of an argument.
@@ -123,9 +93,11 @@ class Argument(object):
         self.short_name = None
         self.choice = None
         self.value = None
+        self.is_flag = False
         self.const = "$$void$$"
         self.type = self.set_type(arg_type)
         self.pgroup = self.get_parser_group()
+        self.multiple = False
 
     def __eq__(self, arg):
         """
@@ -133,15 +105,18 @@ class Argument(object):
 
         :param arg: (Argument object)
         """
-        return self.name == arg.name and \
-            self.default == arg.default and \
-            self.help == arg.help and \
-            self.short_name == arg.short_name and \
-            self.choice == arg.choice and \
-            self.value == arg.value and \
-            self.const == arg.const and \
-            self.type == arg.type and \
-            self.pgroup == arg.pgroup
+        return (
+            self.name == arg.name
+            and self.default == arg.default
+            and self.help == arg.help
+            and self.short_name == arg.short_name
+            and self.choice == arg.choice
+            and self.value == arg.value
+            and self.is_flag == arg.is_flag
+            and self.const == arg.const
+            and self.type == arg.type
+            and self.pgroup == arg.pgroup
+        )
 
     def get_type(self):
         """
@@ -160,17 +135,18 @@ class Argument(object):
         :param arg_type: (type or class instance) a type
         :return: (type) the type of the argument
         """
-        arg_type = handle_list_typing_type(arg_type)
         if arg_type == inspect._empty:
             return inspect._empty
         if handled_type(arg_type):
+            if arg_type is bool:
+                self.is_flag = True
             check_subtype(arg_type, self)
             return arg_type
         if isinstance(arg_type, type):
             msg = "Not handled type %s" % arg_type.__name__
         else:
             msg = "unknown type %s" % str(arg_type)
-        print(message(msg, self, "e"))
+        message(msg, self, "e")
         exit(1)
 
     def gfn(self):
@@ -185,91 +161,64 @@ class Argument(object):
             name_arg = "--%s" % self.name
         return name_arg
 
-    def argparse_type(self):
+    def click_type(self):
         """
         :return: (type)
         """
-        if self.type == bool:
-            return str
-        elif isinstance(self.type, List):
-            if self.type.type == bool:
-                return str
+        if isinstance(self.choice, list):
+            # TODO check if the type of choices correspond to the type of
+            # the argument
+            if self.type != str:
+                message("Choices will be converted to str", self, "w")
+            return click.Choice(list(map(str, self.choice)))
+        elif self.type is bool:
+            return click.BOOL
+        elif isinstance(self.type, types.GenericAlias):
+            if (
+                self.type.__name__ == "tuple"
+                and self.type.__args__[1] is not Ellipsis
+            ):
+                return click.Tuple(self.type.__args__)
             else:
-                return self.type.type
+                self.multiple = True
+                return self.type.__args__[0]
         else:
             return self.type
 
-    def argparse_narg(self):
-        if not isinstance(self.type, List):
+    def click_narg(self):
+        if not isinstance(self.type, types.GenericAlias):
             return None
+        elif (
+            self.type.__name__ == "tuple"
+            and self.type.__args__[1] is not Ellipsis
+        ):
+            return len(self.type.__args__)
         else:
-            return self.type.size
+            return 1
 
-    def argparse_metavar(self):
-        """
-        :return: (string) the metavar for the argument
-        """
-        if isinstance(self.type, List):
-            if self.type.size == "+":
-                return "List[%s]" % self.type.type.__name__
-            else:
-                return "List[%s,%s]" % (self.type.size,
-                                        self.type.type.__name__)
-        else:
-            return self.type.__name__.replace("Function", "Func")
-
-    def argparse_choice(self):
-        """
-        :return: (value)
-        """
-        if isinstance(self.choice, str):
-            return None
-        elif isinstance(self.choice, bool):
-            return str(self.choice)
-        elif isinstance(self.choice, (list, tuple)):
-            choice = []
-            for v in self.choice:
-                if isinstance(v, bool):
-                    choice.append(str(v))
-                elif callable(v):
-                    name = os.path.basename(sys.argv[0])
-                    print("%s: error: parse: functions to respect must be "
-                          "given in str format" % name)
-                    exit(1)
-                else:
-                    choice.append(v)
-            return choice
-        elif callable(self.choice):
-            name = os.path.basename(sys.argv[0])
-            print("%s: error: parse: function to respect must be given "
-                  "in str format" % name)
-            exit(1)
-        else:
-            return self.choice
-
-    def get_parser_group(self):
+    def get_parser_group(self) -> str:
         """
         Get the group name of the wanted argument.
 
-        :return: (list of 2 string or NoneType) The name of the parser \
-        followed by the names of the group of arguments
+        :return: the name of the group
         """
         for key in groups.keys():
             if self.name in groups[key]:
                 if "help" in groups[key]:
-                    return ["__parser__", key]
+                    return key
                 else:
-                    return [lpg_name[key], key]
+                    return key
         if self.default == inspect._empty:
-            return ["__rarg__", required_title]
+            return required_title
         else:
-            return ["__parser__", optionals_title]
+            return optionals_title
 
 
 class Lazyparser(object):
     """
     Lazyparser class.
     """
+
     def __init__(self, function, const, choice):
         """
         Initialization with a function.
@@ -283,7 +232,6 @@ class Lazyparser(object):
         self.help = self.description()
         self.update_param()
         self.get_short_name()
-        self.set_filled(const)
         self.set_constrain(choice)
 
     def __eq__(self, parser):
@@ -296,9 +244,11 @@ class Lazyparser(object):
         :param parser: (Lazyparser object)
         :return: (bool)
         """
-        return self.args == parser.args and \
-            self.order == parser.order and \
-            self.help == parser.help
+        return (
+            self.args == parser.args
+            and self.order == parser.order
+            and self.help == parser.help
+        )
 
     def init_args(self):
         """
@@ -306,15 +256,23 @@ class Lazyparser(object):
         """
         sign = inspect.signature(self.func).parameters
         if "help" not in sign.keys():
-            dic_args = {k: Argument(k, sign[k].default, sign[k].annotation)
-                        for k in sign.keys()}
-            if help_arg:
-                dic_args["help"] = Argument("help", "help", str)
-                return dic_args, ["help"] + list(sign.keys())
+            dic_args = {
+                k: Argument(
+                    k,
+                    sign[k].default,
+                    sign[k].annotation
+                    if sign[k].annotation != inspect._empty
+                    else str,
+                )
+                for k in sign.keys()
+            }
+            dic_args["help"] = Argument("help", "help", str)
             return dic_args, list(sign.keys())
         else:
-            print("error: argument conflict, help argument cannot be set in"
-                  "the parsed function")
+            print(
+                "error: argument conflict, help argument cannot be set in"
+                "the parsed function"
+            )
             exit(1)
 
     def description(self):
@@ -336,8 +294,9 @@ class Lazyparser(object):
             if not header:
                 doc = itertools.takewhile(lambda x: delim not in x, doc)
             else:
-                doc = itertools.takewhile(lambda x: delim not in x
-                                          and header not in x, doc)
+                doc = itertools.takewhile(
+                    lambda x: delim not in x and header not in x, doc
+                )
             for line in doc:
                 if line[0:tab].strip() == "":
                     line = line[tab:]
@@ -349,49 +308,6 @@ class Lazyparser(object):
                     description = line
             return description
 
-    def update_type(self, arg_name, help_info):
-        """
-        Update the type of an empty parameter.
-
-        :param arg_name: (string) the name of the argument
-        :param help_info: (list of string) the list string representing the \
-        help for the parameter ``arg_name``
-        """
-        type_info = [get_type(w, self.args[arg_name])
-                     for w in help_info if re.search(r"\(.+\)", w) and
-                     re.search(r"\(.+\)", w).span() == (0, len(w))]
-        if len(type_info) > 1:
-            msg = "multiple type detected for %s only the first was selected"
-            print(message(msg % arg_name, self.args[arg_name], "w"))
-
-        if type_info:
-            self.args[arg_name].type = type_info[0][0]
-            self.args[arg_name].help = \
-                self.args[arg_name].help.replace(type_info[0][1], "").strip()
-
-    def update_param(self):
-        """
-        Update if needed the type and the help of every args.
-        """
-        if self.func.__doc__:
-            doc = filter(lambda x: pd1 in x and pd2 in x,
-                         re.split("[\n\r]", self.func.__doc__))
-            for line in doc:
-                if pd1 != "":
-                    flt = list(filter(None, line.split(pd1)[1].split(pd2)))
-                else:
-                    flt = list(filter(None, line.split(pd2)))
-                flt = [word for word in flt]
-                flt[0] = flt[0].strip()
-                if flt[0] in self.args.keys():
-                    if len(flt[1:]) > 1:
-                        flt_desc = pd2.join(flt[1:])
-                    else:
-                        flt_desc = flt[1]
-                    self.args[flt[0]].help = flt_desc
-                    if self.args[flt[0]].type == inspect._empty:
-                        self.update_type(flt[0], handle(flt_desc))
-
     def get_short_name(self):
         """
         Get the short param name of self.args
@@ -400,7 +316,7 @@ class Lazyparser(object):
         if "help" in param_names:
             self.args["help"].short_name = "h"
             selected_param = ["h"]
-            del(param_names[param_names.index("help")])
+            del param_names[param_names.index("help")]
         else:
             selected_param = []
         for param in param_names:
@@ -408,66 +324,7 @@ class Lazyparser(object):
             self.args[param].short_name = sn
             selected_param.append(sn)
 
-    def set_filled(self, const):
-        """
-        Set if a parameter can just be called without a value and \
-        it values if it is called.
-
-        :param const: (dictionary) value to set to a param called.
-        """
-        msg = "invalid flag type %s"
-        if const and not isinstance(const, dict):
-            print("warning: flags must be defined as a dictionary")
-        elif const and isinstance(const, dict):
-            for marg in const.keys():
-                if marg in self.args.keys():
-                    mtype = self.args[marg].get_type()
-                    if mtype == List:
-                        if not isinstance(const[marg], (list, tuple)):
-                            print(message(msg % mtype.__name__,
-                                          self.args[marg], "e"))
-                            exit(1)
-                    elif not handled_type(mtype, "m"):
-                        print(message(msg % mtype.__name__,
-                                      self.args[marg], "e"))
-                        exit(1)
-                    elif mtype == float:
-                        if not isinstance(const[marg], (int, float)):
-                            print(message(msg % mtype.__name__,
-                                  self.args[marg], "e"))
-                            exit(1)
-                    elif not isinstance(const[marg], mtype):
-                        print(message(msg % mtype.__name__,
-                                      self.args[marg], "e"))
-                        exit(1)
-                    if not isinstance(self.args[marg].default, mtype):
-                        if mtype == List:
-                            if not isinstance(self.args[marg].default,
-                                              (list, tuple)):
-                                print(message(msg % mtype.__name__,
-                                              self.args[marg], "e"))
-                                exit(1)
-                        elif mtype == float:
-                            if not isinstance(self.args[marg].default,
-                                              (float, int)):
-                                print(message(msg % mtype.__name__,
-                                              self.args[marg], "e"))
-                                exit(1)
-                        elif self.args[marg].default == inspect._empty:
-                            msg = "default value required"
-                            print(message(msg,
-                                          self.args[marg], "e"))
-                            exit(1)
-                        else:
-                            msg = msg.replace("const", "default")
-                            print(message(msg %
-                                          mtype.__name__,
-                                          self.args[marg], "e"))
-                            exit(1)
-
-                    self.args[marg].const = const[marg]
-
-    def set_constrain(self, choices):
+    def set_constrain(self, choices: dict[str, str | list]):
         """
         Set the contains for every param in self.args.
 
@@ -475,8 +332,10 @@ class Lazyparser(object):
         """
         for marg in choices.keys():
             if marg in self.args.keys():
-                if isinstance(choices[marg], str) and \
-                        choices[marg] not in ["dir", "file"]:
+                if isinstance(choices[marg], str) and choices[marg] not in [
+                    "dir",
+                    "file",
+                ]:
                     self.args[marg].choice = " %s " % choices[marg]
                 else:
                     self.args[marg].choice = choices[marg]
@@ -507,6 +366,45 @@ class Lazyparser(object):
             for key in dic_args:
                 list_args += sorted(dic_args[key])
             return list_args
+
+    def create_click_group(self):
+        """
+        Create a click group for the parser.
+        """
+        dic_grp = {}
+        for _, arg in self.args.items():
+            if arg.pgroup in dic_grp:
+                dic_grp[arg.pgroup].append(f"--{arg.name}")
+            else:
+                dic_grp[arg.pgroup] = [f"--{arg.name}"]
+        click.rich_click.OPTION_GROUPS = {
+            sys.argv[0]: [
+                {"name": key, "options": dic_grp[key]} for key in dic_grp
+            ]
+        }
+
+    def update_param(self):
+        """
+        Update if needed the type and the help of every args.
+        """
+        if self.func.__doc__:
+            doc = filter(
+                lambda x: pd1 in x and pd2 in x,
+                re.split("[\n\r]", self.func.__doc__),
+            )
+            for line in doc:
+                if pd1 != "":
+                    flt = list(filter(None, line.split(pd1)[1].split(pd2)))
+                else:
+                    flt = list(filter(None, line.split(pd2)))
+                flt = [word for word in flt]
+                flt[0] = flt[0].strip()
+                if flt[0] in self.args.keys():
+                    if len(flt[1:]) > 1:
+                        flt_desc = pd2.join(flt[1:])
+                    else:
+                        flt_desc = flt[1]
+                    self.args[flt[0]].help = flt_desc
 
 
 def set_env(delim1=":param", delim2=":", hd="", tb=4):
@@ -576,15 +474,19 @@ def set_groups(arg_groups=None, order=None, add_help=True):
                 n = "".join(re.findall(r"[A-Za-z0-9_]", key))
                 n = re.sub(r"^[0-9]*", "", n)
                 if len(n) == 0:
-                    print("Error : The name '%s' must have at least one of the"
-                          "following symbols [A-Za-z]" % key)
+                    print(
+                        "Error : The name '%s' must have at least one of the"
+                        "following symbols [A-Za-z]" % key
+                    )
                     exit(1)
             pname[key] = n
             if n not in tmp:
                 tmp.append(n)
             else:
-                print("Error %s after removing symbols not in [A-Za-z0-9]"
-                      "is already defined" % key)
+                print(
+                    "Error %s after removing symbols not in [A-Za-z0-9]"
+                    "is already defined" % key
+                )
                 exit(1)
     global groups
     groups = arg_groups if arg_groups is not None else {}
@@ -592,39 +494,8 @@ def set_groups(arg_groups=None, order=None, add_help=True):
     global grp_order
     grp_order = order
     lpg_name = pname
-    if isinstance(add_help, bool):
-        global help_arg
-        help_arg = add_help
     global optionals_title
     optionals_title = help_name
-
-
-def handle(seq):
-    """
-    Return only string surrounded by ().
-
-    :param seq: (string) the string to process
-    :return: (list of string) list of word in seq sourrounded by ()
-    """
-    seq = seq.replace("()", "")
-    start = 0
-    res = []
-    word = ""
-    for w in seq:
-        if w == "(":
-            start += 1
-            if start == 1:
-                word = "("
-            else:
-                word += "("
-        elif w == ")":
-            start -= 1
-            word += ")"
-            if start == 0:
-                res.append(word)
-        elif start > 0:
-            word += w
-    return res
 
 
 def get_name(name, list_of_name, size=1):
@@ -643,175 +514,77 @@ def get_name(name, list_of_name, size=1):
         return get_name(name, list_of_name, size=size + 1)
 
 
-def get_type(type_arg, argument):
-    """
-    Get the type of an argument.
-
-    :param type_arg: (string) an argument type
-    :param argument: (lazyparse argument) an argument type
-    :return: (Type) the type of ``type_arg``
-    """
-    ft = type_arg
-    type_arg = type_arg.replace(" ", "")
-    try:
-        type_arg = type_arg.replace("(List)", "(List())")
-        if "[" in type_arg and "," not in type_arg:
-            type_arg = type_arg.replace("[", "(vtype=").replace("]", ")")
-        if type_arg != "(string)":
-            type_arg = eval(type_arg)
-        else:
-            type_arg = str
-    except (SyntaxError, TypeError, NameError):
-        msg = "unknown type %s" % type_arg
-        print(message(msg, argument, "e"))
-        exit(1)
-    if handled_type(type_arg):
-        check_subtype(type_arg, argument)
-        return type_arg, ft
-
-
-def handle_list_typing_type(arg_type):
-    """
-    Turn a list from the typing module into a lazyparser list.
-
-    :param arg_type: (type or class instance) a type
-    :return:
-    """
-    if isinstance(arg_type, type(typing.List[typing.Any])):
-        try:
-            if arg_type.__name__ == 'List':  # for python 3.5
-                arg_type = List(vtype=arg_type.__args__[0])
-        except AttributeError:
-            if arg_type._name == "List":  # for python 3.7
-                arg_type = List(vtype=arg_type.__args__[0])
-        return arg_type
-    return arg_type
-
-
-def check_subtype(argtype, arg):
+def check_subtype(argtype: type | types.GenericAlias, arg: Argument):
     """
     check if the subtype is supported.
 
-    :param argtype: (type or List instance) a type or list object
-    :param arg: (Argument object) an Argument
+    :param argtype: a type or list object
+    :param arg: an Argument
     """
-    if isinstance(argtype, List):
-        if not handled_type(argtype.type, "s"):
-            print(message("unknown %s subtype of %s" %
-                          (argtype, argtype.type), arg, "e"))
+    if isinstance(argtype, types.GenericAlias):
+        if not all(handled_type(t, "s") for t in argtype.__args__):
+            message(
+                "unknown %s subtype of %s"
+                % (argtype.__args__, argtype.__name__),
+                arg,
+                "e",
+            )
             exit(1)
 
 
-class NewFormatter(argparse.RawDescriptionHelpFormatter):
+def add_option(option: Argument, func: Callable) -> Callable:
     """
-        New argparse Help Formatter
+    Add an option to the function used to create the CLI.
+
+    :param option: a lazyparser argument
+    :param func: the function used to create a CLI
+    :return: The function func decorated with click.option()
     """
+    args = (
+        (f"--{option.name}", f"-{option.short_name}")
+        if len(option.name) > 1
+        else (f"--{option.name}",)
+    )
+    kwargs = dict(
+        nargs=option.click_narg(),
+        type=option.click_type(),
+        is_flag=option.is_flag,
+        show_default=False,
+        required=True,
+        help=option.help,
+        multiple=option.multiple,
+    )
+    if option.default != inspect._empty:
+        kwargs["default"] = option.default
+        kwargs["required"] = False
+        kwargs["show_default"] = True
+    func = click.option(
+        *args,
+        **kwargs,
+    )(func)
 
-    def __init__(self, prog):
-        """
-        Initiate the creation of the NewFormatter object.
-
-        :param prog: (str) the program filename.
-        """
-        # increase the max_help_position from 24 to 50.
-        super().__init__(prog, max_help_position=50, width=120)
-
-    def _format_args(self, action, default_metavar):
-        get_metavar = self._metavar_formatter(action, default_metavar)
-        result = '%s' % get_metavar(1)
-        return result
-
-    def _format_action_invocation(self, action):
-        """
-        :param action: (argparse._StoreAction object) convert command line \
-        strings to python object.
-        :return: (str) parameter invocation string
-        """
-        parts = []
-        if action.nargs == 0:
-            parts.extend(action.option_strings)
-        else:
-            dft = self._get_default_metavar_for_optional(action)
-            args_string = self._format_args(action, dft)
-            for option_string in action.option_strings:
-                parts.append(option_string)
-            return '%s %s' % (', '.join(parts), args_string)
-        return ', '.join(parts)
-
-    def _get_default_metavar_for_optional(self, action):
-        """
-
-        :param action: (argparse._StoreAction object) convert command line \
-        strings to python object.
-        :return: (str) the default metavar names
-        """
-        return action.dest[0].upper()
+    return func
 
 
-def init_parser(lp):
+def init_parser(lp: Lazyparser, func: Callable):
     """
-    Create the parser using argparse.
+    Create the parser using click.
 
-    :param lp: (Lazyparser object) the parser
-    :return: (ArgumentParser object) the argparse parser.
+    :param lp: the parsed arguments
+    :param func: the function used to create a CLI
+    :return: The function func decorated with click.option()
     """
-    parser = argparse.ArgumentParser(formatter_class=NewFormatter,
-                                     description=lp.help,
-                                     add_help=False,
-                                     epilog=epi)
-    pgroups = []
-    for arg in lp.get_order():
-        if lp.args[arg].type == inspect._empty:
-            lp.args[arg].type = str
-        pgroup = lp.args[arg].pgroup[0]
-        pname = lp.args[arg].pgroup[1]
-        if pgroup not in pgroups:
-            exec("%s = parser.add_argument_group('%s')" % (pgroup, pname))
-            pgroups.append(pgroup)
-        mchoice = lp.args[arg].argparse_choice()  # noqa
-        mtype = lp.args[arg].argparse_type()  # noqa
-        nargs = lp.args[arg].argparse_narg()  # noqa
-        metvar = lp.args[arg].argparse_metavar().upper()  # noqa
-        if arg == "help":
-            cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
-                                     "--%s" % arg,
-                                     action="help",
-                                     help="show this help message and exit")
-                                     """.format(pgroup)
-            exec(cmd)
-            del(lp.args[arg])
-        elif lp.args[arg].const == "$$void$$" and \
-                lp.args[arg].default == inspect._empty:
-            cmd = """{}.add_argument('-%s' % lp.args[arg].short_name,
-                                        '--%s' % arg, dest=arg,
-                                        help=lp.args[arg].help, type=mtype,
-                                        metavar=metvar,
-                                        choices=mchoice, nargs=nargs,
-                                        required=True)""".format(pgroup)
-            exec(cmd)
-        elif lp.args[arg].const == "$$void$$" and lp.args[arg].default != \
-                inspect._empty:
-            cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
-                                     "--%s" % arg,
-                                     dest=arg, help=lp.args[arg].help,
-                                     type=mtype, metavar=metvar,
-                                     choices=mchoice, nargs=nargs,
-                                     default=lp.args[arg].default)
-                                     """.format(pgroup)
-            exec(cmd)
-        else:
-            cmd = """{}.add_argument("-%s" % lp.args[arg].short_name,
-                                     "--%s" % arg, dest=arg,
-                                     help=lp.args[arg].help,
-                                     action="store_const", metavar="",
-                                     const=lp.args[arg].const,
-                                     default=lp.args[arg].default)
-                                     """.format(pgroup)
-            exec(cmd)
-    return parser
+    func.__doc__ = lp.description()
+    for arg in lp.get_order()[::-1]:
+        func = add_option(lp.args[arg], func)
+    lp.create_click_group()
+    func = click.command(epilog=epi)(func)
+    return func
 
 
-def message(sentence, argument, type_m=None):
+def message(
+    sentence: str, argument: Argument, type_m: str | None = None
+) -> str:
     """
     Return a message in the correct format.
 
@@ -820,107 +593,15 @@ def message(sentence, argument, type_m=None):
     :param type_m: (string or None) the type of the message to display
     :return: (string) the message in a correct format.
     """
-    name = os.path.basename(sys.argv[0])
-    sentence = re.sub(r"\s+", ' ', sentence)
-    sentence = "argument %s: " % argument.gfn() + sentence
-    if not type_m:
+    name = "[green]" + os.path.basename(sys.argv[0]) + "[/green]"
+    sentence = re.sub(r"\s+", " ", sentence)
+    sentence = "[blue] argument %s[/blue]: " % argument.gfn() + sentence
+    if type_m not in ["w", "e"]:
         return sentence
-    if type_m == "w":
-        return name + ": warning: " + sentence
-    if type_m == "e":
-        return name + ": error: " + sentence
-
-
-def tests_function(marg, parser):
-    """
-    Performs the test conditions wanted.
-
-    :param marg: (Argument object) a lazyparser argument
-    :param parser: (class ArgumentParser) the argparse parser.
-    """
-    spaced_n = " %s " % marg.name
-    spaced_sn = " %s " % marg.short_name
-    if isinstance(marg.choice, str) and marg.choice not in ["dir", "file"]:
-        if not isinstance(marg.type, List):
-            if spaced_n in marg.choice or spaced_sn in marg.choice:
-                if spaced_n in marg.choice:
-                    cond = marg.choice.replace(spaced_n, str(marg.value))
-                else:
-                    cond = marg.choice.replace(spaced_sn, str(marg.value))
-                try:
-                    if not eval(cond):
-                        msg = "invalid choice %s: it must respect : %s"
-                        parser.error(message(msg % (marg.value, marg.choice),
-                                             marg))
-                except (SyntaxError, TypeError, NameError):
-                    msg = "wrong assertion: %s. It will be ignored"
-                    print(message(msg % marg.choice, marg, "w"))
-            else:
-                msg = "not found in assertion: %s. It will be ignored"
-                print(message(msg % marg.choice, marg, "w"))
-        else:
-            if spaced_n in marg.choice or spaced_sn in marg.choice:
-                if spaced_n in marg.choice:
-                    cond = marg.choice.replace(spaced_n, "$$!$$")
-                else:
-                    cond = marg.choice.replace(spaced_sn,  "$$!$$")
-                for val in marg.value:
-                    mcond = cond.replace("$$!$$", str(val))
-                    try:
-                        if not eval(mcond):
-                            msg = "invalid choice %s: it must respect : %s"
-                            parser.error(message(msg % (val, marg.choice),
-                                                 marg))
-                    except (SyntaxError, TypeError, NameError):
-                        msg = "wrong assertion: %s. It will be ignored"
-                        print(message(msg % marg.choice, marg, "w"))
-            else:
-                msg = "not found in assertion: %s. It will be ignored"
-                print(message(msg % marg.choice, marg, "w"))
-
-    if isinstance(marg.choice, str) and marg.choice in ["dir", "file"]:
-        relevant = isinstance(marg.value, (str, io.IOBase))
-        if not relevant and not isinstance(marg.type, List):
-            msg = "Wrong file type."
-            parser.error(message(msg, marg))
-        else:
-            if isinstance(marg.value, str):
-                eval_str = eval("os.path.is%s(marg.value)" % marg.choice)
-                if relevant and not eval_str:
-                    msg = "invalid choice %s: it must be an existing %s"
-                    parser.error(message(msg % (marg.value, marg.choice),
-                                         marg))
-            elif isinstance(marg.value, list):
-                for mfile in marg.value:
-                    eval_str = eval("os.path.is%s(mfile)" % marg.choice)
-                    if not eval_str:
-                        msg = "invalid choice %s: it must be an existing %s"
-                        parser.error(message(msg % (mfile, marg.choice),
-                                             marg))
-
-
-def test_type(marg, parser):
-    """
-    Performs the type test conditions wanted.
-
-    :param marg: (Argument object) a lazyparser argument
-    :param parser: (class ArgumentParser) the argparse parser.
-    """
-    dic = {"True": True, "False": False, True: True, False: False}
-    if marg.type == bool:
-        try:
-            marg.value = dic[marg.value]
-        except KeyError:
-            msg = "invalid bool type %s (choose from True, False)"
-            parser.error(message(msg % marg.value, marg))
-    elif isinstance(marg.type, List):
-        if marg.type.type == bool:
-            try:
-                marg.value = [dic[v] for v in marg.value]
-            except KeyError:
-                msg = "invalid bool type in %s (choose from True, False)"
-                parser.error(message(msg % marg.value, marg))
-    return marg.value
+    elif type_m == "w":
+        rprint(name + ":[orange3] warning [/orange3]: " + sentence)
+    else:
+        rprint(name + ":[red] error [/red]: " + sentence)
 
 
 def parse(func=None, const=None, **kwargs):
@@ -932,6 +613,7 @@ def parse(func=None, const=None, **kwargs):
     :param kwargs: (dictionary) the named arguments
     :return: (function) wrap
     """
+
     def wrap(function):
         """
         Wrapper of the function ``function``.
@@ -939,6 +621,7 @@ def parse(func=None, const=None, **kwargs):
         :param function: (function) the function to wrap
         :return: (function) the method calling `` function``.
         """
+
         @functools.wraps(function)
         def call_func(mfilled=const):
             """
@@ -947,20 +630,13 @@ def parse(func=None, const=None, **kwargs):
             :return: the result of the function ``self.func``
             """
             lazyparser = Lazyparser(function, mfilled, kwargs)
-            parser = init_parser(lazyparser)
-            args = parser.parse_args()  # noqa
-            str_args = ""
-            for my_arg in lazyparser.args.keys():
-                lazyparser.args[my_arg].value = eval("args.%s" % my_arg)
-                if lazyparser.args[my_arg].choice:
-                    tests_function(lazyparser.args[my_arg], parser)
-                exec("args.%s = test_type(lazyparser.args[my_arg], parser)"
-                     % my_arg)
-                str_args += "%s=args.%s, " % (my_arg, my_arg)
-            str_args = str_args[:-2]
-            return eval("function(%s)" % str_args)
+            func = init_parser(lazyparser, function)
+            return func()
+
         return call_func
+
     if func is None:
+
         def decore_call(function):
             """
             Decorate wrap function.
@@ -969,42 +645,6 @@ def parse(func=None, const=None, **kwargs):
             :return: (function) call_func
             """
             return wrap(function)
-        return decore_call
-    return wrap(func)
 
-
-def flag(func=None, **kwargs):
-    """
-    Function used to set a value to some parameters when they are called.
-
-    :param func: (function) the function to wrap
-    :param kwargs: (dictionary) the named arguments
-    :return: (function) wrap
-    """
-    def wrap(function):
-        """
-        Wrapper of the function ``function``.
-
-        :param function: (function) the function to wrap
-        :return: (function) the method calling `` function``.
-        """
-        @functools.wraps(function)
-        def call_func():
-            """
-            Call the function ``self.func`` and return it's result.
-
-            :return: the result of the function ``self.func``
-            """
-            return function(kwargs)
-        return call_func
-    if func is None:
-        def decore_call(function):
-            """
-            Decorate wrap function.
-
-            :param function: (function) the function to wrap
-            :return: (function) call_func
-            """
-            return wrap(function)
         return decore_call
     return wrap(func)
