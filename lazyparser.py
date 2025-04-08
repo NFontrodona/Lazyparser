@@ -542,11 +542,7 @@ def add_option(option: Argument, func: Callable) -> Callable:
     :param func: the function used to create a CLI
     :return: The function func decorated with click.option()
     """
-    args = (
-        (f"--{option.name}", f"-{option.short_name}")
-        if len(option.name) > 1
-        else (f"--{option.name}",)
-    )
+    args = (f"--{option.name}", f"-{option.short_name}")
     kwargs = dict(
         nargs=option.click_narg(),
         type=option.click_type(),
