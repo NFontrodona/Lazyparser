@@ -26,7 +26,6 @@ This script define the lazyparser.
 import functools
 import inspect
 import itertools
-import os
 import re
 import sys
 import types
@@ -277,10 +276,11 @@ class Lazyparser(object):
             dic_args["help"] = Argument("help", "help", str)
             return dic_args, list(sign.keys())
         else:
-            print(
-                "error: argument conflict, help argument cannot be set in"
-                "the parsed function"
+            msg = (
+                "argument conflict, help argument cannot be set in"
+                + " the parsed function"
             )
+            message(msg, None, "e")
             exit(1)
 
     def description(self):
@@ -367,7 +367,11 @@ class Lazyparser(object):
                     dic_args[arg.pgroup[1]].append(narg)
             for grp_arg in grp_order:
                 if grp_arg not in dic_args.keys():
-                    print("Error the argument group %s don't exists" % grp_arg)
+                    message(
+                        "The argument group %s don't exists" % grp_arg,
+                        None,
+                        "e",
+                    )
                     exit(1)
                 else:
                     list_args += dic_args.pop(grp_arg)
@@ -431,7 +435,7 @@ def set_env(delim1=":param", delim2=":", hd="", tb=4):
         tab = 4
     args = [delim1, delim2, hd]
     if sum([not isinstance(a, str) for a in args]) > 0:
-        print("error : delim1 and delim2 must be strings")
+        message("delim1 and delim2 must be strings", None, "e")
         exit(1)
     for i in range(len(args)):
         args[i] = args[i].replace("\n", "")
@@ -439,7 +443,7 @@ def set_env(delim1=":param", delim2=":", hd="", tb=4):
         args[i] = args[i].replace("\t", "")
         args[i] = args[i].replace(" ", "")
     if not delim2:
-        print("error : bad delim2 definition")
+        message("Bad delim2 definition", None, "e")
         exit(1)
     else:
         global pd1
@@ -482,19 +486,21 @@ def set_groups(arg_groups=None, order=None, add_help=True):
                 n = "".join(re.findall(r"[A-Za-z0-9_]", key))
                 n = re.sub(r"^[0-9]*", "", n)
                 if len(n) == 0:
-                    print(
-                        "Error : The name '%s' must have at least one of the"
-                        "following symbols [A-Za-z]" % key
-                    )
+                    msg = (
+                        "The name '%s' must have at least one of the"
+                        + "following symbols [A-Za-z]"
+                    ) % key
+                    message(msg, None, "e")
                     exit(1)
             pname[key] = n
             if n not in tmp:
                 tmp.append(n)
             else:
-                print(
-                    "Error %s after removing symbols not in [A-Za-z0-9]"
-                    "is already defined" % key
-                )
+                msg = (
+                    "%s after removing symbols not in [A-Za-z0-9]"
+                    + "is already defined"
+                ) % key
+                message(msg, None, "e")
                 exit(1)
     global groups
     groups = arg_groups if arg_groups is not None else {}
@@ -589,7 +595,7 @@ def init_parser(lp: Lazyparser, func: Callable):
 
 
 def message(
-    sentence: str, argument: Argument, type_m: str | None = None
+    sentence: str, argument: Argument | None, type_m: str | None = None
 ) -> str:
     """
     Return a message in the correct format.
@@ -599,9 +605,9 @@ def message(
     :param type_m: (string or None) the type of the message to display
     :return: (string) the message in a correct format.
     """
-    name = "[green]" + os.path.basename(sys.argv[0]) + "[/green]"
     sentence = re.sub(r"\s+", " ", sentence)
-    sentence = argument.gfn() + " " + sentence
+    if argument is not None:
+        sentence = argument.gfn() + " " + sentence
     if type_m not in ["w", "e"]:
         return sentence
     elif type_m == "w":
