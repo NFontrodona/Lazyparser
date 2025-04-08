@@ -34,6 +34,7 @@ from collections.abc import Callable
 
 import rich_click as click
 from rich import print as rprint
+from rich.panel import Panel
 
 __version__ = "0.2.1"
 __all__ = ("set_env", "set_epilog", "set_groups", "parse", "flag")
@@ -156,9 +157,16 @@ class Argument(object):
         :return: (string) the full name of the argument
         """
         if self.short_name:
-            name_arg = "-%s/--%s" % (self.short_name, self.name)
+            n = (
+                "'[bold cyan]--%s[/bold cyan]' "
+                + "/ '[bold green]-%s[/bold green]'"
+            )
+            name_arg = n % (
+                self.short_name,
+                self.name,
+            )
         else:
-            name_arg = "--%s" % self.name
+            name_arg = "'[bold cyan]--%s[/bold cyan]'" % self.name
         return name_arg
 
     def click_type(self):
@@ -593,13 +601,24 @@ def message(
     """
     name = "[green]" + os.path.basename(sys.argv[0]) + "[/green]"
     sentence = re.sub(r"\s+", " ", sentence)
-    sentence = "[blue] argument %s[/blue]: " % argument.gfn() + sentence
+    sentence = argument.gfn() + " " + sentence
     if type_m not in ["w", "e"]:
         return sentence
     elif type_m == "w":
-        rprint(name + ":[orange3] warning [/orange3]: " + sentence)
+        rprint(
+            Panel(
+                sentence,
+                title="Warning",
+                border_style="orange3",
+                title_align="left",
+            )
+        )
     else:
-        rprint(name + ":[red] error [/red]: " + sentence)
+        rprint(
+            Panel(
+                sentence, title="Error", border_style="red", title_align="left"
+            )
+        )
 
 
 def parse(func=None, const=None, **kwargs):
