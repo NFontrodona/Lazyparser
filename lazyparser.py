@@ -506,7 +506,9 @@ def get_name(name, list_of_name, size=1):
     :param size: (int) the size of the name used
     :return: (string) the param name selected
     """
-    if name[0:size] not in list_of_name:
+    if size == len(name):
+        return name
+    elif name[0:size] not in list_of_name:
         return name[0:size]
     elif name[0:size].upper() not in list_of_name:
         return name[0:size].upper()
