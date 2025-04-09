@@ -138,6 +138,9 @@ class Argument(object):
             return inspect._empty
         if handled_type(arg_type):
             if arg_type is bool:
+                if self.default is not None and self.default != False:
+                    self.default = False
+                    message("Default value set to False", self, "w")
                 self.is_flag = True
             check_subtype(arg_type, self)
             return arg_type
