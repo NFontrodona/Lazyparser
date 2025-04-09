@@ -48,7 +48,6 @@ tab = 4  # number of spaces composing tabulations
 epi = None  # epilog for the parser
 groups = {}  # the groups of arguments
 lpg_name = {}  # the name of the parser used
-grp_order = None  # the order of groups
 optionals_title = "Optional arguments"
 required_title = "Required arguments"
 ######################################
@@ -348,37 +347,6 @@ class Lazyparser(object):
                 else:
                     self.args[marg].choice = choices[marg]
 
-    def get_order(self):
-        """
-        Get the order of groups of argument to display.
-
-        :return: (list of str) the ordered list of arguments to display.
-        """
-        if grp_order is None:
-            return self.order
-        else:
-            dic_args = {}
-            list_args = []
-            for narg in self.order:
-                arg = self.args[narg]
-                if arg.pgroup[1] not in dic_args.keys():
-                    dic_args[arg.pgroup[1]] = [narg]
-                else:
-                    dic_args[arg.pgroup[1]].append(narg)
-            for grp_arg in grp_order:
-                if grp_arg not in dic_args.keys():
-                    message(
-                        "The argument group %s don't exists" % grp_arg,
-                        None,
-                        "e",
-                    )
-                    exit(1)
-                else:
-                    list_args += dic_args.pop(grp_arg)
-            for key in dic_args:
-                list_args += sorted(dic_args[key])
-            return list_args
-
     def create_click_group(self):
         """
         Create a click group for the parser.
@@ -465,14 +433,12 @@ def set_epilog(epilog):
         epi = epilog
 
 
-def set_groups(arg_groups=None, order=None, add_help=True):
+def set_groups(arg_groups=None):
     """
     Change the name of the argument groups.
 
-    :param order: (list of string) the order of groups the user wants
     :param arg_groups: (dictionary of list of string) links each arguments to \
     its groups.
-    :param add_help: (bool) True to display the help, false else.
     """
     pname = {}
     tmp = []
@@ -505,8 +471,6 @@ def set_groups(arg_groups=None, order=None, add_help=True):
     global groups
     groups = arg_groups if arg_groups is not None else {}
     global lpg_name
-    global grp_order
-    grp_order = order
     lpg_name = pname
     global optionals_title
     optionals_title = help_name
@@ -587,8 +551,9 @@ def init_parser(lp: Lazyparser, func: Callable):
     :return: The function func decorated with click.option()
     """
     func.__doc__ = lp.description()
-    for arg in lp.get_order()[::-1]:
-        func = add_option(lp.args[arg], func)
+    for arg in lp.args:
+        if arg != "help":
+            func = add_option(lp.args[arg], func)
     lp.create_click_group()
     func = click.command(epilog=epi)(func)
     return func
