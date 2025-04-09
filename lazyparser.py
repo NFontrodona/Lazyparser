@@ -272,8 +272,8 @@ class Lazyparser(object):
                 )
                 for k in sign.keys()
             }
-            dic_args["help"] = Argument("help", "help", str)
-            return dic_args, list(sign.keys())
+            tmp = {"help": Argument("help", "help", str)}
+            return tmp | dic_args, list(sign.keys())
         else:
             msg = (
                 "argument conflict, help argument cannot be set in"
@@ -351,7 +351,10 @@ class Lazyparser(object):
         """
         Create a click group for the parser.
         """
-        dic_grp = {}
+        if groups:
+            dic_grp = {k: [] for k in groups}
+        else:
+            dic_grp = {}
         for _, arg in self.args.items():
             if arg.pgroup in dic_grp:
                 dic_grp[arg.pgroup].append(f"--{arg.name}")
