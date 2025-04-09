@@ -65,6 +65,17 @@ def handled_type(atype, htype="m"):
         "m": [int, float, bool, str, tuple],
         "s": [int, float, str, Ellipsis],
     }
+    try:
+        res = issubclass(atype, click.Path.__mro__[1])
+        if res:
+            return True
+    except TypeError:
+        try:
+            res = issubclass(type(atype), click.Path.__mro__[1])
+            if res:
+                return True
+        except Exception:
+            return False
     if isinstance(atype, types.GenericAlias):
         atype = atype.__mro__[0]
     if atype in dic_type[htype]:
@@ -137,7 +148,7 @@ class Argument(object):
         if arg_type == inspect._empty:
             return inspect._empty
         if handled_type(arg_type):
-            if arg_type is bool:
+            if arg_type is bool or arg_type is click.BOOL:
                 if self.default == inspect._empty:
                     self.default = False
                 elif self.default != False:
