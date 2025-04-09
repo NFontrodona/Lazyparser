@@ -36,7 +36,7 @@ from rich import print as rprint
 from rich.panel import Panel
 
 __version__ = "0.2.1"
-__all__ = ("set_env", "set_epilog", "set_groups", "parse", "flag")
+__all__ = ("set_env", "set_epilog", "set_groups", "parse")
 
 
 #####################################
