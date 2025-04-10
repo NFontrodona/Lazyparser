@@ -30,6 +30,7 @@ import re
 import sys
 import types
 from collections.abc import Callable
+from typing import Any
 
 import rich_click as click
 from rich import print as rprint
@@ -611,7 +612,7 @@ def message(
         )
 
 
-def parse(func=None, const=None, **kwargs):
+def parse(func=None, const=None, **kwargs) -> Callable[[], Any]:
     """
     Create the parser.
 
