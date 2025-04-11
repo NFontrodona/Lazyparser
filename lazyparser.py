@@ -594,7 +594,7 @@ def message(
     if argument is not None:
         sentence = argument.gfn() + " " + sentence
     if type_m not in ["w", "e"]:
-        return sentence
+        rprint(sentence)
     elif type_m == "w":
         rprint(
             Panel(
