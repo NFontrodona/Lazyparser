@@ -66,6 +66,20 @@ def handled_type(atype, htype="m"):
         "m": [int, float, bool, str, tuple],
         "s": [int, float, str, Ellipsis],
     }
+    if isinstance(atype, types.GenericAlias):
+        atype = atype.__mro__[0]
+    if atype in dic_type[htype]:
+        return True
+    else:
+        return False
+
+def is_click_type(atype):
+    """
+    Check if the atype is a click type.
+
+    :param atype: (type) a type
+    :return: (bool) True if the type is a click type, False otherwise
+    """
     try:
         res = issubclass(atype, click.Path.__mro__[1])
         if res:
@@ -77,12 +91,6 @@ def handled_type(atype, htype="m"):
                 return True
         except Exception:
             return False
-    if isinstance(atype, types.GenericAlias):
-        atype = atype.__mro__[0]
-    if atype in dic_type[htype]:
-        return True
-    else:
-        return False
 
 
 class Argument(object):
@@ -101,8 +109,7 @@ class Argument(object):
         self.name = name_arg
         self.default = default
         self.help = "param %s" % self.name
-        self.short_name = None
-        self.choice = None
+        self.short_name: str | None = None
         self.value = None
         self.is_flag = False
         self.const = "$$void$$"
@@ -121,7 +128,6 @@ class Argument(object):
             and self.default == arg.default
             and self.help == arg.help
             and self.short_name == arg.short_name
-            and self.choice == arg.choice
             and self.value == arg.value
             and self.is_flag == arg.is_flag
             and self.const == arg.const
@@ -188,13 +194,7 @@ class Argument(object):
         """
         :return: (type)
         """
-        if isinstance(self.choice, list):
-            # TODO check if the type of choices correspond to the type of
-            # the argument
-            if self.type != str:
-                message("Choices will be converted to str", self, "w")
-            return click.Choice(list(map(str, self.choice)))
-        elif self.type is bool:
+        if self.type is bool:
             return click.BOOL
         elif isinstance(self.type, types.GenericAlias):
             if (
@@ -242,20 +242,20 @@ class Lazyparser(object):
     Lazyparser class.
     """
 
-    def __init__(self, function, const, choice):
+    def __init__(self, function, const, click_type):
         """
         Initialization with a function.
 
         :param function: (function) a function
         :param const: (dictionary) param that don't need to be filled.
-        :param choice: (dictionary) the contains
+        :param choice: (dictionary) the click dtype
         """
         self.func = function
         self.args, self.order = self.init_args()
         self.help = self.description()
         self.update_param()
         self.get_short_name()
-        self.set_constrain(choice)
+        self.set_constrain(click_type)
 
     def __eq__(self, parser):
         """
@@ -348,21 +348,30 @@ class Lazyparser(object):
             self.args[param].short_name = sn
             selected_param.append(sn)
 
-    def set_constrain(self, choices: dict[str, str | list]):
+    def set_constrain(self, click_type: dict[str, str | list]):
         """
         Set the contains for every param in self.args.
 
-        :param choices: (dictionary of values) the constrains
+        :param click_type: (dictionary of values) the constrains as click type
         """
-        for marg in choices.keys():
+        for marg in click_type.keys():
             if marg in self.args.keys():
-                if isinstance(choices[marg], str) and choices[marg] not in [
-                    "dir",
-                    "file",
-                ]:
-                    self.args[marg].choice = " %s " % choices[marg]
+                if is_click_type(click_type[marg]):
+                    if ((isinstance(click_type[marg], click.IntRange) and
+                            self.args[marg].type != int) or
+                        (isinstance(click_type[marg], click.FloatRange) and
+                            self.args[marg].type != float) or
+                        (isinstance(click_type[marg], click.Choice) and
+                            self.args[marg].type != str)):
+                        message(
+                            f"click type {click_type[marg]} incompatible " +
+                            f"with {self.args[marg].type}, " +
+                            "click type will be applied", self.args[marg], "w")
+                    self.args[marg].type = click_type[marg]
                 else:
-                    self.args[marg].choice = choices[marg]
+                    message(f"Unknown click type {click_type[marg]}",
+                        self.args[marg], "e")
+                    exit(1)
 
     def create_click_group(self):
         """
@@ -556,7 +565,7 @@ def add_option(option: Argument, func: Callable) -> Callable:
         kwargs["show_default"] = True
     func = click.option(
         *args,
-        **kwargs,
+        **kwargs, # type: ignore
     )(func)
 
     return func
@@ -581,7 +590,7 @@ def init_parser(lp: Lazyparser, func: Callable):
 
 def message(
     sentence: str, argument: Argument | None, type_m: str | None = None
-) -> str:
+) -> None:
     """
     Return a message in the correct format.
 
@@ -654,5 +663,5 @@ def parse(func=None, const=None, **kwargs) -> Callable[[], Any]:
             """
             return wrap(function)
 
-        return decore_call
+        return decore_call # type: ignore
     return wrap(func)
