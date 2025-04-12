@@ -196,7 +196,9 @@ class Argument(object):
         if self.type is bool:
             return click.BOOL
         elif isinstance(self.type, types.GenericAlias):
-            if (
+            if self.type.__name__ == "tuple" and len(self.type.__args__) == 1:
+                return click.Tuple(self.type.__args__)
+            elif (
                 self.type.__name__ == "tuple"
                 and self.type.__args__[1] is not Ellipsis
             ):
@@ -210,8 +212,8 @@ class Argument(object):
     def click_narg(self):
         if not isinstance(self.type, types.GenericAlias):
             return None
-        elif self.type.__name__ == "tuple" and len(self.type.__args__) < 2:
-            message("Tuple must contain at least 2 elements", self, "e")
+        elif self.type.__name__ == "tuple" and len(self.type.__args__) == 1:
+            return 1
         elif (
             self.type.__name__ == "tuple"
             and self.type.__args__[1] is not Ellipsis
