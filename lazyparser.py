@@ -422,7 +422,9 @@ class Lazyparser(object):
                         flt_desc = pd2.join(flt[1:])
                     else:
                         flt_desc = flt[1]
-                    self.args[flt[0]].help = flt_desc.strip()
+                    self.args[flt[0]].help = re.sub(
+                        " +", " ", flt_desc.strip()
+                    )
 
 
 def set_env(delim1=":param", delim2=":", hd="", tb=4):
