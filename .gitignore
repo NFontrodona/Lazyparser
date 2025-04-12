@@ -2,3 +2,6 @@
 src/*.pyc
 src/__pycache__/
 doc/build/
+.coverage
+__pycache__/
+example.py
