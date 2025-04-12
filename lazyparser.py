@@ -30,6 +30,7 @@ import re
 import sys
 import types
 from collections.abc import Callable
+from typing import Any
 
 import rich_click as click
 from rich import print as rprint
@@ -343,7 +344,7 @@ class Lazyparser(object):
             self.args[param].short_name = sn
             selected_param.append(sn)
 
-    def set_constrain(self, click_type: dict[str, str | list]):
+    def set_constrain(self, click_type: dict[str, Any]):
         """
         Set the contains for every param in self.args.
 
