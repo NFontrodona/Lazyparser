@@ -183,8 +183,8 @@ class Argument(object):
                 + "/ '[bold green]-%s[/bold green]'"
             )
             name_arg = n % (
-                self.short_name,
                 self.name,
+                self.short_name,
             )
         else:
             name_arg = "'[bold cyan]--%s[/bold cyan]'" % self.name
