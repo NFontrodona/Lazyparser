@@ -210,6 +210,8 @@ class Argument(object):
     def click_narg(self):
         if not isinstance(self.type, types.GenericAlias):
             return None
+        elif self.type.__name__ == "tuple" and len(self.type.__args__) < 2:
+            message("Tuple must contain at least 2 elements", self, "e")
         elif (
             self.type.__name__ == "tuple"
             and self.type.__args__[1] is not Ellipsis
@@ -629,6 +631,7 @@ def message(
                 sentence, title="Error", border_style="red", title_align="left"
             )
         )
+        exit(1)
 
 
 def parse(func=None, **kwargs) -> Callable[[], Any]:
