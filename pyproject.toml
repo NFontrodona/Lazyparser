@@ -1,0 +1,9 @@
+[project]
+name = "lazyparser"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "rich-click>=1.8.8",
+]
