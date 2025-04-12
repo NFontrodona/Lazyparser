@@ -250,7 +250,7 @@ class Lazyparser(object):
         Initialization with a function.
 
         :param function: (function) a function
-        :param choice: (dictionary) the click dtype
+        :param click_type: (dictionary) the click dtype
         """
         self.func = function
         self.args = self.init_args()
