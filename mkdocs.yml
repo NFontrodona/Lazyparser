@@ -1,9 +1,7 @@
 site_name: Lazyparser
-
+use_directory_urls: false
 theme:
   name: material
-  logo: images/IliBade.SVG
-  flavicon: images/IliBade.SVG
   features:
     - navigation.tabs
     - toc.integrate
@@ -19,11 +17,8 @@ markdown_extensions:
 
 nav:
   - index.md
-  - Documentation:
-      - Principle: documentation/principle.md
-      - Usage: documentation/usage.md
-  - Reference:
-      - reference/index.md
+  - documentation.md
+  - reference.md
 
 plugins:
   - search

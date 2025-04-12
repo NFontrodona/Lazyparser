@@ -1,5 +1,5 @@
 
-# Lazyparser README
+# Lazyparser
 
 ## Description
 

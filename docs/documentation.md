@@ -1,4 +1,4 @@
-# Lazyparser - Documentation
+# Documentation
 
 Lazyparser is a small module that automates the creation of command-line
 interfaces. For this purpose, it uses
@@ -154,15 +154,11 @@ the function `set_env` takes 4 arguments :
 > - `tb` : the number of spaces at the beginning of each line in the
 >   docstring. By default, it is equal to 4.
 
-:::: note
-::: title
-Note
-:::
 
-The text set before parameters definition (or the parameters definition
+Note: The text set before parameters definition (or the parameters definition
 header) is considered as being a part of the description of the
 function.
-::::
+
 
 Here is an example of how using `set_env`
 

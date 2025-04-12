@@ -1,5 +1,5 @@
 # Reference
 
 ::: lazyparser
-    selection:
+    options:
         docstring_style: sphinx
