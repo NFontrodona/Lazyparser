@@ -86,12 +86,10 @@ def is_click_type(atype):
         if res:
             return True
     except TypeError:
-        try:
-            res = issubclass(type(atype), click.Path.__mro__[1])
-            if res:
-                return True
-        except Exception:
-            return False
+        res = issubclass(type(atype), click.Path.__mro__[1])
+        if res:
+            return True
+    return False
 
 
 class Argument(object):
@@ -633,7 +631,7 @@ def message(
         )
 
 
-def parse(func=None, **kwargs):
+def parse(func=None, **kwargs) -> Callable[[], Any]:
     """
     Create the parser.
 
