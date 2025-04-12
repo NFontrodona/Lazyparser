@@ -179,156 +179,99 @@ class TestArgument(unittest.TestCase):
         self.assertEqual(arg.get_parser_group(), "foo")
 
 
-# class TestLazyparser(unittest.TestCase):
-#     def test_equal(self):
-#         def func(x, y):
-#             return x * y
+class TestLazyparser(unittest.TestCase):
+    def test_equal(self):
+        def func(x, y):
+            return x * y
 
-#         parser = lp.Lazyparser(func, {}, {})
-#         parser2 = lp.Lazyparser(func, {}, {})
-#         assert parser == parser2
+        parser = lp.Lazyparser(func, {})
+        parser2 = lp.Lazyparser(func, {})
+        self.assertTrue(parser == parser2)
 
-#         def func2(x, z):
-#             return x * z
+        def func2(x, z):
+            return x * z
 
-#         parser2 = lp.Lazyparser(func2, {}, {})
-#         assert parser != parser2
+        parser2 = lp.Lazyparser(func2, {})
+        self.assertFalse(parser == parser2)
 
-#     def test_init_arg(self):
-#         def func(x, y):
-#             return x * y
+    def test_init_arg(self):
+        def func(x, y):
+            return x * y
 
-#         parser = lp.Lazyparser(func, {}, {})
-#         dic = {
-#             "help": lp.Argument("help", "help", str),
-#             "x": lp.Argument("x", inspect._empty, inspect._empty),
-#             "y": lp.Argument("y", inspect._empty, inspect._empty),
-#         }
-#         order = ["help", "x", "y"]
-#         assert parser.init_args() == (dic, order)
-#         lp.help_arg = False
-#         parser = lp.Lazyparser(func, {}, {})
-#         dic = {
-#             "x": lp.Argument("x", inspect._empty, inspect._empty),
-#             "y": lp.Argument("y", inspect._empty, inspect._empty),
-#         }
-#         order = ["x", "y"]
-#         assert parser.init_args() == (dic, order)
+        parser = lp.Lazyparser(func, {})
+        dic = {
+            "help": lp.Argument("help", "help", str),
+            "x": lp.Argument("x", inspect._empty, str),
+            "y": lp.Argument("y", inspect._empty, str),
+        }
+        self.assertEqual(parser.init_args(), dic)
 
-#         def func(help, y):
-#             return help * y
+        def func2(help, y):
+            return help * y
 
-#         parser.func = func
-#         self.assertRaises(SystemExit, parser.init_args)
+        parser.func = func2
+        self.assertRaises(SystemExit, parser.init_args)
 
-#     def test_description(self):
-#         lp.set_env(delim1=":param", delim2=":", hd="", tb=12)
+    def test_description(self):
+        lp.set_env(delim1=":param", delim2=":", hd="", tb=12)
 
-#         def func(x, y):
-#             return x * y
+        def func(x, y):
+            return x * y
 
-#         parser = lp.Lazyparser(func, {}, {})
-#         assert parser.description() == ""
-#         parser.func.__doc__ = """Multiply x by y
+        parser = lp.Lazyparser(func, {})
+        self.assertEqual(parser.description(), "")
+        parser.func.__doc__ = """Multiply x by y
 
-#             Take two number and multiply them.
-#             @Keyword
-#             :param x: (int) a number x
-#             :param y: (int) a number y"""
-#         desc = "Multiply x by yTake two number and multiply them.@Keyword"
-#         assert parser.description().replace("\n", "") == desc
-#         lp.set_env(delim1="", delim2=":", hd="@Keyword", tb=12)
-#         desc = """Multiply x by yTake two number and multiply them."""
-#         assert parser.description().replace("\n", "") == desc
+            Take two number and multiply them.
+            @Keyword
+            :param x: (int) a number x
+            :param y: (int) a number y"""
+        desc = "Multiply x by yTake two number and multiply them.@Keyword"
+        self.assertEqual(parser.description().replace("\n", ""), desc)
+        lp.set_env(delim1="", delim2=":", hd="@Keyword", tb=12)
+        desc = """Multiply x by yTake two number and multiply them."""
+        self.assertEqual(parser.description().replace("\n", ""), desc)
 
-#     def test_update_type(self):
-#         def func(x, y):
-#             return x * y
+    def test_update_param(self):
+        lp.set_env(tb=12)
 
-#         parser = lp.Lazyparser(func, {}, {})
-#         assert parser.args["x"].type == inspect._empty
-#         parser.update_type("x", ["qsfuhg", "srighdo", "()"])
-#         assert parser.args["x"].type == inspect._empty
-#         parser.update_type("x", ["(int)"])
-#         print(parser.args["x"].type)
-#         assert parser.args["x"].type == int
-#         parser.update_type("x", ["qsfuhg", "srighdo", "(str)", "(float)"])
-#         assert parser.args["x"].type == str
+        def func(x, y):
+            return x * y
 
-#     def test_update_param(self):
-#         lp.set_env(tb=12)
+        parser = lp.Lazyparser(func, {})
+        parser.func.__doc__ = """Multiply x by y
 
-#         def func(x, y):
-#             return x * y
+            Take two number and multiply them.
 
-#         parser = lp.Lazyparser(func, {}, {})
-#         parser.func.__doc__ = """Multiply x by y
+            :param x: a number x
+            :param y: a number y"""
+        self.assertEqual(parser.args["x"].help, "param x")
+        parser.update_param()
+        self.assertEqual(parser.args["x"].help, "a number x")
+        self.assertEqual(parser.args["y"].help, "a number y")
+        lp.set_env(delim1="", tb=12)
 
-#             Take two number and multiply them.
+    def test_update_param2(self):
+        lp.set_env(tb=12)
 
-#             :param x: (int) a number x
-#             :param y: (int) a number y"""
-#         assert parser.args["x"].help == "param x"
-#         assert parser.args["y"].type == inspect._empty
-#         parser.update_param()
-#         assert parser.args["x"].help == "a number x"
-#         assert parser.args["y"].help == "a number y"
-#         assert parser.args["x"].type == int
-#         assert parser.args["y"].type == int
-#         lp.set_env(delim1="", tb=12)
+        def func(x):
+            return x
 
-#         def func(x, y):
-#             return x * y
+        parser = lp.Lazyparser(func, {})
+        parser.func.__doc__ = """Multiply x by y
 
-#         parser = lp.Lazyparser(func, {}, {})
-#         parser.func.__doc__ = """Multiply x by y
+            Take one number and return it.
 
-#             Take two number and multiply them.
+            :param x: a number x with \
+            a super long description
+            """
+        self.assertEqual(parser.args["x"].help, "param x")
+        parser.update_param()
+        self.assertEqual(
+            parser.args["x"].help, "a number x with a super long description"
+        )
+        lp.set_env(delim1="", tb=12)
 
-#             x: (int) a number : x
-#             y: (int) a number : y"""
-#         parser.update_param()
-#         assert parser.args["x"].help == "a number : x"
-#         assert parser.args["y"].help == "a number : y"
-#         assert parser.args["x"].type == int
-#         assert parser.args["y"].type == int
-
-#     def test_set_filled(self):
-#         lp.set_env()
-
-#         def func(x):
-#             return x * 2
-
-#         parser = lp.Lazyparser(func, {}, {})
-#         parser.set_filled(const="lolipop")
-#         assert parser.args["x"].const == "$$void$$"
-#         parser.args["x"].type = int
-#         self.assertRaises(SystemExit, parser.set_filled, const={"x": 7})
-#         parser.args["x"].default = 3
-#         parser.set_filled(const={"x": 7})
-#         assert parser.args["x"].const == 7
-#         parser.args["x"].type = float
-#         self.assertRaises(SystemExit, parser.set_filled, const={"x": "b"})
-#         parser.args["x"].default = "lul"
-#         self.assertRaises(SystemExit, parser.set_filled, const={"x": 7})
-#         parser.args["x"].default = 6
-#         parser.args["x"].type = List
-#         self.assertRaises(SystemExit, parser.set_filled, const={"x": "bloup"})
-#         self.assertRaises(
-#             SystemExit, parser.set_filled, const={"x": (1, 2, 3)}
-#         )
-#         parser.args["x"].type = FileType
-#         self.assertRaises(SystemExit, parser.set_filled, const={"x": "bb"})
-
-#         class Lol:
-#             pass
-
-#         parser.args["x"].type = Lol
-#         self.assertRaises(SystemExit, parser.set_filled, const={"x": "bb"})
-#         parser.args["x"].type = int
-#         self.assertRaises(SystemExit, parser.set_filled, const={"x": "foo"})
-#         parser.args["x"].default = "bar"
-#         self.assertRaises(SystemExit, parser.set_filled, const={"x": 7})
 
 #     def test_set_constrain(self):
 #         lp.set_env()
@@ -344,19 +287,3 @@ class TestArgument(unittest.TestCase):
 #         assert parser.args["x"].choice == " x > 5 "
 #         parser.set_constrain({"x": 5})
 #         assert parser.args["x"].choice == 5
-
-#     def test_get_order(self):
-#         lp.set_groups()
-#         lp.set_env()
-
-#         def func(v, w, x, y, z):
-#             return v + w + x + y + z
-
-#         parser = lp.Lazyparser(func, {}, {})
-#         assert parser.get_order() == parser.order
-#         lp.grp_order = ["Foo", "Optional arguments"]
-#         self.assertRaises(SystemExit, parser.get_order)
-#         lp.groups = {"Foo": ["v", "w", "x"]}
-#         lp.lpg_name = {"Foo": "Foo"}
-#         parser = lp.Lazyparser(func, {}, {})
-#         assert parser.get_order() == ["v", "w", "x", "help", "y", "z"]
