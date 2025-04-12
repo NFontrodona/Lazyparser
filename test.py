@@ -296,3 +296,4 @@ class TestLazyparser(unittest.TestCase):
         self.assertEqual(
             type(parser.args["x"].type), type(click.IntRange(5, 10))
         )
+        self.assertRaises(SystemExit, parser.set_constrain, {"x": tuple[int]})
