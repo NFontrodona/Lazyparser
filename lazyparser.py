@@ -403,7 +403,7 @@ class Lazyparser(object):
 
     def update_param(self):
         """
-        Update if needed the type and the help of every args.
+        Update if needed the help of every args.
         """
         if self.func.__doc__:
             doc = filter(
