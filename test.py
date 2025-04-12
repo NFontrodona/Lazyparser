@@ -7,6 +7,7 @@ Description:
     Make unit test on lazyparser function and method.
 """
 
+import inspect
 import unittest
 
 import rich_click as click
@@ -46,18 +47,18 @@ class TestFunction(unittest.TestCase):
 
     def test_handled_type(self):
         for o in ["s", "m"]:
-            assert lp.handled_type(str, o)
-            assert lp.handled_type(int, o)
-            assert lp.handled_type(float, o)
-            assert not lp.handled_type(854, o)
-            assert not lp.handled_type("blip", o)
-            assert not lp.handled_type(sum, o)
-            assert not lp.handled_type(list, o)
-        assert lp.handled_type(tuple)
-        assert lp.handled_type(bool)
-        assert lp.handled_type(click.BOOL)
-        assert lp.handled_type(click.Tuple([int, float]))
-        assert lp.handled_type(click.Path(exists=True))
+            self.assertTrue(lp.handled_type(str, o))
+            self.assertTrue(lp.handled_type(int, o))
+            self.assertTrue(lp.handled_type(float, o))
+            self.assertFalse(lp.handled_type(854, o))
+            self.assertFalse(lp.handled_type("blip", o))
+            self.assertFalse(lp.handled_type(sum, o))
+            self.assertFalse(lp.handled_type(list, o))
+        self.assertTrue(lp.handled_type(tuple))
+        self.assertTrue(lp.handled_type(bool))
+        self.assertFalse(lp.handled_type(click.BOOL))
+        self.assertFalse(lp.handled_type(click.Tuple([int, float])))
+        self.assertFalse(lp.handled_type(click.Path(exists=True)))
 
     def test_message(self):
         arg = lp.Argument("t", 2, int)
@@ -83,11 +84,11 @@ class TestFunction(unittest.TestCase):
                  :param z: (int) a number z"""
 
         func.__doc__ = doc
-        myparser = lp.Lazyparser(func, {"z": 10}, {})
+        myparser = lp.Lazyparser(func, {})
         parser = lp.init_parser(myparser, func)
         self.assertEqual(type(parser), RichCommand)
         self.assertEqual(
-            parser.__doc__.split("\n"), # type: ignore
+            parser.__doc__.split("\n"),  # type: ignore
             [
                 "Multiply x by y and add z",
                 "",
@@ -117,89 +118,65 @@ class TestFunction(unittest.TestCase):
     #     assert res == 7 * 8
 
 
-# class TestArgument(unittest.TestCase):
-#     def test_get_type(self):
-#         arg = lp.Argument("lol", 7, int)
-#         assert arg.get_type() == int
-#         arg = lp.Argument("lol", 7, List(vtype=int))
-#         assert arg.get_type() == List
+class TestArgument(unittest.TestCase):
+    def test_get_type(self):
+        arg = lp.Argument("lol", 7, int)
+        self.assertEqual(arg.get_type(), int)
+        arg = lp.Argument("lol", 7, tuple[int, ...])
+        self.assertEqual(arg.get_type(), type(tuple[int, ...]))
 
-#     def test_set_type(self):
-#         class Lol:
-#             pass
+    def test_set_type(self):
+        class Lol:
+            pass
 
-#         arg = lp.Argument("lol", 7, int)
-#         assert arg.set_type(int) == int
-#         assert arg.set_type(inspect._empty) == inspect._empty
-#         self.assertRaises(SystemExit, arg.set_type, "bloup")
-#         self.assertRaises(SystemExit, arg.set_type, Lol)
-#         self.assertRaises(SystemExit, arg.set_type, List(vtype=Lol))
+        arg = lp.Argument("lol", 7, int)
+        self.assertEqual(arg.set_type(int), int)
+        self.assertEqual(arg.set_type(inspect._empty), inspect._empty)
+        self.assertRaises(SystemExit, arg.set_type, "bloup")
+        self.assertRaises(SystemExit, arg.set_type, Lol)
+        self.assertRaises(SystemExit, arg.set_type, list)
 
-#     def test_gfn(self):
-#         arg = lp.Argument("lol", 7, int)
-#         assert arg.gfn() == "--lol"
-#         arg.short_name = "l"
-#         assert arg.gfn() == "-l/--lol"
+    def test_gfn(self):
+        arg = lp.Argument("lol", 7, int)
+        self.assertEqual(arg.gfn(), "'[bold cyan]--lol[/bold cyan]'")
+        arg.short_name = "l"
+        n = (
+            "'[bold cyan]--lol[/bold cyan]' "
+            + "/ '[bold green]-l[/bold green]'"
+        )
+        self.assertEqual(arg.gfn(), n)
 
-#     def test_argparse_type(self):
-#         arg = lp.Argument("lol", 7, bool)
-#         assert arg.click_type() == str
-#         arg = lp.Argument("lol", 7, List(vtype=int))
-#         assert arg.click_type() == int
-#         arg = lp.Argument("lol", 7, List(vtype=bool))
-#         assert arg.click_type() == str
-#         arg = lp.Argument("lol", 7, List(vtype=float))
-#         assert arg.click_type() == float
-#         arg = lp.Argument("lol", 7, float)
-#         assert arg.click_type() == float
-#         arg = lp.Argument("lol", 7, int)
-#         assert arg.click_type() == int
+    def test_click_type(self):
+        arg = lp.Argument("lol", 7, bool)
+        self.assertEqual(arg.click_type(), click.BOOL)
+        arg = lp.Argument("lol", 7, tuple[int, ...])
+        self.assertEqual(arg.click_type(), int)
+        self.assertEqual(arg.multiple, True)
+        arg = lp.Argument("lol", 7, tuple[int, str])
+        self.assertEqual(type(arg.click_type()), type(click.Tuple([int, str])))
+        self.assertEqual(arg.click_type().types, click.Tuple([int, str]).types)
+        self.assertEqual(arg.multiple, False)
+        self.assertRaises(SystemExit, lp.Argument, "lol", 7, list)
+        arg = lp.Argument("lol", 7, float)
+        self.assertEqual(arg.click_type(), float)
 
-#     def test_argparse_narg(self):
-#         arg = lp.Argument("lol", 7, float)
-#         assert arg.click_narg() is None
-#         arg = lp.Argument("lol", 7, List(vtype=float))
-#         assert arg.click_narg() == "+"
-#         arg = lp.Argument("lol", 7, List(5, float))
-#         assert arg.click_narg() == 5
+    def test_click_narg(self):
+        arg = lp.Argument("lol", 7, float)
+        self.assertEqual(arg.click_narg(), None)
+        arg = lp.Argument("lol", 7, tuple[int, int])
+        self.assertEqual(arg.click_narg(), 2)
+        arg = lp.Argument("lol", 7, tuple[int, ...])
+        self.assertEqual(arg.click_narg(), 1)
 
-#     def test_argparse_metavar(self):
-#         arg = lp.Argument("lol", 7, List(vtype=int))
-#         assert arg.argparse_metavar() == "List[int]"
-#         arg = lp.Argument("lol", 7, List(size=5, vtype=int))
-#         assert arg.argparse_metavar() == "List[5,int]"
-#         arg = lp.Argument("lol", 7, float)
-#         assert arg.argparse_metavar() == "float"
-
-#     def test_argparse_choice(self):
-#         def foo(x):
-#             return x * 2
-
-#         arg = lp.Argument("lol", 7, List(vtype=str))
-#         assert arg.argparse_choice() is None
-#         arg.choice = "test"
-#         assert arg.argparse_choice() is None
-#         arg.choice = True
-#         assert arg.argparse_choice() == "True"
-#         arg.choice = [1, "foo", True]
-#         assert arg.argparse_choice() == [1, "foo", "True"]
-#         arg.choice = [1, "foo", foo]
-#         self.assertRaises(SystemExit, arg.argparse_choice)
-#         arg.choice = foo
-#         self.assertRaises(SystemExit, arg.argparse_choice)
-#         arg.choice = 5
-#         assert arg.argparse_choice() == 5
-
-#     def test_get_parser_group(self):
-#         arg = lp.Argument("lol", inspect._empty, int)
-#         assert arg.get_parser_group() == ["__rarg__", lp.required_title]
-#         arg = lp.Argument("lol", 6, int)
-#         assert arg.get_parser_group() == ["__parser__", lp.optionals_title]
-#         lp.groups = {"foo": ["lol", "help"]}
-#         lp.lpg_name = {"foo": "bar"}
-#         assert arg.get_parser_group() == ["__parser__", "foo"]
-#         lp.groups = {"foo": ["lol"]}
-#         assert arg.get_parser_group() == ["bar", "foo"]
+    def test_get_parser_group(self):
+        arg = lp.Argument("lol", inspect._empty, int)
+        self.assertEqual(arg.get_parser_group(), "Required arguments")
+        arg = lp.Argument("lol", 6, int)
+        self.assertEqual(arg.get_parser_group(), "Optional arguments")
+        lp.groups = {"foo": ["lol", "help"]}
+        self.assertEqual(arg.get_parser_group(), "foo")
+        lp.groups = {"foo": ["lol"]}
+        self.assertEqual(arg.get_parser_group(), "foo")
 
 
 # class TestLazyparser(unittest.TestCase):
