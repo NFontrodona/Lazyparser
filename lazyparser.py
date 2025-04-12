@@ -30,7 +30,6 @@ import re
 import sys
 import types
 from collections.abc import Callable
-from typing import Any
 
 import rich_click as click
 from rich import print as rprint
@@ -72,6 +71,7 @@ def handled_type(atype, htype="m"):
         return True
     else:
         return False
+
 
 def is_click_type(atype):
     """
@@ -242,12 +242,11 @@ class Lazyparser(object):
     Lazyparser class.
     """
 
-    def __init__(self, function, const, click_type):
+    def __init__(self, function, click_type):
         """
         Initialization with a function.
 
         :param function: (function) a function
-        :param const: (dictionary) param that don't need to be filled.
         :param choice: (dictionary) the click dtype
         """
         self.func = function
@@ -357,20 +356,34 @@ class Lazyparser(object):
         for marg in click_type.keys():
             if marg in self.args.keys():
                 if is_click_type(click_type[marg]):
-                    if ((isinstance(click_type[marg], click.IntRange) and
-                            self.args[marg].type != int) or
-                        (isinstance(click_type[marg], click.FloatRange) and
-                            self.args[marg].type != float) or
-                        (isinstance(click_type[marg], click.Choice) and
-                            self.args[marg].type != str)):
+                    if (
+                        (
+                            isinstance(click_type[marg], click.IntRange)
+                            and self.args[marg].type != int
+                        )
+                        or (
+                            isinstance(click_type[marg], click.FloatRange)
+                            and self.args[marg].type != float
+                        )
+                        or (
+                            isinstance(click_type[marg], click.Choice)
+                            and self.args[marg].type != str
+                        )
+                    ):
                         message(
-                            f"click type {click_type[marg]} incompatible " +
-                            f"with {self.args[marg].type}, " +
-                            "click type will be applied", self.args[marg], "w")
+                            f"click type {click_type[marg]} incompatible "
+                            + f"with {self.args[marg].type}, "
+                            + "click type will be applied",
+                            self.args[marg],
+                            "w",
+                        )
                     self.args[marg].type = click_type[marg]
                 else:
-                    message(f"Unknown click type {click_type[marg]}",
-                        self.args[marg], "e")
+                    message(
+                        f"Unknown click type {click_type[marg]}",
+                        self.args[marg],
+                        "e",
+                    )
                     exit(1)
 
     def create_click_group(self):
@@ -565,7 +578,7 @@ def add_option(option: Argument, func: Callable) -> Callable:
         kwargs["show_default"] = True
     func = click.option(
         *args,
-        **kwargs, # type: ignore
+        **kwargs,  # type: ignore
     )(func)
 
     return func
@@ -621,12 +634,11 @@ def message(
         )
 
 
-def parse(func=None, const=None, **kwargs) -> Callable[[], Any]:
+def parse(func=None, **kwargs):
     """
     Create the parser.
 
     :param func: (function) the function of interest
-    :param const: (dictionary) the params that don't need a value to fill.
     :param kwargs: (dictionary) the named arguments
     :return: (function) wrap
     """
@@ -640,13 +652,13 @@ def parse(func=None, const=None, **kwargs) -> Callable[[], Any]:
         """
 
         @functools.wraps(function)
-        def call_func(mfilled=const):
+        def call_func():
             """
             Call the function ``self.func`` and return it's result.
 
             :return: the result of the function ``self.func``
             """
-            lazyparser = Lazyparser(function, mfilled, kwargs)
+            lazyparser = Lazyparser(function, kwargs)
             func = init_parser(lazyparser, function)
             return func()
 
@@ -663,5 +675,5 @@ def parse(func=None, const=None, **kwargs) -> Callable[[], Any]:
             """
             return wrap(function)
 
-        return decore_call # type: ignore
+        return decore_call  # type: ignore
     return wrap(func)
