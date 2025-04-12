@@ -97,25 +97,31 @@ class TestFunction(unittest.TestCase):
             ],
         )
 
-    # def test_parse(self):
-    #     lp.set_env(tb=12)
+    def test_parse(self):
+        lp.set_env(tb=12)
 
-    #     @lp.parse
-    #     def multiply(x: int, y: int):
-    #         """
-    #         Multiply a by b.
+        @lp.parse()
+        def multiply(x: int, y: int):
+            """
+            Multiply a by b.
 
-    #         :param x: a number x
-    #         :param y: a number y
-    #         :return: x * y
-    #         """
-    #         return x * y
+            :param x: a number x
+            :param y: a number y
+            :return: x * y
+            """
+            return x * y
 
-    #     sys.argv = [sys.argv[0]]
-    #     for word in "-x 7 -y 8".split():
-    #         sys.argv.append(word)
-    #     res = multiply().main(standalone_mode=True)
-    #     assert res == 7 * 8
+        import sys
+
+        sys.argv = ["xx", "-x", "7", "-y", "8"]
+        self.assertRaises(SystemExit, multiply)
+
+    def test_is_click_type(self):
+        self.assertFalse(lp.is_click_type(str))
+        self.assertFalse(lp.is_click_type(tuple))
+        self.assertTrue(lp.is_click_type(click.Path))
+        self.assertTrue(lp.is_click_type(click.Path(exists=True)))
+        self.assertTrue(lp.is_click_type(click.Path(exists=True)))
 
 
 class TestArgument(unittest.TestCase):
@@ -135,6 +141,12 @@ class TestArgument(unittest.TestCase):
         self.assertRaises(SystemExit, arg.set_type, "bloup")
         self.assertRaises(SystemExit, arg.set_type, Lol)
         self.assertRaises(SystemExit, arg.set_type, list)
+        arg = lp.Argument("lol", inspect._empty, arg_type=bool)
+        arg.set_type(bool)
+        self.assertEqual(arg.default, False)
+        arg = lp.Argument("lol", (7, "lol"), tuple[int, str])
+        self.assertEqual(arg.set_type(tuple[int, str]), tuple[int, str])
+        self.assertRaises(SystemExit, arg.set_type, tuple[list, str])
 
     def test_gfn(self):
         arg = lp.Argument("lol", 7, int)
@@ -272,18 +284,15 @@ class TestLazyparser(unittest.TestCase):
         )
         lp.set_env(delim1="", tb=12)
 
+    def test_set_constrain(self):
+        lp.set_env()
 
-#     def test_set_constrain(self):
-#         lp.set_env()
+        def func(x: int):
+            return x * 2
 
-#         def func(x):
-#             return x * 2
-
-#         parser = lp.Lazyparser(func, {}, {})
-#         assert parser.args["x"].choice is None
-#         parser.set_constrain({"x": "file"})
-#         assert parser.args["x"].choice == "file"
-#         parser.set_constrain({"x": "x > 5"})
-#         assert parser.args["x"].choice == " x > 5 "
-#         parser.set_constrain({"x": 5})
-#         assert parser.args["x"].choice == 5
+        parser = lp.Lazyparser(func, {})
+        self.assertEqual(parser.args["x"].type, int)
+        parser.set_constrain({"x": click.IntRange(5, 10)})
+        self.assertEqual(
+            type(parser.args["x"].type), type(click.IntRange(5, 10))
+        )
