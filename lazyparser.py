@@ -250,7 +250,7 @@ class Lazyparser(object):
         :param choice: (dictionary) the click dtype
         """
         self.func = function
-        self.args, self.order = self.init_args()
+        self.args = self.init_args()
         self.help = self.description()
         self.update_param()
         self.get_short_name()
@@ -266,11 +266,7 @@ class Lazyparser(object):
         :param parser: (Lazyparser object)
         :return: (bool)
         """
-        return (
-            self.args == parser.args
-            and self.order == parser.order
-            and self.help == parser.help
-        )
+        return self.args == parser.args and self.help == parser.help
 
     def init_args(self):
         """
@@ -289,7 +285,7 @@ class Lazyparser(object):
                 for k in sign.keys()
             }
             tmp = {"help": Argument("help", "help", str)}
-            return tmp | dic_args, list(sign.keys())
+            return tmp | dic_args
         else:
             msg = (
                 "argument conflict, help argument cannot be set in"
