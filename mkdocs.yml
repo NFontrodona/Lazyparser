@@ -1,0 +1,30 @@
+site_name: Lazyparser
+
+theme:
+  name: material
+  logo: images/IliBade.SVG
+  flavicon: images/IliBade.SVG
+  features:
+    - navigation.tabs
+    - toc.integrate
+    - navigation.footer
+    - content.code.copy
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - index.md
+  - Documentation:
+      - Principle: documentation/principle.md
+      - Usage: documentation/usage.md
+  - Reference:
+      - reference/index.md
+
+plugins:
+  - search
+  - mkdocstrings
