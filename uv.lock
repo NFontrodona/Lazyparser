@@ -218,23 +218,23 @@ dependencies = [
     { name = "rich-click" },
 ]
 
-[package.optional-dependencies]
-docs = [
+[package.dev-dependencies]
+dev = [
     { name = "mkdocs-material" },
     { name = "mkdocstrings-python" },
-]
-test = [
     { name = "pytest" },
     { name = "pytest-cov" },
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.6.11" },
-    { name = "mkdocstrings-python", marker = "extra == 'docs'", specifier = ">=1.16.10" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=8.3.5" },
-    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=6.1.1" },
-    { name = "rich-click", specifier = ">=1.8.8" },
+requires-dist = [{ name = "rich-click", specifier = ">=1.8.8" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "mkdocs-material", specifier = ">=9.6.11" },
+    { name = "mkdocstrings-python", specifier = ">=1.16.10" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-cov", specifier = ">=6.1.1" },
 ]
 
 [[package]]
