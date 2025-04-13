@@ -63,7 +63,9 @@ class TestFunction(unittest.TestCase):
     def test_message(self):
         arg = lp.Argument("t", 2, int)
         self.assertEqual(None, lp.message("Hello  world", arg, type_m=None))
-        self.assertEqual(None, lp.message("Hello  world", arg, type_m="e"))
+        self.assertRaises(
+            SystemExit, lp.message, "Hello  world", arg, type_m="e"
+        )
         self.assertEqual(None, lp.message("Hello  world", arg, type_m="w"))
 
     def test_set_data(self):
