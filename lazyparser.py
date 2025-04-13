@@ -636,7 +636,9 @@ def message(
         exit(1)
 
 
-def parse(func=None, **kwargs) -> Callable[[], Any]:
+def parse(
+    func: Callable | None = None, **kwargs
+) -> Callable[..., Callable[[], Any]]:
     """
     Create the parser.
 
@@ -645,7 +647,7 @@ def parse(func=None, **kwargs) -> Callable[[], Any]:
     :return: (function) wrap
     """
 
-    def wrap(function):
+    def wrap(function: Callable) -> Callable[[], Any]:
         """
         Wrapper of the function ``function``.
 
@@ -654,7 +656,7 @@ def parse(func=None, **kwargs) -> Callable[[], Any]:
         """
 
         @functools.wraps(function)
-        def call_func():
+        def call_func(*args, **kw):
             """
             Call the function ``self.func`` and return it's result.
 
@@ -662,20 +664,10 @@ def parse(func=None, **kwargs) -> Callable[[], Any]:
             """
             lazyparser = Lazyparser(function, kwargs)
             func = init_parser(lazyparser, function)
-            return func()
+            return func(*args, **kw)
 
         return call_func
 
     if func is None:
-
-        def decore_call(function):
-            """
-            Decorate wrap function.
-
-            :param function: (function) the function to wrap
-            :return: (function) call_func
-            """
-            return wrap(function)
-
-        return decore_call  # type: ignore
+        return wrap
     return wrap(func)
