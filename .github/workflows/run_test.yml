@@ -23,4 +23,4 @@ jobs:
         run: uv sync
 
       - name: Run tests and coverage
-        run: python -m pytest --cov --cov-report json
+        run: uv run pytest --cov --cov-report json test.py
