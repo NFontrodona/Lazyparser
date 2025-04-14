@@ -73,12 +73,11 @@ def multiplication(a: float, b: float):
     :param a: a number a
     :param b: a number b
     """
-    return a * b
+    print(a * b)
 
 
 if __name__ == "__main__":
-    v = multiplication()
-    print(v)
+    multiplication()
 ```
 
 Then, you can display the help of `example.py` by typing:
@@ -116,7 +115,7 @@ def multiplication(a: float, b: float = 5):
     :param a: a number a
     :param b: a number b
     """
-    return a * b
+    print(a * b)
 # same as above
 ```
 
@@ -133,6 +132,65 @@ Multiply a by b
 ╭─ Required arguments ───────────────────────────────────────────────╮
 │ *  --a  -a  FLOAT  a number a [required]                           │
 ╰────────────────────────────────────────────────────────────────────╯
+```
+
+## standalone mode
+
+By default the standalone mode is enabled, this means that nothing can be executed after the call of the decorated function, for example this code won't print anything:
+
+``` python
+import lazyparser as lp
+
+@lp.parse
+def multiplication(a: float, b: float):
+    """Multiply a by b
+
+    :param a: a number a
+    :param b: a number b
+    """
+    print("starting")
+    return a * b
+
+
+if __name__ == "__main__":
+    v = multiplication() # noting executed after this
+    print(v)
+```
+
+``` Bash
+$ python example.py -a 5 -b 10
+starting
+```
+
+To make the code continue, you can disable the click standalone mode by using `lp.set_standalone_mode(False)`
+
+Example:
+
+``` python
+import lazyparser as lp
+
+lp.set_standalone_mode(False)
+
+@lp.parse
+def multiplication(a: float, b: float):
+    """Multiply a by b
+
+    :param a: a number a
+    :param b: a number b
+    """
+    print("starting")
+    return a * b
+
+
+if __name__ == "__main__":
+    v = multiplication() # noting executed after this
+    print(v)
+```
+
+``` Bash
+$ python example.py -a 5 -b 10
+starting
+50.0
 ```
 
 ## Customize the docstring environment
