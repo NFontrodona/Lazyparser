@@ -1,3 +1,5 @@
+![Tests](https://github.com/NFontrodona/Lazyparser/actions/workflows/run_test.yml/badge.svg)
+
 
 # Lazyparser
 
