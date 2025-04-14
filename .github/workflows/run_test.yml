@@ -25,4 +25,10 @@ jobs:
         run: uv sync
 
       - name: Run tests and coverage
-        run: uv run pytest --cov --cov-report json test.py
+        run: run pytest test.py --cov-report=xml --cov=lazyparser --cov-branch
+
+      - name: Upload coverage to Codecov
+        if: ${{ matrix.python-version }} == '3.11'
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
