@@ -101,6 +101,7 @@ class TestFunction(unittest.TestCase):
 
     def test_parse(self):
         lp.set_env(tb=12)
+        lp.set_standalone_mode(False)
 
         @lp.parse()
         def multiply(x: int, y: int):
@@ -116,7 +117,7 @@ class TestFunction(unittest.TestCase):
         import sys
 
         sys.argv = ["xx", "-x", "7", "-y", "8"]
-        self.assertRaises(SystemExit, multiply)
+        self.assertEqual(multiply(), 7 * 8)
 
     def test_is_click_type(self):
         self.assertFalse(lp.is_click_type(str))
