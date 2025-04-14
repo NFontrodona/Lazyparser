@@ -1,4 +1,5 @@
 ![Tests](https://github.com/NFontrodona/Lazyparser/actions/workflows/run_test.yml/badge.svg)
+[![codecov](https://codecov.io/gh/NFontrodona/Lazyparser/graph/badge.svg?token=Q7J5ROFI15)](https://codecov.io/gh/NFontrodona/Lazyparser)
 
 
 # Lazyparser
