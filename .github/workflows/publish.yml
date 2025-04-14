@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypipublish
-      # url: https://pypi.org/p/lazyparser
+      url: https://pypi.org/p/lazyparser
     permissions:
       id-token: write # IMPORTANT: mandatory for trusted publishing
 
@@ -80,7 +80,5 @@ jobs:
         with:
           name: python-package-distributions
           path: dist/
-      - name: Publish package distributions to TestPyPI
+      - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
