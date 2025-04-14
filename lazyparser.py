@@ -44,6 +44,7 @@ __all__ = ("set_env", "set_epilog", "set_groups", "parse")
 # sets the docstring environment
 pd1 = ":param"  # param delimiter 1
 pd2 = ":"  # param delimiter 2
+std_mode = True  # Boolean indicating if the standalone mode is enabled
 header = ""  # header of arguments
 tab = 4  # number of spaces composing tabulations
 epi = None  # epilog for the parser
@@ -430,6 +431,17 @@ class Lazyparser(object):
                     )
 
 
+def set_standalone_mode(standalone_mode: bool = True):
+    """
+    change the standalone mode
+
+    :param standalone_mode: True to enable the standalone mode false else
+    """
+    if isinstance(standalone_mode, bool):
+        global std_mode
+        std_mode = standalone_mode
+
+
 def set_env(delim1=":param", delim2=":", hd="", tb=4):
     """
     Change the param delimiters.
@@ -598,7 +610,10 @@ def init_parser(lp: Lazyparser, func: Callable):
         if arg != "help":
             func = add_option(lp.args[arg], func)
     lp.create_click_group()
-    func = click.command(epilog=epi)(func)
+    if std_mode:
+        func = click.command(epilog=epi)(func)
+    else:
+        func = click.command(epilog=epi)(func).main(standalone_mode=False)
     return func
 
 
@@ -664,7 +679,10 @@ def parse(
             """
             lazyparser = Lazyparser(function, kwargs)
             func = init_parser(lazyparser, function)
-            return func(*args, **kw)
+            if std_mode:
+                return func(*args, **kw)
+            else:
+                return func
 
         return call_func
 
