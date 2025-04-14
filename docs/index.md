@@ -11,7 +11,7 @@ It is compatible with ``python 3.11`` or higher.
 
 ## Documentation
 
-The documentation is available on <https://nfontrodona.github.io/Lazyparser/lazyparser.html>.
+The documentation is available on <https://nfontrodona.github.io/Lazyparser/>.
 The documentation was created with [material for mkdocs](https://squidfunk.github.io/mkdocs-material/).
 To build the documentation, clone the project repository, and run :
 
