@@ -236,11 +236,10 @@ def multiplication(a: float, b: float):
          a : a number a
          b : a number b
     """
-    return a * b
+    print(a * b)
 
 if __name__ == "__main__":
-    v = multiplication()
-    print(v)
+    multiplication()
 ```
 
 ## Type of parameters
@@ -275,8 +274,7 @@ def print_value(a: tuple[int]):
 
 
 if __name__ == "__main__":
-    v = print_value()
-    print(v)
+    print_value()
 ```
 
 Defining a tuple with an elipsis as the second type `tuple[int, ...]` allows you to give as many data as you by repeating `-a` in the command line interface. Here is an example:
