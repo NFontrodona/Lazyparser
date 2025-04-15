@@ -65,7 +65,6 @@ jobs:
   publish-to-pypi:
     name: Publish Python distribution to PyPI
     needs:
-      - deploy
       - build
     runs-on: ubuntu-latest
     environment:
