@@ -136,7 +136,7 @@ Multiply a by b
 
 ## standalone mode
 
-By default the standalone mode is enabled, this means that nothing can be executed after the call of the decorated function, for example this code won't print anything:
+By default the standalone mode is enabled, this means that nothing can be executed after the call of the decorated function, for example this code won't print anything after "starting":
 
 ``` python
 import lazyparser as lp
@@ -153,7 +153,7 @@ def multiplication(a: float, b: float):
 
 
 if __name__ == "__main__":
-    v = multiplication() # noting executed after this
+    v = multiplication() # nothing executed after this
     print(v)
 ```
 
