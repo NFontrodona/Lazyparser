@@ -492,4 +492,4 @@ $ python example.py --version
 example.py, version 1.0
 ```
 
-Nothe that you're function cannot contain a parameter named `version` anymore.
+Nothe that your function cannot contain a parameter named `version` anymore.
