@@ -49,18 +49,18 @@ __all__ = (
 
 #####################################
 # sets the docstring environment
-pd1 = ":param"  # param delimiter 1
-pd2 = ":"  # param delimiter 2
-std_mode = True  # Boolean indicating if the standalone mode is enabled
-header = ""  # header of arguments
-tab = 4  # number of spaces composing tabulations
-epi = None  # epilog for the parser
-groups = {}  # the groups of arguments
-lpg_name = {}  # the name of the parser used
-prog_version = None  # The version of program where lazyparser is used
-forbidden = ["help", "h"]
-optionals_title = "Optional arguments"
-required_title = "Required arguments"
+PD1 = ":param"  # param delimiter 1
+PD2 = ":"  # param delimiter 2
+STD_MODE = True  # Boolean indicating if the standalone mode is enabled
+HEADER = ""  # header of arguments
+TAB = 4  # number of spaces composing tabulations
+EPI = None  # epilog for the parser
+GROUPS = {}  # the groups of arguments
+LPG_NAME = {}  # the name of the parser used
+PROG_VERSION = None  # The version of program where lazyparser is used
+FORBIDDEN = ["help", "h"]
+OPTIONAL_TITLE = "Optional arguments"
+REQUIRED_TITLE = "Required arguments"
 ######################################
 
 
@@ -238,16 +238,16 @@ class Argument(object):
 
         :return: the name of the group
         """
-        for key in groups.keys():
-            if self.name in groups[key]:
-                if "help" in groups[key]:
+        for key in GROUPS.keys():
+            if self.name in GROUPS[key]:
+                if "help" in GROUPS[key]:
                     return key
                 else:
                     return key
         if self.default == inspect._empty:
-            return required_title
+            return REQUIRED_TITLE
         else:
-            return optionals_title
+            return OPTIONAL_TITLE
 
 
 class Lazyparser(object):
@@ -286,8 +286,8 @@ class Lazyparser(object):
         Initiate the creation the argument of interest.
         """
         sign = inspect.signature(self.func).parameters
-        if any([x in sign.keys() for x in forbidden]):
-            bad = [x for x in forbidden if x in sign.keys()]
+        if any([x in sign.keys() for x in FORBIDDEN]):
+            bad = [x for x in FORBIDDEN if x in sign.keys()]
             msg = (
                 f"argument conflict, {bad} argument(s) cannot be set in"
                 + " the parsed function"
@@ -306,7 +306,7 @@ class Lazyparser(object):
                 for k in sign.keys()
             }
             tmp = {"help": Argument("help", "help", str)}
-            if prog_version:
+            if PROG_VERSION:
                 tmp["version"] = Argument("version", "version", str)
             return tmp | dic_args
 
@@ -322,19 +322,19 @@ class Lazyparser(object):
             description = ""
             doc = iter(re.split("[\n\r]", self.func.__doc__))
             doc = itertools.dropwhile(lambda x: x == "", doc)
-            if pd1 == "":
-                delim = pd2
+            if PD1 == "":
+                delim = PD2
             else:
-                delim = pd1
-            if not header:
+                delim = PD1
+            if not HEADER:
                 doc = itertools.takewhile(lambda x: delim not in x, doc)
             else:
                 doc = itertools.takewhile(
-                    lambda x: delim not in x and header not in x, doc
+                    lambda x: delim not in x and HEADER not in x, doc
                 )
             for line in doc:
-                if line[0:tab].strip() == "":
-                    line = line[tab:]
+                if line[0:TAB].strip() == "":
+                    line = line[TAB:]
                 else:
                     line = line.lstrip()
                 if description:
@@ -402,8 +402,8 @@ class Lazyparser(object):
         """
         Create a click group for the parser.
         """
-        if groups:
-            dic_grp = {k: [] for k in groups}
+        if GROUPS:
+            dic_grp = {k: [] for k in GROUPS}
         else:
             dic_grp = {}
         for _, arg in self.args.items():
@@ -423,19 +423,19 @@ class Lazyparser(object):
         """
         if self.func.__doc__:
             doc = filter(
-                lambda x: pd1 in x and pd2 in x,
+                lambda x: PD1 in x and PD2 in x,
                 re.split("[\n\r]", self.func.__doc__),
             )
             for line in doc:
-                if pd1 != "":
-                    flt = list(filter(None, line.split(pd1)[1].split(pd2)))
+                if PD1 != "":
+                    flt = list(filter(None, line.split(PD1)[1].split(PD2)))
                 else:
-                    flt = list(filter(None, line.split(pd2)))
+                    flt = list(filter(None, line.split(PD2)))
                 flt = [word for word in flt]
                 flt[0] = flt[0].strip()
                 if flt[0] in self.args.keys():
                     if len(flt[1:]) > 1:
-                        flt_desc = pd2.join(flt[1:])
+                        flt_desc = PD2.join(flt[1:])
                     else:
                         flt_desc = flt[1]
                     self.args[flt[0]].help = re.sub(
@@ -450,8 +450,8 @@ def set_standalone_mode(standalone_mode: bool = True):
     :param standalone_mode: True to enable the standalone mode false else
     """
     if isinstance(standalone_mode, bool):
-        global std_mode
-        std_mode = standalone_mode
+        global STD_MODE
+        STD_MODE = standalone_mode
 
 
 def set_version(version: str | None = None):
@@ -461,9 +461,9 @@ def set_version(version: str | None = None):
     :param version: (str) the version of the program.
     """
     if isinstance(version, str):
-        global prog_version
-        prog_version = version
-        forbidden.append("version")
+        global PROG_VERSION
+        PROG_VERSION = version
+        FORBIDDEN.append("version")
 
 
 def set_env(delim1=":param", delim2=":", hd="", tb=4):
@@ -476,10 +476,10 @@ def set_env(delim1=":param", delim2=":", hd="", tb=4):
     :param tb: (int) the number of space/tab that bedore the docstring
     """
     if isinstance(tb, int):
-        global tab
-        tab = tb
+        global TAB
+        TAB = tb
     else:
-        tab = 4
+        TAB = 4
     args = [delim1, delim2, hd]
     if sum([not isinstance(a, str) for a in args]) > 0:
         message("delim1 and delim2 must be strings", None, "e")
@@ -493,12 +493,12 @@ def set_env(delim1=":param", delim2=":", hd="", tb=4):
         message("Bad delim2 definition", None, "e")
         exit(1)
     else:
-        global pd1
-        pd1 = delim1
-        global pd2
-        pd2 = delim2
-        global header
-        header = hd
+        global PD1
+        PD1 = delim1
+        global PD2
+        PD2 = delim2
+        global HEADER
+        HEADER = hd
 
 
 def set_epilog(epilog):
@@ -508,8 +508,8 @@ def set_epilog(epilog):
     :param epilog: (str) a parser epilog.
     """
     if isinstance(epilog, str):
-        global epi
-        epi = epilog
+        global EPI
+        EPI = epilog
 
 
 def set_groups(arg_groups=None):
@@ -547,12 +547,12 @@ def set_groups(arg_groups=None):
                 ) % key
                 message(msg, None, "e")
                 exit(1)
-    global groups
-    groups = arg_groups if arg_groups is not None else {}
-    global lpg_name
-    lpg_name = pname
-    global optionals_title
-    optionals_title = help_name
+    global GROUPS
+    GROUPS = arg_groups if arg_groups is not None else {}
+    global LPG_NAME
+    LPG_NAME = pname
+    global OPTIONAL_TITLE
+    OPTIONAL_TITLE = help_name
 
 
 def get_name(name, list_of_name, size=1):
@@ -631,16 +631,16 @@ def init_parser(lp: Lazyparser, func: Callable):
     """
     func.__doc__ = lp.description()
     for arg in lp.args:
-        if arg not in forbidden:
+        if arg not in FORBIDDEN:
             func = add_option(lp.args[arg], func)
     lp.create_click_group()
-    if prog_version:
-        func = click.version_option(prog_version)(func)
+    if PROG_VERSION:
+        func = click.version_option(PROG_VERSION)(func)
     func = click.help_option("-h", "--help")(func)
-    if std_mode:
-        func = click.command(epilog=epi)(func)
+    if STD_MODE:
+        func = click.command(epilog=EPI)(func)
     else:
-        func = click.command(epilog=epi)(func).main(standalone_mode=False)
+        func = click.command(epilog=EPI)(func).main(standalone_mode=False)
     return func
 
 
@@ -706,7 +706,7 @@ def parse(
             """
             lazyparser = Lazyparser(function, kwargs)
             func = init_parser(lazyparser, function)
-            if std_mode:
+            if STD_MODE:
                 return func(*args, **kw)
             else:
                 return func

@@ -27,7 +27,7 @@ class TestFunction(unittest.TestCase):
     def test_set_groups(self):
         self.assertRaises(SystemExit, lp.set_groups, {"**": ["b"]})
         lp.set_groups({"lol": ["b", "help"]})
-        assert lp.groups == {"lol": ["b", "help"]}
+        assert lp.GROUPS == {"lol": ["b", "help"]}
         self.assertRaises(
             SystemExit, lp.set_groups, {"lol": ["b"], "lol*": ["c"]}
         )
@@ -188,9 +188,9 @@ class TestArgument(unittest.TestCase):
         self.assertEqual(arg.get_parser_group(), "Required arguments")
         arg = lp.Argument("lol", 6, int)
         self.assertEqual(arg.get_parser_group(), "Optional arguments")
-        lp.groups = {"foo": ["lol", "help"]}
+        lp.GROUPS = {"foo": ["lol", "help"]}
         self.assertEqual(arg.get_parser_group(), "foo")
-        lp.groups = {"foo": ["lol"]}
+        lp.GROUPS = {"foo": ["lol"]}
         self.assertEqual(arg.get_parser_group(), "foo")
 
 
