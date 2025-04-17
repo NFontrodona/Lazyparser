@@ -94,7 +94,7 @@ Usage: example.py [OPTIONS]
 Multiply a by b
 
 ╭─ Optional arguments ─────────────────────────────────────────────╮
-│ --help      Show this message and exit.                          │
+│ --help  -h  Show this message and exit.                          │
 ╰──────────────────────────────────────────────────────────────────╯
 ╭─ Required arguments ─────────────────────────────────────────────╮
 │ *  --a  -a  FLOAT  a number a [required]                         │
@@ -126,7 +126,7 @@ Usage: example.py [OPTIONS]
 Multiply a by b
 
 ╭─ Optional arguments ───────────────────────────────────────────────╮
-│ --help             Show this message and exit.                     │
+│ --help  -h         Show this message and exit.                     │
 │ --b     -b  FLOAT  a number b [default: 5]                         │
 ╰────────────────────────────────────────────────────────────────────╯
 ╭─ Required arguments ───────────────────────────────────────────────╮
@@ -432,7 +432,7 @@ Usage: example.py [OPTIONS]
 Say hello name fist_name and multiply x by y.
 
 ╭─ help ─────────────────────────────────────────────────────────────╮
-│ --help      Show this message and exit.                            │
+│ --help  -h    Show this message and exit.                            │
 ╰────────────────────────────────────────────────────────────────────╯
 ╭─ User_name ────────────────────────────────────────────────────────╮
 │ *  --first_name  -f  TEXT  your first name [required]              │
@@ -443,3 +443,53 @@ Say hello name fist_name and multiply x by y.
 │ *  --y  -y  FLOAT  a number y [required]                           │
 ╰────────────────────────────────────────────────────────────────────╯
 ```
+
+
+## Version option
+
+In order to have a option to display the version you can use the `set_version`
+function.
+
+### Example
+
+```python
+import lazyparser as lp
+
+lp.set_version("1.0")
+
+
+@lp.parse
+def multiplication(a: float, b: float):
+    """
+    Multiply a by b
+
+    :param a : a number a
+    :param b : a number b
+    """
+    print(a * b)
+
+if __name__ == "__main__":
+    multiplication()
+```
+
+If you run:
+
+```bash
+$ python example.py -h
+Usage: example.py [OPTIONS]
+
+Multiply a by b
+
+╭─ Optional arguments ─────────────────────────────────────────────╮
+│ --help     -h    Show this message and exit.                     │
+│ --version        Show the version and exit.                      │
+╰──────────────────────────────────────────────────────────────────╯
+╭─ Required arguments ─────────────────────────────────────────────╮
+│ *  --a  -a  FLOAT  a number a [required]                         │
+│ *  --b  -b  FLOAT  a number b [required]                         │
+╰──────────────────────────────────────────────────────────────────╯
+$ python example.py --version
+example.py, version 1.0
+```
+
+Nothe that you're function cannot contain a parameter named `version` anymore.
