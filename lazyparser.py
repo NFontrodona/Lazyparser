@@ -43,6 +43,7 @@ __all__ = (
     "set_groups",
     "parse",
     "set_standalone_mode",
+    "set_version",
 )
 
 
