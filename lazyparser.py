@@ -36,7 +36,7 @@ import rich_click as click
 from rich import print as rprint
 from rich.panel import Panel
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 __all__ = (
     "set_env",
     "set_epilog",
