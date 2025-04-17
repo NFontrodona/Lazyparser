@@ -56,6 +56,8 @@ tab = 4  # number of spaces composing tabulations
 epi = None  # epilog for the parser
 groups = {}  # the groups of arguments
 lpg_name = {}  # the name of the parser used
+prog_version = None  # The version of program where lazyparser is used
+forbidden = ["help", "h"]
 optionals_title = "Optional arguments"
 required_title = "Required arguments"
 ######################################
@@ -283,7 +285,15 @@ class Lazyparser(object):
         Initiate the creation the argument of interest.
         """
         sign = inspect.signature(self.func).parameters
-        if "help" not in sign.keys():
+        if any([x in sign.keys() for x in forbidden]):
+            bad = [x for x in forbidden if x in sign.keys()]
+            msg = (
+                f"argument conflict, {bad} argument(s) cannot be set in"
+                + " the parsed function"
+            )
+            message(msg, None, "e")
+            exit(1)
+        else:
             dic_args = {
                 k: Argument(
                     k,
@@ -295,14 +305,9 @@ class Lazyparser(object):
                 for k in sign.keys()
             }
             tmp = {"help": Argument("help", "help", str)}
+            if prog_version:
+                tmp["version"] = Argument("version", "version", str)
             return tmp | dic_args
-        else:
-            msg = (
-                "argument conflict, help argument cannot be set in"
-                + " the parsed function"
-            )
-            message(msg, None, "e")
-            exit(1)
 
     def description(self):
         """
@@ -446,6 +451,18 @@ def set_standalone_mode(standalone_mode: bool = True):
     if isinstance(standalone_mode, bool):
         global std_mode
         std_mode = standalone_mode
+
+
+def set_version(version: str | None = None):
+    """
+    Set the version of the program where lazyparser is used.
+
+    :param version: (str) the version of the program.
+    """
+    if isinstance(version, str):
+        global prog_version
+        prog_version = version
+        forbidden.append("version")
 
 
 def set_env(delim1=":param", delim2=":", hd="", tb=4):
@@ -613,9 +630,12 @@ def init_parser(lp: Lazyparser, func: Callable):
     """
     func.__doc__ = lp.description()
     for arg in lp.args:
-        if arg != "help":
+        if arg not in forbidden:
             func = add_option(lp.args[arg], func)
     lp.create_click_group()
+    if prog_version:
+        func = click.version_option(prog_version)(func)
+    func = click.help_option("-h", "--help")(func)
     if std_mode:
         func = click.command(epilog=epi)(func)
     else:
