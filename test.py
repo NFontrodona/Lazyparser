@@ -300,3 +300,8 @@ class TestLazyparser(unittest.TestCase):
             type(parser.args["x"].type), type(click.IntRange(5, 10))
         )
         self.assertRaises(SystemExit, parser.set_constrain, {"x": tuple[int]})
+
+    def test_set_version(self):
+        lp.set_version("0.2.0")
+        self.assertEqual(lp.PROG_VERSION, "0.2.0")
+        self.assertEqual(lp.FORBIDDEN, ["help", "h", "version"])
