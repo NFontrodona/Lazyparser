@@ -37,7 +37,7 @@ from rich import print as rprint
 from rich.panel import Panel
 
 __version__ = "0.3.2"
-__all__ = ("parse", "env")
+__all__ = ("parse", "docstrings", "standalone", "version", "groups")
 
 
 #####################################
@@ -160,7 +160,7 @@ class Argument(object):
             if arg_type is bool or arg_type is click.BOOL:
                 if self.default == inspect._empty:
                     self.default = False
-                elif self.default != False:
+                elif self.default:
                     self.default = False
                     message("Default value set to False", self, "w")
                 self.is_flag = True
@@ -364,15 +364,15 @@ class Lazyparser(object):
                     if (
                         (
                             isinstance(click_type[marg], click.IntRange)
-                            and self.args[marg].type != int
+                            and self.args[marg].type is not int
                         )
                         or (
                             isinstance(click_type[marg], click.FloatRange)
-                            and self.args[marg].type != float
+                            and self.args[marg].type is not float
                         )
                         or (
                             isinstance(click_type[marg], click.Choice)
-                            and self.args[marg].type != str
+                            and self.args[marg].type is not str
                         )
                     ):
                         message(
@@ -447,30 +447,21 @@ def set_env(env: dict | None):
     """
     if not env:
         return None
-    if "tb" in env and isinstance(env["tb"], int):
+    if "tab" in env and isinstance(env["tab"], int):
         global TAB
-        TAB = env["tb"]
+        TAB = env["tab"]
     if "delim1" in env and isinstance(env["delim1"], str):
         global PD1
         PD1 = env["delim1"].strip()
     if "delim2" in env and isinstance(env["delim2"], str):
         global PD2
         PD2 = env["delim2"].strip()
-    if "hd" in env and isinstance(env["hd"], str):
+    if "header" in env and isinstance(env["header"], str):
         global HEADER
-        HEADER = env["hd"].strip()
-    if "version" in env and isinstance(env["version"], str):
-        global PROG_VERSION
-        PROG_VERSION = env["version"].strip()
-        FORBIDDEN.append("version")
+        HEADER = env["header"].strip()
     if "epilog" in env and isinstance(env["epilog"], str):
         global EPI
         EPI = env["epilog"].strip()
-    if "standalone_mode" in env and isinstance(env["standalone_mode"], bool):
-        global STD_MODE
-        STD_MODE = env["standalone_mode"]
-    if "groups" in env and isinstance(env["groups"], dict):
-        set_groups(env["groups"])
 
 
 def set_groups(arg_groups=None):
@@ -640,14 +631,14 @@ def message(
 
 
 def parse(
-    func: Callable | None = None, env: dict | None = None, **kwargs
+    func: Callable | None = None,
+    **click_types,
 ) -> Callable[..., Callable[[], Any]]:
     """
     Create the parser.
 
     :param func: (function) the function of interest
-    :param env: (dictionary) the environment variables
-    :param kwargs: (dictionary) the named arguments
+    :param click_types: (dictionary) the click types
     :return: (function) wrap
     """
 
@@ -660,14 +651,13 @@ def parse(
         """
 
         @functools.wraps(function)
-        def call_func(env=env, *args, **kw):
+        def call_func(*args, **kw):
             """
             Call the function ``self.func`` and return it's result.
 
             :return: the result of the function ``self.func``
             """
-            set_env(env)
-            lazyparser = Lazyparser(function, kwargs)
+            lazyparser = Lazyparser(function, click_types)
             func = init_parser(lazyparser, function)
             if STD_MODE:
                 return func(*args, **kw)
@@ -681,12 +671,12 @@ def parse(
     return wrap(func)
 
 
-def env(func=None, **kwargs) -> Callable[..., Callable[[], Any]]:
+def docstrings(**env) -> Callable[..., Callable[[], Any]]:
     """
     Function used to set a value to some parameters when they are called.
 
     :param func: (function) the function to wrap
-    :param kwargs: (dictionary) the named arguments
+    :param env: (dictionary) the named arguments
     :return: (function) wrap
     """
 
@@ -705,20 +695,114 @@ def env(func=None, **kwargs) -> Callable[..., Callable[[], Any]]:
 
             :return: the result of the function ``self.func``
             """
-            return function(kwargs)
+            if env:
+                set_env(env)
+            return function()
 
         return call_func
 
-    if func is None:
+    return wrap
 
-        def decore_call(function):
+
+def version(version: str | None = None) -> Callable[..., Callable[[], Any]]:
+    """
+    Function used to set a value to some parameters when they are called.
+
+    :param func: (function) the function to wrap
+    :param version: (dictionary) the version of the program where
+    the decorated function is called
+    :return: (function) wrap
+    """
+
+    def wrap(function):
+        """
+        Wrapper of the function ``function``.
+
+        :param function: (function) the function to wrap
+        :return: (function) the method calling `` function``.
+        """
+
+        @functools.wraps(function)
+        def call_func():
             """
-            Decorate wrap function.
+            Call the function ``self.func`` and return it's result.
 
-            :param function: (function) the function to wrap
-            :return: (function) call_func
+            :return: the result of the function ``self.func``
             """
-            return wrap(function)
+            if version is not None:
+                global PROG_VERSION
+                PROG_VERSION = version.strip()
+                FORBIDDEN.append("version")
+            return function()
 
-        return decore_call
-    return wrap(func)
+        return call_func
+
+    return wrap
+
+
+def standalone(mode: bool | None = None) -> Callable[..., Callable[[], Any]]:
+    """
+    Function used to set a value to some parameters when they are called.
+
+    :param func: (function) the function to wrap
+    :param version: (dictionary) the version of the program where
+    the decorated function is called
+    :return: (function) wrap
+    """
+
+    def wrap(function):
+        """
+        Wrapper of the function ``function``.
+
+        :param function: (function) the function to wrap
+        :return: (function) the method calling `` function``.
+        """
+
+        @functools.wraps(function)
+        def call_func():
+            """
+            Call the function ``self.func`` and return it's result.
+
+            :return: the result of the function ``self.func``
+            """
+            if isinstance(mode, bool):
+                global STD_MODE
+                STD_MODE = mode
+            return function()
+
+        return call_func
+
+    return wrap
+
+
+def groups(**groups) -> Callable[..., Callable[[], Any]]:
+    """
+    Function used to set a value to some parameters when they are called.
+
+    :param func: (function) the function to wrap
+    :param groups: (dictionary) the groups of options to create
+    :return: (function) wrap
+    """
+
+    def wrap(function):
+        """
+        Wrapper of the function ``function``.
+
+        :param function: (function) the function to wrap
+        :return: (function) the method calling `` function``.
+        """
+
+        @functools.wraps(function)
+        def call_func():
+            """
+            Call the function ``self.func`` and return it's result.
+
+            :return: the result of the function ``self.func``
+            """
+            if groups is not None:
+                set_groups(groups)
+            return function()
+
+        return call_func
+
+    return wrap
