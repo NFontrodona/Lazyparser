@@ -34,7 +34,12 @@ from typing import Any
 
 import rich_click as click
 from rich import print as rprint
+from rich.columns import Columns
+from rich.padding import Padding
 from rich.panel import Panel
+from rich.text import Text
+from rich_click.rich_help_formatter import RichHelpFormatter
+from rich_click.rich_help_rendering import _make_rich_rext
 
 __version__ = "0.4.0"
 __all__ = ("parse", "docstrings", "standalone", "version", "groups")
@@ -543,6 +548,80 @@ def check_subtype(argtype: type | types.GenericAlias, arg: Argument):
             exit(1)
 
 
+def get_rich_usage(
+    formatter: Any,
+    prog: str,
+    args: str = "",
+    prefix: str | None = None,
+) -> None:
+    """Richly render usage text."""
+    if prefix is None:
+        prefix = "Usage:"
+
+    config = formatter.config
+
+    # Header text if we have it
+    if config.header_text:
+        formatter.write(
+            Padding(
+                _make_rich_rext(
+                    config.header_text, config.style_header_text, formatter
+                ),
+                (1, 1, 0, 1),
+            ),
+        )
+
+    # Print usage
+    formatter.write(
+        Padding(
+            Columns(
+                (
+                    Text(prefix, style=config.style_usage),
+                    Text(prog, style=config.style_usage_command),
+                    args,
+                )
+            ),
+            1,
+        ),
+    )
+
+
+class MyRichHelpFormatter(RichHelpFormatter):
+    def write_usage(
+        self, prog: str, args: str = "", prefix: str | None = None
+    ) -> None:
+        get_rich_usage(formatter=self, prog=prog, args=args, prefix=prefix)
+
+
+click.RichContext.formatter_class = MyRichHelpFormatter
+
+
+class HelpfulCmd(click.RichCommand):
+    def collect_usage_pieces(self, ctx):
+        """Returns all the pieces that go into the usage line and returns
+        it as a list of strings.
+        """
+        rv = []
+        nt = ""
+        for p in self.params:
+            if p.required:
+                rv.append(f"[bold cyan]--{p.name}[/bold cyan]")
+                rv.append(f"[bold yellow]{p.type}[/bold yellow]")
+            elif p.name not in FORBIDDEN:
+                if p.is_flag:  # type: ignore
+                    nt += f"[--{p.name}] "
+                else:
+                    nt += f"[--{p.name} {str(p.type)}] "
+        rv.append(nt.strip())
+        return rv
+
+    def format_help(self, ctx, formatter) -> None:  # type: ignore[override]
+        self.format_usage(ctx, formatter)
+        self.format_help_text(ctx, formatter)
+        self.format_options(ctx, formatter)
+        self.format_epilog(ctx, formatter)
+
+
 def add_option(option: Argument, func: Callable) -> Callable:
     """
     Add an option to the function used to create the CLI.
@@ -590,9 +669,11 @@ def init_parser(lp: Lazyparser, func: Callable):
         func = click.version_option(PROG_VERSION)(func)
     func = click.help_option("-h", "--help")(func)
     if STD_MODE:
-        func = click.command(epilog=EPI)(func)
+        func = click.command(cls=HelpfulCmd, epilog=EPI)(func)
     else:
-        func = click.command(epilog=EPI)(func).main(standalone_mode=False)
+        func = click.command(cls=HelpfulCmd, epilog=EPI)(func).main(
+            standalone_mode=False
+        )
     return func
 
 
