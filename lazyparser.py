@@ -36,7 +36,7 @@ import rich_click as click
 from rich import print as rprint
 from rich.panel import Panel
 
-__version__ = "0.3.2"
+__version__ = "0.4.0"
 __all__ = ("parse", "docstrings", "standalone", "version", "groups")
 
 

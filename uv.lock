@@ -212,7 +212,7 @@ wheels = [
 
 [[package]]
 name = "lazyparser"
-version = "0.3.2"
+version = "0.4.0"
 source = { virtual = "." }
 dependencies = [
     { name = "rich-click" },
