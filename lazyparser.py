@@ -37,14 +37,7 @@ from rich import print as rprint
 from rich.panel import Panel
 
 __version__ = "0.3.2"
-__all__ = (
-    "set_env",
-    "set_epilog",
-    "set_groups",
-    "parse",
-    "set_standalone_mode",
-    "set_version",
-)
+__all__ = ("parse", "env")
 
 
 #####################################
@@ -443,30 +436,7 @@ class Lazyparser(object):
                     )
 
 
-def set_standalone_mode(standalone_mode: bool = True):
-    """
-    change the standalone mode
-
-    :param standalone_mode: True to enable the standalone mode false else
-    """
-    if isinstance(standalone_mode, bool):
-        global STD_MODE
-        STD_MODE = standalone_mode
-
-
-def set_version(version: str | None = None):
-    """
-    Set the version of the program where lazyparser is used.
-
-    :param version: (str) the version of the program.
-    """
-    if isinstance(version, str):
-        global PROG_VERSION
-        PROG_VERSION = version
-        FORBIDDEN.append("version")
-
-
-def set_env(delim1=":param", delim2=":", hd="", tb=4):
+def set_env(env: dict | None):
     """
     Change the param delimiters.
 
@@ -475,41 +445,32 @@ def set_env(delim1=":param", delim2=":", hd="", tb=4):
     :param hd: (string) the header of parameter
     :param tb: (int) the number of space/tab that bedore the docstring
     """
-    if isinstance(tb, int):
+    if not env:
+        return None
+    if "tb" in env and isinstance(env["tb"], int):
         global TAB
-        TAB = tb
-    else:
-        TAB = 4
-    args = [delim1, delim2, hd]
-    if sum([not isinstance(a, str) for a in args]) > 0:
-        message("delim1 and delim2 must be strings", None, "e")
-        exit(1)
-    for i in range(len(args)):
-        args[i] = args[i].replace("\n", "")
-        args[i] = args[i].replace("\r", "")
-        args[i] = args[i].replace("\t", "")
-        args[i] = args[i].replace(" ", "")
-    if not delim2:
-        message("Bad delim2 definition", None, "e")
-        exit(1)
-    else:
+        TAB = env["tb"]
+    if "delim1" in env and isinstance(env["delim1"], str):
         global PD1
-        PD1 = delim1
+        PD1 = env["delim1"].strip()
+    if "delim2" in env and isinstance(env["delim2"], str):
         global PD2
-        PD2 = delim2
+        PD2 = env["delim2"].strip()
+    if "hd" in env and isinstance(env["hd"], str):
         global HEADER
-        HEADER = hd
-
-
-def set_epilog(epilog):
-    """
-    Allow the user to define an epilog for the parser.
-
-    :param epilog: (str) a parser epilog.
-    """
-    if isinstance(epilog, str):
+        HEADER = env["hd"].strip()
+    if "version" in env and isinstance(env["version"], str):
+        global PROG_VERSION
+        PROG_VERSION = env["version"].strip()
+        FORBIDDEN.append("version")
+    if "epilog" in env and isinstance(env["epilog"], str):
         global EPI
-        EPI = epilog
+        EPI = env["epilog"].strip()
+    if "standalone_mode" in env and isinstance(env["standalone_mode"], bool):
+        global STD_MODE
+        STD_MODE = env["standalone_mode"]
+    if "groups" in env and isinstance(env["groups"], dict):
+        set_groups(env["groups"])
 
 
 def set_groups(arg_groups=None):
@@ -679,12 +640,13 @@ def message(
 
 
 def parse(
-    func: Callable | None = None, **kwargs
+    func: Callable | None = None, env: dict | None = None, **kwargs
 ) -> Callable[..., Callable[[], Any]]:
     """
     Create the parser.
 
     :param func: (function) the function of interest
+    :param env: (dictionary) the environment variables
     :param kwargs: (dictionary) the named arguments
     :return: (function) wrap
     """
@@ -698,12 +660,13 @@ def parse(
         """
 
         @functools.wraps(function)
-        def call_func(*args, **kw):
+        def call_func(env=env, *args, **kw):
             """
             Call the function ``self.func`` and return it's result.
 
             :return: the result of the function ``self.func``
             """
+            set_env(env)
             lazyparser = Lazyparser(function, kwargs)
             func = init_parser(lazyparser, function)
             if STD_MODE:
@@ -715,4 +678,47 @@ def parse(
 
     if func is None:
         return wrap
+    return wrap(func)
+
+
+def env(func=None, **kwargs) -> Callable[..., Callable[[], Any]]:
+    """
+    Function used to set a value to some parameters when they are called.
+
+    :param func: (function) the function to wrap
+    :param kwargs: (dictionary) the named arguments
+    :return: (function) wrap
+    """
+
+    def wrap(function):
+        """
+        Wrapper of the function ``function``.
+
+        :param function: (function) the function to wrap
+        :return: (function) the method calling `` function``.
+        """
+
+        @functools.wraps(function)
+        def call_func():
+            """
+            Call the function ``self.func`` and return it's result.
+
+            :return: the result of the function ``self.func``
+            """
+            return function(kwargs)
+
+        return call_func
+
+    if func is None:
+
+        def decore_call(function):
+            """
+            Decorate wrap function.
+
+            :param function: (function) the function to wrap
+            :return: (function) call_func
+            """
+            return wrap(function)
+
+        return decore_call
     return wrap(func)
