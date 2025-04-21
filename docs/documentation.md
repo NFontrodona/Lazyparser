@@ -208,7 +208,7 @@ the decorator `docstrings` can takes up to 4 arguments :
 
 !!! note
 
-  the text set before parameters definition (or the parameters definition header) is considered as being a part of the description of the function.
+    the text set before parameters definition (or the parameters definition header) is considered as being a part of the description of the function.
 
 
 Here is an example of how to use `docstrings`
@@ -291,7 +291,7 @@ where `param` is the name of the parameter you want to use the custom type for.
 
 !!! note
 
-  the type of param given in the function signature should be `int` in this case otherwise you will get an warning telling you that the click type will be applied.
+    the type of param given in the function signature should be `int` in this case otherwise you will get an warning telling you that the click type will be applied.
 
 
 ### Example:
@@ -486,8 +486,7 @@ example.py, version 1.0
 
 !!! warning
 
-  Your function cannot contain a parameter named `version` anymore.
-
+    Your function cannot contain a parameter named `version` anymore.
 
 ## Using multiple decorators
 
