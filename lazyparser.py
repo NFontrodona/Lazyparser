@@ -617,17 +617,18 @@ class HelpfulCmd(click.RichCommand):
                 rv.append(f"[bold yellow]{p.type}[/bold yellow]")
             elif p.name not in FORBIDDEN:
                 if p.is_flag:  # type: ignore
-                    nt += f"[--{p.name}] "
+                    nt += f"[--[bold cyan]{p.name}[/bold cyan]] "
                 else:
-                    nt += f"[--{p.name} {str(p.type)}] "
+                    nt += f"[--[bold cyan]{p.name}[/bold cyan] [bold yellow]{str(p.type)}[/bold yellow]] "
         rv.append(nt.strip())
         return rv
 
-    def format_help(self, ctx, formatter) -> None:  # type: ignore[override]
-        self.format_usage(ctx, formatter)
-        self.format_help_text(ctx, formatter)
-        self.format_options(ctx, formatter)
-        self.format_epilog(ctx, formatter)
+    def format_options(
+        self, ctx: click.Context, formatter: click.HelpFormatter
+    ) -> None:
+        from rich_click.rich_help_rendering import get_rich_options
+
+        get_rich_options(self, ctx, formatter)  # type: ignore[arg-type]
 
 
 def add_option(option: Argument, func: Callable) -> Callable:
