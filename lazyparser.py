@@ -924,6 +924,8 @@ def epilog(epilog: str | None = None) -> Callable[..., Callable[[], Any]]:
             if isinstance(epilog, str):
                 global EPI
                 EPI = epilog.strip()
+            elif epilog is not None:
+                message("epilog must be a string", None, "e")
             return function()
 
         return call_func
