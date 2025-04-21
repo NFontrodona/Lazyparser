@@ -20,7 +20,9 @@ nav:
   - documentation.md
   - reference.md
 
-plugins:
+markdown_extensions:
   - admonition
+
+plugins:
   - search
   - mkdocstrings
