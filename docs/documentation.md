@@ -34,15 +34,15 @@ This will print the following message :
 
 ```Bash
 
- Usage: example.py [OPTIONS]
+ Usage: example.py --b STRING --a STRING
 
-╭─ Optional arguments ─────────────────────────────────────────────╮
-│ --help      Show this message and exit.                          │
-╰──────────────────────────────────────────────────────────────────╯
-╭─ Required arguments ─────────────────────────────────────────────╮
-│ *  --a  -a  TEXT  param a [required]                             │
-│ *  --b  -b  TEXT  param b [required]                             │
-╰──────────────────────────────────────────────────────────────────╯
+╭─ Optional arguments ─────────────────────────────────╮
+│ --help  -h    Show this message and exit.            │
+╰──────────────────────────────────────────────────────╯
+╭─ Required arguments ─────────────────────────────────╮
+│ *  --a  -a  TEXT  param a [required]                 │
+│ *  --b  -b  TEXT  param b [required]                 │
+╰──────────────────────────────────────────────────────╯
 ```
 
 If there is no docstring in the decorated `print_word` function, the
@@ -83,23 +83,18 @@ if __name__ == "__main__":
 Then, you can display the help of `example.py` by typing:
 
 ``` Bash
-python example.py -h # to display the help of your program
-```
-
-This displays the following message:
-
-``` Bash
-Usage: example.py [OPTIONS]
+$ python example.py -h # to display the help of your program
+Usage: example.py --b FLOAT --a FLOAT
 
 Multiply a by b
 
-╭─ Optional arguments ─────────────────────────────────────────────╮
-│ --help  -h  Show this message and exit.                          │
-╰──────────────────────────────────────────────────────────────────╯
-╭─ Required arguments ─────────────────────────────────────────────╮
-│ *  --a  -a  FLOAT  a number a [required]                         │
-│ *  --b  -b  FLOAT  a number b [required]                         │
-╰──────────────────────────────────────────────────────────────────╯
+╭─ Optional arguments ─────────────────────────────────╮
+│ --help  -h    Show this message and exit.            │
+╰──────────────────────────────────────────────────────╯
+╭─ Required arguments ─────────────────────────────────╮
+│ *  --a  -a  FLOAT  a number a [required]             │
+│ *  --b  -b  FLOAT  a number b [required]             │
+╰──────────────────────────────────────────────────────╯
 ```
 
 ## Optional arguments
@@ -121,17 +116,17 @@ def multiplication(a: float, b: float = 5):
 
 ```Bash
 $ python example.py --help
-Usage: example.py [OPTIONS]
+Usage: example.py --a FLOAT [--b FLOAT]
 
 Multiply a by b
 
-╭─ Optional arguments ───────────────────────────────────────────────╮
-│ --help  -h         Show this message and exit.                     │
-│ --b     -b  FLOAT  a number b [default: 5]                         │
-╰────────────────────────────────────────────────────────────────────╯
-╭─ Required arguments ───────────────────────────────────────────────╮
-│ *  --a  -a  FLOAT  a number a [required]                           │
-╰────────────────────────────────────────────────────────────────────╯
+╭─ Optional arguments ─────────────────────────────────╮
+│ --help  -h         Show this message and exit.       │
+│ --b     -b  FLOAT  a number b [default: 5]           │
+╰──────────────────────────────────────────────────────╯
+╭─ Required arguments ─────────────────────────────────╮
+│ *  --a  -a  FLOAT  a number a [required]             │
+╰──────────────────────────────────────────────────────╯
 ```
 
 ## standalone mode
@@ -162,15 +157,14 @@ $ python example.py -a 5 -b 10
 starting
 ```
 
-To make the code continue, you can disable the click standalone mode by using `lp.set_standalone_mode(False)`
+To make the code continue, you can disable the click standalone mode by using the `sandalone(False)` decorator
 
 Example:
 
 ``` python
 import lazyparser as lp
 
-lp.set_standalone_mode(False)
-
+@lp.standalone(False)
 @lp.parse
 def multiplication(a: float, b: float):
     """Multiply a by b
@@ -196,37 +190,34 @@ starting
 ## Customize the docstring environment
 
 If you are not a fan of Pycharm docstrings, you can set your own
-docstring environment by using the function `set_env`
+docstring environment by using the decorator `docstrings`
 
-the function `set_env` takes 4 arguments :
+the decorator `docstrings` can takes up to 4 arguments :
 
-> - `delim1` : the string preceding the definition of a parameter.
->   *:param* is the default value. This parameter can be an empty
->   docstring if nothing precedes the parameter name in the docstring of
->   the decorated function.
-> - `delim2` : the string that comes right after the name of the
->   parameter. It **MUST** be defined and can't be an empty string or a
->   space, tabulation, etc...
-> - `hd` : the header preceding the argument names. By default,
->   corresponds to an empty string.
-> - `tb` : the number of spaces at the beginning of each line in the
->   docstring. By default, it is equal to 4.
+- `delim1` : the string preceding the definition of a parameter.
+  *:param* is the default value. This parameter can be an empty
+  docstring if nothing precedes the parameter name in the docstring of
+  the decorated function.
+- `delim2` : the string that comes right after the name of the
+  parameter. It **MUST** be defined and can't be an empty string or a
+  space, tabulation, etc... It's default value is `:`
+- `header` : the header preceding the argument names. By default,
+  corresponds to an empty string.
+- `tab` : the number of spaces at the beginning of each line in the
+  docstring. By default, it is equal to 4.
+
+!!! note
+
+  the text set before parameters definition (or the parameters definition header) is considered as being a part of the description of the function.
 
 
-Note: The text set before parameters definition (or the parameters definition
-header) is considered as being a part of the description of the
-function.
-
-
-Here is an example of how using `set_env`
+Here is an example of how to use `docstrings`
 
 ``` python
 # code in example.py file
 import lazyparser as lp
 
-lp.set_env('', ':', "Arguments:")
-
-
+@lp.docstrings(delim1='', delim2=':', header="Arguments:")
 @lp.parse
 def multiplication(a: float, b: float):
     """
@@ -260,9 +251,7 @@ For example, if we want to define a tuple with one integer, we can set the type 
 ``` python
 import lazyparser as lp
 
-lp.set_env("", ":", "Arguments:")
-
-
+@lp.docstrings(delim1="", delim2=":", header="Arguments:")
 @lp.parse
 def print_value(a: tuple[int]):
     """
@@ -281,7 +270,7 @@ Defining a tuple with an elipsis as the second type `tuple[int, ...]` allows you
 
 ```python
 # same as above
-def multiplication(a: tuple[int, ...]):
+def print_value(a: tuple[int, ...]):
 # same as above
 ```
 
@@ -300,7 +289,9 @@ You can use custom click types (see [this page](https://click.palletsprojects.co
 ```
 where `param` is the name of the parameter you want to use the custom type for.
 
-Note that the type of param given in the function signature should be `int` in this case otherwise you will get an warning telling you that the click type will be applied.
+!!! note
+
+  the type of param given in the function signature should be `int` in this case otherwise you will get an warning telling you that the click type will be applied.
 
 
 ### Example:
@@ -368,11 +359,13 @@ value of a: False
 
 ## Create an epilog
 
-To add an epilog in the help of the parser simply use the function
-`set_epilog`. This function must be called before the decorator `parse`.
+To add an epilog in the help of the parser simply use the decorator
+`epilog`. This function must be called before the decorator `parse`.
 
 ```
-lp.set_epilog("my epilog")
+@lp.epilog("my epilog")
+@lp.parse
+...
 ```
 
 ## Argument groups
@@ -383,7 +376,8 @@ By default, Lazyparser creates two groups of arguments:
 > - `Required arguments`
 
 But, you may want to create argument groups with custom names. This can
-be done with the function `set_groups` that takes a dictionnary linking the name of the group and the argument it contains. The order of the groups in the dictionnary will be the same as the order of group displayed in the help message.
+be done with the decorator `groups` that takes a group name and a list of
+options defined in the group. The order of groups given in the groups decorator will be the same as the order of group displayed in the help message.
 
 
 This function must be called before the decorator `parse`.
@@ -396,11 +390,7 @@ the name and the first name of a user and also multiply two numbers:
 ``` python
 import lazyparser as lp
 
-lp.set_groups({
-    "help": ["help"],
-    "User_name": ["first_name", "name"],
-    "Numbers": ["x", "y"]})
-
+@lp.groups(help=["help"], Numbers=["x", "y"], User=["first_name", "name"])
 @lp.parse
 def multiply(first_name: str, name: str, x: float, y: float):
     """Say hello name fist_name and multiply x by y.
@@ -427,37 +417,39 @@ python example.py -h
 It displays:
 
 ``` bash
-Usage: example.py [OPTIONS]
+Usage:
+example.py
+--y FLOAT --x FLOAT --name TEXT --first_name TEXT
 
 Say hello name fist_name and multiply x by y.
 
-╭─ help ─────────────────────────────────────────────────────────────╮
-│ --help  -h    Show this message and exit.                            │
-╰────────────────────────────────────────────────────────────────────╯
-╭─ User_name ────────────────────────────────────────────────────────╮
-│ *  --first_name  -f  TEXT  your first name [required]              │
-│ *  --name        -n  TEXT  your name [required]                    │
-╰────────────────────────────────────────────────────────────────────╯
-╭─ Numbers ──────────────────────────────────────────────────────────╮
-│ *  --x  -x  FLOAT  a number x [required]                           │
-│ *  --y  -y  FLOAT  a number y [required]                           │
-╰────────────────────────────────────────────────────────────────────╯
+╭─ help ───────────────────────────────────────────────╮
+│ --help  -h    Show this message and exit.            │
+╰──────────────────────────────────────────────────────╯
+╭─ Numbers ────────────────────────────────────────────╮
+│ *  --x  -x  FLOAT  a number x [required]             │
+│ *  --y  -y  FLOAT  a number y [required]             │
+╰──────────────────────────────────────────────────────╯
+╭─ User ───────────────────────────────────────────────╮
+│ *  --first_name  -f  TEXT  your first name           │
+│                            [required]                │
+│ *  --name        -n  TEXT  your name [required]      │
+╰──────────────────────────────────────────────────────╯
+
 ```
 
 
 ## Version option
 
-In order to have a option to display the version you can use the `set_version`
-function.
+In order to have a option to display the version you can use the `version`
+decoartor.
 
 ### Example
 
 ```python
 import lazyparser as lp
 
-lp.set_version("1.0")
-
-
+@lp.version("1.0")
 @lp.parse
 def multiplication(a: float, b: float):
     """
@@ -476,20 +468,50 @@ If you run:
 
 ```bash
 $ python example.py -h
-Usage: example.py [OPTIONS]
+Usage: example.py --b FLOAT --a FLOAT
 
 Multiply a by b
 
-╭─ Optional arguments ─────────────────────────────────────────────╮
-│ --help     -h    Show this message and exit.                     │
-│ --version        Show the version and exit.                      │
-╰──────────────────────────────────────────────────────────────────╯
-╭─ Required arguments ─────────────────────────────────────────────╮
-│ *  --a  -a  FLOAT  a number a [required]                         │
-│ *  --b  -b  FLOAT  a number b [required]                         │
-╰──────────────────────────────────────────────────────────────────╯
+╭─ Optional arguments ─────────────────────────────────╮
+│ --help     -h    Show this message and exit.         │
+│ --version        Show the version and exit.          │
+╰──────────────────────────────────────────────────────╯
+╭─ Required arguments ─────────────────────────────────╮
+│ *  --a  -a  FLOAT  a number a [required]             │
+│ *  --b  -b  FLOAT  a number b [required]             │
+╰──────────────────────────────────────────────────────╯
 $ python example.py --version
 example.py, version 1.0
 ```
 
-Nothe that your function cannot contain a parameter named `version` anymore.
+!!! warning
+
+  Your function cannot contain a parameter named `version` anymore.
+
+
+## Using multiple decorators
+
+You can use multiple decorators like `lp.version`, `lp.standalone`, `lp.groups` and `lp.docstrings` in any order with the exception of the `lp.parse` decorator which should be the first one to decorate your function.
+
+
+```python
+import lazyparser as lp
+
+@lp.docstrings(delim1="-", delim2=":", header="@Args") # In any order (expect the first)
+@lp.groups(values=["a", "b"], Help=["help"]) # In any order (expect the first)
+@lp.version("1.0") # In any order (expect the first)
+@lp.standalone(True) # In any order (expect the first)
+@lp.parse # must be the first decorator
+def multiplication(a: float, b: float):
+    """
+    Multiply a by b
+
+    @Args
+    - a : a number a
+    - b : a number b
+    """
+    print(a * b)
+
+if __name__ == "__main__":
+    multiplication()
+```
