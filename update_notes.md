@@ -1,5 +1,24 @@
 # Update Notes
 
+## version 0.4.0
+
+* API changes for environment functions, they are now decorators
+* Update usage display in help message
+* Add a check to force ellipsis to be at the second position in tuple subtype
+
+## version 0.3.2
+
+* Add short help option name to display the help
+* Add set_version function
+
+## version 0.3.1
+
+* Add set_standalone function to be able to disable click standalone mode
+
+## version 0.3.0
+
+* Lazyparser is now based on rich_click instead of argparse
+
 ## version 0.2.1
 
 * Add support for typing.List for python 3.10
