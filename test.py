@@ -10,28 +10,48 @@ Description:
 import inspect
 import unittest
 
-import rich_click as click
-from rich_click.rich_command import RichCommand
-
 import lazyparser as lp
 
 
 class TestFunction(unittest.TestCase):
     def test_set_env(self):
-        self.assertRaises(SystemExit, lp.set_env, ":param", "", "", 4)
-        self.assertRaises(SystemExit, lp.set_env, "", "", "", "4")
-        self.assertRaises(SystemExit, lp.set_env, 5, "", "", "4")
-        assert lp.set_env("", ":", "", 4) is None
-        assert lp.set_env("param", ":", "Keyword", 4) is None
+        t = {"delim1": "param", "delim2": "", "header": "", "tab": 4}
+        self.assertRaises(SystemExit, lp.set_env, t)
+        t["delim1"] = ""
+        self.assertRaises(SystemExit, lp.set_env, t)
+        t["delim2"] = ":"
+        t["delim1"] = 5
+        self.assertRaises(SystemExit, lp.set_env, t)
+        t["delim1"] = ":param"
+        self.assertEqual(lp.set_env(t), None)
+        t["delim1"] = ""
+        self.assertEqual(lp.set_env(t), None)
+        t["delim1"] = "param"
+        t["header"] = "Keyword"
+        self.assertEqual(lp.set_env(t), None)
+
+        def lol():
+            return None
+
+        lol = lp.docstrings(header="Test")(lol)
+        _ = lol()
+        self.assertEqual(lp.HEADER, "Test")
 
     def test_set_groups(self):
         self.assertRaises(SystemExit, lp.set_groups, {"**": ["b"]})
         lp.set_groups({"lol": ["b", "help"]})
-        assert lp.GROUPS == {"lol": ["b", "help"]}
+        self.assertEqual(lp.GROUPS, {"lol": ["b", "help"]})
         self.assertRaises(
             SystemExit, lp.set_groups, {"lol": ["b"], "lol*": ["c"]}
         )
         lp.set_groups()
+
+        def lol():
+            return None
+
+        lol = lp.groups(**{"lol": ["b"], "yo": ["help"]})(lol)
+        _ = lol()
+        self.assertEqual(lp.GROUPS, {"lol": ["b"], "yo": ["help"]})
 
     def test_get_name(self):
         res = ["L", "lo", "LO", "lol", "l"]
@@ -56,9 +76,9 @@ class TestFunction(unittest.TestCase):
             self.assertFalse(lp.handled_type(list, o))
         self.assertTrue(lp.handled_type(tuple))
         self.assertTrue(lp.handled_type(bool))
-        self.assertFalse(lp.handled_type(click.BOOL))
-        self.assertFalse(lp.handled_type(click.Tuple([int, float])))
-        self.assertFalse(lp.handled_type(click.Path(exists=True)))
+        self.assertFalse(lp.handled_type(lp.click.BOOL))
+        self.assertFalse(lp.handled_type(lp.click.Tuple([int, float])))
+        self.assertFalse(lp.handled_type(lp.click.Path(exists=True)))
 
     def test_message(self):
         arg = lp.Argument("t", 2, int)
@@ -69,10 +89,17 @@ class TestFunction(unittest.TestCase):
         self.assertEqual(None, lp.message("Hello  world", arg, type_m="w"))
 
     def test_set_data(self):
-        self.assertEqual(lp.set_epilog("uigig"), None)
+        def lol():
+            return None
+
+        func = lp.docstrings(epilog="Test")(lol)
+        _ = func()
+        self.assertEqual(lp.EPI, "Test")
+        func = lp.docstrings(epilog=5)(lol)
+        self.assertRaises(SystemExit, func)
 
     def test_init_parser(self):
-        lp.set_env(tb=17)
+        lp.set_env(dict(tab=17))
 
         def func(x, y, z=5, w=7):
             return x * y + z
@@ -88,7 +115,7 @@ class TestFunction(unittest.TestCase):
         func.__doc__ = doc
         myparser = lp.Lazyparser(func, {})
         parser = lp.init_parser(myparser, func)
-        self.assertEqual(type(parser), RichCommand)
+        self.assertEqual(type(parser), lp.HelpfulCmd)
         self.assertEqual(
             parser.__doc__.split("\n"),  # type: ignore
             [
@@ -100,9 +127,7 @@ class TestFunction(unittest.TestCase):
         )
 
     def test_parse(self):
-        lp.set_env(tb=12)
-        lp.set_standalone_mode(False)
-
+        @lp.standalone(False)
         @lp.parse()
         def multiply(x: int, y: int):
             """
@@ -122,9 +147,9 @@ class TestFunction(unittest.TestCase):
     def test_is_click_type(self):
         self.assertFalse(lp.is_click_type(str))
         self.assertFalse(lp.is_click_type(tuple))
-        self.assertTrue(lp.is_click_type(click.Path))
-        self.assertTrue(lp.is_click_type(click.Path(exists=True)))
-        self.assertTrue(lp.is_click_type(click.Path(exists=True)))
+        self.assertTrue(lp.is_click_type(lp.click.Path))
+        self.assertTrue(lp.is_click_type(lp.click.Path(exists=True)))
+        self.assertTrue(lp.is_click_type(lp.click.Path(exists=True)))
 
 
 class TestArgument(unittest.TestCase):
@@ -163,13 +188,17 @@ class TestArgument(unittest.TestCase):
 
     def test_click_type(self):
         arg = lp.Argument("lol", 7, bool)
-        self.assertEqual(arg.click_type(), click.BOOL)
+        self.assertEqual(arg.click_type(), lp.click.BOOL)
         arg = lp.Argument("lol", 7, tuple[int, ...])
         self.assertEqual(arg.click_type(), int)
         self.assertEqual(arg.multiple, True)
         arg = lp.Argument("lol", 7, tuple[int, str])
-        self.assertEqual(type(arg.click_type()), type(click.Tuple([int, str])))
-        self.assertEqual(arg.click_type().types, click.Tuple([int, str]).types)
+        self.assertEqual(
+            type(arg.click_type()), type(lp.click.Tuple([int, str]))
+        )
+        self.assertEqual(
+            arg.click_type().types, lp.click.Tuple([int, str]).types
+        )
         self.assertEqual(arg.multiple, False)
         self.assertRaises(SystemExit, lp.Argument, "lol", 7, list)
         arg = lp.Argument("lol", 7, float)
@@ -184,6 +213,8 @@ class TestArgument(unittest.TestCase):
         self.assertEqual(arg.click_narg(), 1)
 
     def test_get_parser_group(self):
+        lp.OPTIONAL_TITLE = "Optional arguments"
+        lp.REQUIRED_TITLE = "Required arguments"
         arg = lp.Argument("lol", inspect._empty, int)
         self.assertEqual(arg.get_parser_group(), "Required arguments")
         arg = lp.Argument("lol", 6, int)
@@ -228,7 +259,7 @@ class TestLazyparser(unittest.TestCase):
         self.assertRaises(SystemExit, parser.init_args)
 
     def test_description(self):
-        lp.set_env(delim1=":param", delim2=":", hd="", tb=12)
+        lp.set_env(dict(delim1=":param", delim2=":", header="", tab=12))
 
         def func(x, y):
             return x * y
@@ -243,12 +274,13 @@ class TestLazyparser(unittest.TestCase):
             :param y: (int) a number y"""
         desc = "Multiply x by yTake two number and multiply them.@Keyword"
         self.assertEqual(parser.description().replace("\n", ""), desc)
-        lp.set_env(delim1="", delim2=":", hd="@Keyword", tb=12)
+        dic = {"delim1": "", "delim2": ":", "header": "@Keyword", "tab": 12}
+        lp.set_env(env=dic)
         desc = """Multiply x by yTake two number and multiply them."""
         self.assertEqual(parser.description().replace("\n", ""), desc)
 
     def test_update_param(self):
-        lp.set_env(tb=12)
+        lp.set_env(dict(delim1=":param", delim2=":", header="", tab=12))
 
         def func(x, y):
             return x * y
@@ -264,10 +296,10 @@ class TestLazyparser(unittest.TestCase):
         parser.update_param()
         self.assertEqual(parser.args["x"].help, "a number x")
         self.assertEqual(parser.args["y"].help, "a number y")
-        lp.set_env(delim1="", tb=12)
+        lp.set_env(dict(delim1="", tb=12))
 
     def test_update_param2(self):
-        lp.set_env(tb=12)
+        lp.set_env(dict(delim1=":param", delim2=":", header="", tab=12))
 
         def func(x):
             return x
@@ -285,23 +317,76 @@ class TestLazyparser(unittest.TestCase):
         self.assertEqual(
             parser.args["x"].help, "a number x with a super long description"
         )
-        lp.set_env(delim1="", tb=12)
+        lp.set_env(dict(delim1="", tb=12))
 
     def test_set_constrain(self):
-        lp.set_env()
+        lp.set_env(dict(delim1=":param", delim2=":", header="", tab=12))
 
         def func(x: int):
             return x * 2
 
         parser = lp.Lazyparser(func, {})
         self.assertEqual(parser.args["x"].type, int)
-        parser.set_constrain({"x": click.IntRange(5, 10)})
+        parser.set_constrain({"x": lp.click.IntRange(5, 10)})
         self.assertEqual(
-            type(parser.args["x"].type), type(click.IntRange(5, 10))
+            type(parser.args["x"].type), type(lp.click.IntRange(5, 10))
         )
         self.assertRaises(SystemExit, parser.set_constrain, {"x": tuple[int]})
 
     def test_set_version(self):
-        lp.set_version("0.2.0")
-        self.assertEqual(lp.PROG_VERSION, "0.2.0")
-        self.assertEqual(lp.FORBIDDEN, ["help", "h", "version"])
+        @lp.version(0.5)
+        @lp.standalone(False)
+        @lp.parse()
+        def multiply(x: int, y: int):
+            """
+            Multiply a by b.
+
+            :param x: a number x
+            :param y: a number y
+            :return: x * y
+            """
+            return x * y
+
+        import sys
+
+        sys.argv = ["xx", "-x", "7", "-y", "8"]
+        self.assertRaises(SystemExit, multiply)
+
+    def test_set_version2(self):
+        @lp.version("0.5")
+        @lp.standalone(False)
+        @lp.parse()
+        def multiply(x: int, y: int):
+            """
+            Multiply a by b.
+
+            :param x: a number x
+            :param y: a number y
+            :return: x * y
+            """
+            return x * y
+
+        import sys
+
+        sys.argv = ["xx", "-x", "7", "-y", "8"]
+        _ = multiply()
+        self.assertEqual(lp.PROG_VERSION, "0.5")
+
+    def test_parse2(self):
+        @lp.version("0.2")
+        @lp.standalone(False)
+        @lp.parse()
+        def multiply(x: int, y: int):
+            """
+            Multiply a by b.
+
+            :param x: a number x
+            :param y: a number y
+            :return: x * y
+            """
+            return x * y
+
+        import sys
+
+        sys.argv = ["xx", "--help"]
+        self.assertEqual(multiply(), 0)
