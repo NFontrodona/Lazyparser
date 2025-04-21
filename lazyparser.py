@@ -445,10 +445,11 @@ def set_env(env: dict | None):
     """
     Change the param delimiters.
 
-    :param delim1: (string) param delimiter 1
-    :param delim2: (string) param delimiter 2
-    :param hd: (string) the header of parameter
-    :param tb: (int) the number of space/tab that bedore the docstring
+    :param env: A dictionnary that may contain the following keys:
+        - tab: (int) the number of spaces or tabs before the docstring
+        - delim1: (str) the first delimiter of a parameter
+        - delim2: (str) the second delimiter of a parameter
+        - header: (str) the parameters header
     """
     if not env:
         return None
@@ -769,7 +770,6 @@ def docstrings(**env) -> Callable[..., Callable[[], Any]]:
     """
     Function used to set a value to some parameters when they are called.
 
-    :param func: (function) the function to wrap
     :param env: (dictionary) the named arguments
     :return: (function) wrap
     """
@@ -802,8 +802,7 @@ def version(version: str | None = None) -> Callable[..., Callable[[], Any]]:
     """
     Function used to set a value to some parameters when they are called.
 
-    :param func: (function) the function to wrap
-    :param version: (dictionary) the version of the program where
+    :param version: the version of the program where
     the decorated function is called
     :return: (function) wrap
     """
@@ -840,9 +839,7 @@ def standalone(mode: bool | None = None) -> Callable[..., Callable[[], Any]]:
     """
     Function used to set a value to some parameters when they are called.
 
-    :param func: (function) the function to wrap
-    :param version: (dictionary) the version of the program where
-    the decorated function is called
+    :param mode: Standalone mode to set
     :return: (function) wrap
     """
 
@@ -875,8 +872,7 @@ def groups(**groups) -> Callable[..., Callable[[], Any]]:
     """
     Function used to set a value to some parameters when they are called.
 
-    :param func: (function) the function to wrap
-    :param groups: (dictionary) the groups of options to create
+    :param groups: the groups of options to create
     :return: (function) wrap
     """
 
@@ -908,8 +904,7 @@ def epilog(epilog: str | None = None) -> Callable[..., Callable[[], Any]]:
     """
     Function used to set a value to some parameters when they are called.
 
-    :param func: (function) the function to wrap
-    :param groups: (dictionary) the groups of options to create
+    :param epilog: A string corresponding to the epilog of the help message
     :return: (function) wrap
     """
 
