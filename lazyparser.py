@@ -551,6 +551,13 @@ def check_subtype(argtype: type | types.GenericAlias, arg: Argument):
                 "e",
             )
             exit(1)
+        for i, t in enumerate(argtype.__args__):
+            if t is Ellipsis and i != 1:
+                message(
+                    "Ellipsis is allowed as the second of two arguments",
+                    arg,
+                    "e",
+                )
 
 
 def get_rich_usage(
