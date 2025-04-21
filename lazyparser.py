@@ -472,9 +472,6 @@ def set_env(env: dict | None):
     if "header" in env and isinstance(env["header"], str):
         global HEADER
         HEADER = env["header"].strip()
-    if "epilog" in env and isinstance(env["epilog"], str):
-        global EPI
-        EPI = env["epilog"].strip()
 
 
 def set_groups(arg_groups=None):
@@ -893,6 +890,40 @@ def groups(**groups) -> Callable[..., Callable[[], Any]]:
             """
             if groups is not None:
                 set_groups(groups)
+            return function()
+
+        return call_func
+
+    return wrap
+
+
+def epilog(epilog: str | None = None) -> Callable[..., Callable[[], Any]]:
+    """
+    Function used to set a value to some parameters when they are called.
+
+    :param func: (function) the function to wrap
+    :param groups: (dictionary) the groups of options to create
+    :return: (function) wrap
+    """
+
+    def wrap(function):
+        """
+        Wrapper of the function ``function``.
+
+        :param function: (function) the function to wrap
+        :return: (function) the method calling `` function``.
+        """
+
+        @functools.wraps(function)
+        def call_func():
+            """
+            Call the function ``self.func`` and return it's result.
+
+            :return: the result of the function ``self.func``
+            """
+            if isinstance(epilog, str):
+                global EPI
+                EPI = epilog.strip()
             return function()
 
         return call_func
