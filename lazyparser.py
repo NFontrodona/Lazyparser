@@ -452,6 +452,12 @@ def set_env(env: dict | None):
     """
     if not env:
         return None
+    for v, t in zip(
+        ["tab", "delim1", "delim2", "header", "epilog"],
+        [int, str, str, str, str],
+    ):
+        if v in env and not isinstance(env[v], t):
+            message(f"{v} must be of type {t.__name__}", None, "e")
     if "tab" in env and isinstance(env["tab"], int):
         global TAB
         TAB = env["tab"]
@@ -459,6 +465,8 @@ def set_env(env: dict | None):
         global PD1
         PD1 = env["delim1"].strip()
     if "delim2" in env and isinstance(env["delim2"], str):
+        if env["delim2"].strip() == "":
+            message("delim2 cannot be empty", None, "e")
         global PD2
         PD2 = env["delim2"].strip()
     if "header" in env and isinstance(env["header"], str):
@@ -811,6 +819,8 @@ def version(version: str | None = None) -> Callable[..., Callable[[], Any]]:
             :return: the result of the function ``self.func``
             """
             if version is not None:
+                if not isinstance(version, str):
+                    message("version must be a string", None, "e")
                 global PROG_VERSION
                 PROG_VERSION = version.strip()
                 FORBIDDEN.append("version")
