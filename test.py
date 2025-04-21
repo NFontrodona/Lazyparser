@@ -92,10 +92,10 @@ class TestFunction(unittest.TestCase):
         def lol():
             return None
 
-        func = lp.docstrings(epilog="Test")(lol)
+        func = lp.epilog(epilog="Test")(lol)
         _ = func()
         self.assertEqual(lp.EPI, "Test")
-        func = lp.docstrings(epilog=5)(lol)
+        func = lp.epilog(epilog=5)(lol)
         self.assertRaises(SystemExit, func)
 
     def test_init_parser(self):
