@@ -619,12 +619,12 @@ class HelpfulCmd(click.RichCommand):
         for p in self.params:
             if p.required:
                 rv.append(f"[bold cyan]--{p.name}[/bold cyan]")
-                rv.append(f"[bold yellow]{p.type.name.upper()}[/bold yellow]")
+                rv.append(f"[bold yellow]{p.make_metavar()}[/bold yellow]")
             elif p.name not in FORBIDDEN:
                 if p.is_flag:  # type: ignore
                     nt += f"[--[bold cyan]{p.name}[/bold cyan]] "
                 else:
-                    nt += f"[--[bold cyan]{p.name}[/bold cyan] [bold yellow]{str(p.type.name).upper()}[/bold yellow]] "
+                    nt += f"[--[bold cyan]{p.name}[/bold cyan] [bold yellow]{str(p.make_metavar())}[/bold yellow]] "
         rv.append(nt.strip())
         return rv
 
