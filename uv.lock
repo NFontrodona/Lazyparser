@@ -1,4 +1,5 @@
 version = 1
+revision = 1
 requires-python = ">=3.11"
 
 [[package]]
@@ -215,6 +216,7 @@ name = "lazyparser"
 version = "0.4.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "click" },
     { name = "rich-click" },
 ]
 
@@ -227,7 +229,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "rich-click", specifier = ">=1.8.8" }]
+requires-dist = [
+    { name = "click", specifier = "==8.1.8" },
+    { name = "rich-click", specifier = "==1.8.8" },
+]
 
 [package.metadata.requires-dev]
 dev = [
