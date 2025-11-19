@@ -41,7 +41,7 @@ from rich.text import Text
 from rich_click.rich_help_formatter import RichHelpFormatter
 from rich_click.rich_help_rendering import _make_rich_rext
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 __all__ = ("parse", "docstrings", "standalone", "version", "groups")
 
 

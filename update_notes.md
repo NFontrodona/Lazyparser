@@ -1,5 +1,9 @@
 # Update Notes
 
+## version 0.4.1
+
+* dependencies fix
+
 ## version 0.4.0
 
 * API changes for environment functions, they are now decorators
